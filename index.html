@@ -759,27 +759,43 @@
   }
 
   function animateGradient() {
-    if (!chartInstance || !chartInstance.data.datasets) { gradientAnimationFrame = requestAnimationFrame(animateGradient); return; }
-    gradientPhase += 0.015;
-    const canvas = document.getElementById('weightChart');
-    const ctx = canvas.getContext('2d');
-    const dataset = chartInstance.data.datasets[0];
-    const baseColor = dataset.borderColor;
-    const wavePos = (Math.sin(gradientPhase) * 0.5 + 0.5) * canvas.height;
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    let r, g, b;
-    if (baseColor === '#F85149') { r = 248; g = 81; b = 73; }
-    else if (baseColor === '#6BCB77') { r = 107; g = 203; b = 119; }
-    else { r = 79; g = 172; b = 254; }
-    const lightR = Math.min(255, r + 60), lightG = Math.min(255, g + 60), lightB = Math.min(255, b + 60);
-    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.6)`);
-    gradient.addColorStop(Math.max(0, wavePos / canvas.height - 0.15), `rgba(${r}, ${g}, ${b}, 0.4)`);
-    gradient.addColorStop(wavePos / canvas.height, `rgba(${lightR}, ${lightG}, ${lightB}, 0.5)`);
-    gradient.addColorStop(Math.min(1, wavePos / canvas.height + 0.15), `rgba(${r}, ${g}, ${b}, 0.3)`);
-    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-    dataset.backgroundColor = gradient;
-    chartInstance.update('none');
+  if (!chartInstance || !chartInstance.data.datasets) {
     gradientAnimationFrame = requestAnimationFrame(animateGradient);
+    return;
+  }
+  
+  gradientPhase += 0.015;
+  
+  const canvas = document.getElementById('weightChart');
+  const ctx = canvas.getContext('2d');
+  const dataset = chartInstance.data.datasets[0];
+  const baseColor = dataset.borderColor;
+  
+  // Вертикальная волна
+  const wavePos = (Math.sin(gradientPhase) * 0.5 + 0.5) * canvas.height;
+  
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  
+  let r, g, b;
+  if (baseColor === '#F85149') { r = 248; g = 81; b = 73; }
+  else if (baseColor === '#6BCB77') { r = 107; g = 203; b = 119; }
+  else { r = 79; g = 172; b = 254; }
+  
+  const lightR = Math.min(255, r + 60);
+  const lightG = Math.min(255, g + 60);
+  const lightB = Math.min(255, b + 60);
+  
+  // ВАЖНО: плавное исчезновение к низу
+  gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.7)`);
+  gradient.addColorStop(wavePos / canvas.height * 0.7, `rgba(${r}, ${g}, ${b}, 0.4)`);
+  gradient.addColorStop(wavePos / canvas.height, `rgba(${lightR}, ${lightG}, ${lightB}, 0.5)`);
+  gradient.addColorStop(wavePos / canvas.height + 0.2, `rgba(${r}, ${g}, ${b}, 0.2)`);
+  gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`); // ← ПОЛНАЯ ПРОЗРАЧНОСТЬ ВНИЗУ
+  
+  dataset.backgroundColor = gradient;
+  chartInstance.update('none');
+  
+  gradientAnimationFrame = requestAnimationFrame(animateGradient);
   }
 
   function renderWeightChart() {
