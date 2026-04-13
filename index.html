@@ -7,7 +7,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230D1117'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='%234FACFE'%3E🐱%3C/text%3E%3C/svg%3E">
   <title>🐱 FitCat</title>
-  <!-- ZXing + QuaggaJS -->
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <style>
@@ -97,7 +96,6 @@
     input[type="date"] { color-scheme: dark; min-width: 0; }
     input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     
-    /* Выпадающий список */
     .autocomplete-list {
       position: absolute; top: 100%; left: 0; right: 0;
       background: #1A2027; border: 1px solid #30363D;
@@ -109,7 +107,6 @@
       transition: background 0.15s; display: flex; justify-content: space-between;
     }
     .autocomplete-item:hover { background: rgba(79,172,254,0.2); }
-    .autocomplete-delete { color: #F85149; padding: 0 8px; }
     
     .radio-group {
       display: flex; gap: 24px; background: rgba(1, 4, 9, 0.6);
@@ -153,7 +150,6 @@
     .activity-text { font-weight: 600; margin-bottom: 2px; }
     .activity-desc { font-size: 13px; color: #9CA3AF; }
     
-    /* Кнопки */
     .btn-primary, .btn-secondary {
       width: 100%; border: none; border-radius: 40px; padding: 16px 24px;
       font-size: 16px; font-weight: 700; cursor: pointer;
@@ -187,7 +183,6 @@
     }
     .btn-small:hover { border-color: #4FACFE; background: rgba(79,172,254,0.1); transform: translateY(-2px); }
     
-    /* Шкалы с градиентом */
     .progress-bar-container {
       height: 10px; background: rgba(33, 38, 45, 0.6);
       border-radius: 10px; margin: 8px 0 16px; overflow: hidden;
@@ -196,14 +191,15 @@
     .progress-bar {
       height: 100%; border-radius: 10px;
       transition: width 0.6s cubic-bezier(0.22, 0.97, 0.33, 1.02);
-      background-size: 300% 100%; animation: barShimmer 3s ease-in-out infinite;
+      background-size: 300% 100% !important;
+      animation: barShimmer 4s ease-in-out infinite;
       width: 0%;
     }
-    .bar-kcal { background-image: linear-gradient(90deg, #FF6B6B, #FF8E53, #FF6B6B, #FFB347); }
-    .bar-protein { background-image: linear-gradient(90deg, #4FACFE, #00F2FE, #4FACFE, #7FC8FF); }
-    .bar-fat { background-image: linear-gradient(90deg, #FFD93D, #FFB347, #FFD93D, #FFA500); }
-    .bar-carbs { background-image: linear-gradient(90deg, #6BCB77, #4D96FF, #6BCB77, #9B59B6); }
-    .bar-water { background-image: linear-gradient(90deg, #00F2FE, #4FACFE, #00F2FE, #7FC8FF); }
+    .bar-kcal { background-image: linear-gradient(90deg, #FF6B6B, #FF8E53, #FFB347, #FF6B6B) !important; }
+    .bar-protein { background-image: linear-gradient(90deg, #4FACFE, #00F2FE, #7FC8FF, #4FACFE) !important; }
+    .bar-fat { background-image: linear-gradient(90deg, #FFD93D, #FFB347, #FFA500, #FFD93D) !important; }
+    .bar-carbs { background-image: linear-gradient(90deg, #6BCB77, #4D96FF, #9B59B6, #6BCB77) !important; }
+    .bar-water { background-image: linear-gradient(90deg, #00F2FE, #4FACFE, #7FC8FF, #00F2FE) !important; }
     
     @keyframes barShimmer {
       0% { background-position: 0% 50%; }
@@ -257,7 +253,6 @@
     .add-food-row { display: flex; gap: 8px; }
     .add-food-row input { padding: 10px; font-size: 14px; }
     
-    /* Шаблоны */
     .templates-bar {
       display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
     }
@@ -269,7 +264,6 @@
     }
     .template-btn:hover { border-color: #4FACFE; background: rgba(79,172,254,0.1); }
     
-    /* Сканер */
     .scanner-container {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: #0D1117; z-index: 1000; display: none;
@@ -284,7 +278,6 @@
     .barcode-manual { margin-top: 8px; display: flex; gap: 8px; }
     .scanner-hint { margin-top: 12px; color: #9CA3AF; font-size: 14px; }
     
-    /* Мои продукты */
     .product-edit-item {
       display: flex; align-items: center; gap: 8px; padding: 12px;
       background: rgba(1, 4, 9, 0.5); border-radius: 16px; margin-bottom: 8px;
@@ -317,24 +310,22 @@
 </head>
 <body>
 <div class="app">
-  <!-- Сканер -->
   <div id="scannerModal" class="scanner-container">
     <div class="scanner-header">
-      <h2 style="margin: 0;">📷 Сканер штрихкода</h2>
-      <button class="btn-small" onclick="closeScanner()">✕ Закрыть</button>
+      <h2 style="margin: 0;" data-i18n="scanner_title">📷 Сканер штрихкода</h2>
+      <button class="btn-small" onclick="closeScanner()" data-i18n="close">✕ Закрыть</button>
     </div>
     <video id="scannerVideo" class="scanner-video" playsinline></video>
     <div class="scanner-footer">
       <div class="barcode-manual">
-        <input type="text" id="manualBarcode" placeholder="Введите штрихкод" style="flex: 2;">
-        <button class="btn-small" onclick="lookupBarcode(document.getElementById('manualBarcode').value)" style="flex: 1;">🔍 Найти</button>
+        <input type="text" id="manualBarcode" data-i18n-placeholder="manual_placeholder" placeholder="Введите штрихкод" style="flex: 2;">
+        <button class="btn-small" onclick="lookupBarcode(document.getElementById('manualBarcode').value)" style="flex: 1;" data-i18n="search">🔍 Найти</button>
       </div>
-      <div class="scanner-hint" id="scannerHint">Наведите камеру на штрихкод</div>
-      <button class="btn-secondary" onclick="closeScanner()" style="margin-top: 12px;">Отмена</button>
+      <div class="scanner-hint" id="scannerHint" data-i18n="scanner_hint">Наведите камеру на штрихкод</div>
+      <button class="btn-secondary" onclick="closeScanner()" style="margin-top: 12px;" data-i18n="cancel">Отмена</button>
     </div>
   </div>
 
-  <!-- Регистрация -->
   <div id="setupPage">
     <h1>🐱 FitCat</h1>
     <div class="card">
@@ -373,7 +364,6 @@
     </div>
   </div>
 
-  <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h1 style="margin: 0;" id="greetingText">🐱 FitCat</h1>
@@ -403,14 +393,13 @@
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h2 data-i18n="meals" style="margin: 0;">Сегодня съедено</h2>
-          <button class="btn-small" onclick="openScanner()" style="width: auto; padding: 8px 12px;">📷 Сканер</button>
+          <button class="btn-small" onclick="openScanner()" style="width: auto; padding: 8px 12px;" data-i18n="scanner_btn">📷 Сканер</button>
         </div>
         
-        <!-- Шаблоны -->
         <div class="templates-bar" id="templatesBar"></div>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <button class="btn-small" onclick="saveTemplate()" style="flex: 1;">💾 Сохранить шаблон</button>
-          <button class="btn-small" onclick="clearTodayFoods()" style="flex: 1;">🗑️ Очистить</button>
+          <button class="btn-small" onclick="saveTemplate()" style="flex: 1;" data-i18n="save_template">💾 Сохранить шаблон</button>
+          <button class="btn-small" onclick="clearTodayFoods()" style="flex: 1;" data-i18n="clear_day">🗑️ Очистить</button>
         </div>
         
         <div class="food-list" id="foodListContainer"></div>
@@ -419,7 +408,7 @@
             <input type="text" id="foodName" data-i18n-placeholder="food_name" placeholder="Название продукта" autocomplete="off">
             <div id="autocompleteList" class="autocomplete-list"></div>
           </div>
-          <div style="font-size: 13px; color: #9CA3AF; margin: 4px 0;">На 100 грамм:</div>
+          <div style="font-size: 13px; color: #9CA3AF; margin: 4px 0;" data-i18n="per100g">На 100 грамм:</div>
           <div class="add-food-row">
             <input type="number" id="foodProt100" placeholder="Б" step="0.1">
             <input type="number" id="foodFat100" placeholder="Ж" step="0.1">
@@ -427,14 +416,13 @@
             <input type="number" id="foodKcal100" placeholder="Ккал">
           </div>
           <div class="add-food-row">
-            <input type="number" id="foodWeight" placeholder="Вес (грамм)" step="1" min="1" style="flex: 1;">
+            <input type="number" id="foodWeight" data-i18n-placeholder="weight_grams" placeholder="Вес (грамм)" step="1" min="1" style="flex: 1;">
           </div>
           <button class="btn-primary" onclick="addFood()" style="margin-top: 8px;"><span data-i18n="add_food">Добавить</span></button>
         </div>
       </div>
     </div>
     
-    <!-- Страница веса -->
     <div id="weightPage" class="page">
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -463,13 +451,12 @@
     </div>
   </div>
 
-  <!-- Настройки -->
   <div id="settingsPage" style="display: none;">
     <div class="card">
       <h2 data-i18n="settings">⚙️ Настройки</h2>
       <button class="btn-secondary" onclick="exportData()"><span data-i18n="export">Скачать данные</span></button>
       <button class="btn-secondary" onclick="importData()"><span data-i18n="import">Загрузить данные</span></button>
-      <button class="btn-secondary" onclick="showProductsManager()">📦 Мои продукты</button>
+      <button class="btn-secondary" onclick="showProductsManager()"><span data-i18n="my_products">📦 Мои продукты</span></button>
       <button class="btn-secondary" onclick="resetAllData()"><span data-i18n="reset">Сбросить всё</span></button>
       
       <h2 style="margin-top: 24px;" data-i18n="language">Язык</h2>
@@ -482,12 +469,11 @@
     </div>
   </div>
   
-  <!-- Мои продукты -->
   <div id="productsPage" style="display: none;">
     <div class="card">
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <button class="btn-small" onclick="showPage('settingsPage')">← Назад</button>
-        <h2 style="margin: 0;">📦 Мои продукты</h2>
+        <button class="btn-small" onclick="showPage('settingsPage')">← <span data-i18n="back">Назад</span></button>
+        <h2 style="margin: 0;" data-i18n="my_products_title">📦 Мои продукты</h2>
       </div>
       <div id="productsList"></div>
     </div>
@@ -496,7 +482,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-  // ========== ПЕРЕВОДЫ ==========
   const translations = {
     ru: {
       about: 'О себе', name: 'Имя', name_placeholder: 'Введите имя', age: 'Возраст', age_placeholder: 'Введите возраст',
@@ -513,10 +498,13 @@
       error_fill: 'Пожалуйста, заполните все поля', overwrite_weight: 'Запись на эту дату уже есть. Заменить?',
       enter_goal: 'Введите целевой вес (кг):', error_goal: 'Цель должна быть от 30 до 500 кг',
       product_not_found: 'Товар не найден', camera_error: 'Не удалось получить доступ к камере',
-      scanner_hint: 'Наведите камеру на штрихкод', scanner_failed: 'Не удалось распознать. Введите вручную.',
-      save_template: '💾 Сохранить шаблон', clear_day: '🗑️ Очистить день',
+      scanner_title: '📷 Сканер штрихкода', close: '✕ Закрыть', manual_placeholder: 'Введите штрихкод',
+      search: '🔍 Найти', cancel: 'Отмена', scanner_hint: 'Наведите камеру на штрихкод', scanner_failed: 'Не удалось распознать. Введите вручную.',
+      scanner_btn: '📷 Сканер', save_template: '💾 Сохранить шаблон', clear_day: '🗑️ Очистить',
       template_name: 'Название шаблона:', no_templates: 'Нет сохранённых шаблонов',
-      edit_product: 'Редактировать', delete_product: 'Удалить', save: 'Сохранить', cancel: 'Отмена'
+      my_products: '📦 Мои продукты', my_products_title: '📦 Мои продукты',
+      edit_product: 'Редактировать', delete_product: 'Удалить', save: 'Сохранить', per100g: 'На 100 грамм:',
+      weight_grams: 'Вес (грамм)'
     },
     en: {
       about: 'About you', name: 'Name', name_placeholder: 'Enter name', age: 'Age', age_placeholder: 'Enter age',
@@ -533,10 +521,13 @@
       error_fill: 'Please fill in all fields', overwrite_weight: 'Entry for this date already exists. Replace?',
       enter_goal: 'Enter target weight (kg):', error_goal: 'Goal must be between 30 and 500 kg',
       product_not_found: 'Product not found', camera_error: 'Could not access camera',
-      scanner_hint: 'Point camera at barcode', scanner_failed: 'Could not scan. Enter manually.',
-      save_template: '💾 Save Template', clear_day: '🗑️ Clear Day',
+      scanner_title: '📷 Barcode Scanner', close: '✕ Close', manual_placeholder: 'Enter barcode',
+      search: '🔍 Search', cancel: 'Cancel', scanner_hint: 'Point camera at barcode', scanner_failed: 'Could not scan. Enter manually.',
+      scanner_btn: '📷 Scanner', save_template: '💾 Save Template', clear_day: '🗑️ Clear Day',
       template_name: 'Template name:', no_templates: 'No saved templates',
-      edit_product: 'Edit', delete_product: 'Delete', save: 'Save', cancel: 'Cancel'
+      my_products: '📦 My Products', my_products_title: '📦 My Products',
+      edit_product: 'Edit', delete_product: 'Delete', save: 'Save', per100g: 'Per 100g:',
+      weight_grams: 'Weight (grams)'
     },
     cn: {
       about: '关于你', name: '名字', name_placeholder: '输入名字', age: '年龄', age_placeholder: '输入年龄',
@@ -553,10 +544,13 @@
       error_fill: '请填写所有字段', overwrite_weight: '该日期已有记录。替换？',
       enter_goal: '输入目标体重 (kg):', error_goal: '目标需在30至500 kg之间',
       product_not_found: '未找到商品', camera_error: '无法访问相机',
-      scanner_hint: '将相机对准条码', scanner_failed: '无法扫描。请手动输入。',
-      save_template: '💾 保存模板', clear_day: '🗑️ 清空',
+      scanner_title: '📷 条码扫描器', close: '✕ 关闭', manual_placeholder: '输入条码',
+      search: '🔍 搜索', cancel: '取消', scanner_hint: '将相机对准条码', scanner_failed: '无法扫描。请手动输入。',
+      scanner_btn: '📷 扫描', save_template: '💾 保存模板', clear_day: '🗑️ 清空',
       template_name: '模板名称:', no_templates: '无保存的模板',
-      edit_product: '编辑', delete_product: '删除', save: '保存', cancel: '取消'
+      my_products: '📦 我的产品', my_products_title: '📦 我的产品',
+      edit_product: '编辑', delete_product: '删除', save: '保存', per100g: '每100克:',
+      weight_grams: '重量 (克)'
     }
   };
 
@@ -566,14 +560,9 @@
   let todayFoods = [];
   let weightHistory = [];
   let chartInstance = null;
-  
   let productsDB = [];
   let mealTemplates = [];
-  
-  let zxingReader = null;
-  let quaggaActive = false;
-  let scanningActive = false;
-  let scanTimeout = null;
+  let zxingReader = null, quaggaActive = false, scanningActive = false, scanTimeout = null;
 
   function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
   function getBarColor(pct) {
@@ -594,42 +583,29 @@
       if (translations[lang]?.[key]) el.placeholder = translations[lang][key];
     });
     if (currentProfile) {
-      updateGreeting();
-      renderProgressBars();
-      renderFoodList();
-      updateWaterDisplay();
-      updateWeightStatsAndList();
-      renderWeightChart();
-      renderTemplates();
+      updateGreeting(); renderProgressBars(); renderFoodList(); updateWaterDisplay();
+      updateWeightStatsAndList(); renderWeightChart(); renderTemplates();
     }
   }
 
-  function loadProductsDB() {
-    const saved = localStorage.getItem('fitcat_products');
-    if (saved) productsDB = JSON.parse(saved);
-  }
+  function loadProductsDB() { const s = localStorage.getItem('fitcat_products'); if (s) productsDB = JSON.parse(s); }
   function saveProductsDB() { localStorage.setItem('fitcat_products', JSON.stringify(productsDB)); }
   function addToProductsDB(name, prot, fat, carbs, kcal) {
-    const existing = productsDB.find(p => p.name.toLowerCase() === name.toLowerCase());
-    if (!existing) { productsDB.push({ name, protein: prot, fat, carbs, kcal }); saveProductsDB(); }
+    const ex = productsDB.find(p => p.name.toLowerCase() === name.toLowerCase());
+    if (!ex) { productsDB.push({ name, protein: prot, fat, carbs, kcal }); saveProductsDB(); }
   }
-  
   function setupAutocomplete() {
-    const input = document.getElementById('foodName');
-    const list = document.getElementById('autocompleteList');
-    input.addEventListener('input', function() {
+    const inp = document.getElementById('foodName'), list = document.getElementById('autocompleteList');
+    inp.addEventListener('input', function() {
       const val = this.value.toLowerCase();
       if (val.length < 2) { list.style.display = 'none'; return; }
       const matches = productsDB.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
       if (!matches.length) { list.style.display = 'none'; return; }
-      list.innerHTML = matches.map(p => 
-        `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')">${p.name} (Б:${p.protein} Ж:${p.fat} У:${p.carbs} ${p.kcal}ккал)</div>`
-      ).join('');
+      list.innerHTML = matches.map(p => `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')">${p.name} (Б:${p.protein} Ж:${p.fat} У:${p.carbs} ${p.kcal}ккал)</div>`).join('');
       list.style.display = 'block';
     });
-    document.addEventListener('click', (e) => { if (!input.contains(e.target) && !list.contains(e.target)) list.style.display = 'none'; });
+    document.addEventListener('click', (e) => { if (!inp.contains(e.target) && !list.contains(e.target)) list.style.display = 'none'; });
   }
-  
   function fillFromProduct(name) {
     const p = productsDB.find(p => p.name === name);
     if (p) {
@@ -647,9 +623,7 @@
   function renderTemplates() {
     const c = document.getElementById('templatesBar'), t = translations[currentLang];
     if (!mealTemplates.length) { c.innerHTML = `<div class="text-small" style="width:100%;text-align:center;">${t.no_templates}</div>`; return; }
-    c.innerHTML = mealTemplates.map((tmpl, i) => 
-      `<div class="template-btn" onclick="loadTemplate(${i})">${tmpl.name}</div><div class="template-btn" onclick="deleteTemplate(${i})" style="padding:8px;">✕</div>`
-    ).join('');
+    c.innerHTML = mealTemplates.map((tmpl, i) => `<div class="template-btn" onclick="loadTemplate(${i})">${tmpl.name}</div><div class="template-btn" onclick="deleteTemplate(${i})" style="padding:8px;">✕</div>`).join('');
   }
   function saveTemplate() {
     if (!todayFoods.length) { alert('Нет блюд'); return; }
@@ -712,7 +686,6 @@
     }
     setupWaterControls();
   };
-
   function loadData() {
     currentProfile = JSON.parse(localStorage.getItem('fitnessProfile') || 'null');
     todayFoods = JSON.parse(localStorage.getItem('todayFoods') || '[]');
@@ -768,7 +741,7 @@
     bars.forEach(b=>{
       const pct = (b.cur/b.tar)*100, col = getBarColor(pct);
       h += `<div class="bar-group"><div class="flex" style="justify-content:space-between;"><span>${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}</span><span style="color:${col}">${Math.round(pct)}%</span></div>
-        <div class="progress-bar-container"><div class="progress-bar ${b.cls}" style="width:${Math.min(pct,100)}%; background:${col};"></div></div></div>`;
+        <div class="progress-bar-container"><div class="progress-bar ${b.cls}" style="width:${Math.min(pct,100)}%;"></div></div></div>`;
     });
     document.getElementById('progressBars').innerHTML = h;
   }
@@ -861,22 +834,22 @@
   }
   function renderProductsList() {
     const t = translations[currentLang], c = document.getElementById('productsList');
-    if (!productsDB.length) { c.innerHTML = `<div class="text-center text-small">Нет сохранённых продуктов</div>`; return; }
+    if (!productsDB.length) { c.innerHTML = `<div class="text-center text-small">${t.no_templates}</div>`; return; }
     c.innerHTML = productsDB.map((p,i)=>`<div class="product-edit-item">
-      <div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">Б:${p.protein} Ж:${p.fat} У:${p.carbs} ${p.kcal}ккал</div></div>
+      <div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">${t.protein.slice(0,1)}:${p.protein} ${t.fat.slice(0,1)}:${p.fat} ${t.carbs.slice(0,1)}:${p.carbs} ${p.kcal}${currentLang==='en'?'kcal':'ккал'}</div></div>
       <div class="product-edit-actions"><button class="btn-small" onclick="editProduct(${i})">✏️</button><button class="btn-small" onclick="deleteProduct(${i})">🗑️</button></div>
     </div>`).join('');
   }
   function editProduct(i) {
-    const p = productsDB[i];
-    const n = prompt('Название', p.name); if (n) p.name = n;
-    const prot = prompt('Белки (г на 100г)', p.protein); if (prot) p.protein = parseFloat(prot);
-    const fat = prompt('Жиры (г на 100г)', p.fat); if (fat) p.fat = parseFloat(fat);
-    const carbs = prompt('Углеводы (г на 100г)', p.carbs); if (carbs) p.carbs = parseFloat(carbs);
-    const kcal = prompt('Калории (ккал на 100г)', p.kcal); if (kcal) p.kcal = parseFloat(kcal);
+    const p = productsDB[i], t = translations[currentLang];
+    const n = prompt(t.name, p.name); if (n) p.name = n;
+    const prot = prompt(t.protein, p.protein); if (prot) p.protein = parseFloat(prot);
+    const fat = prompt(t.fat, p.fat); if (fat) p.fat = parseFloat(fat);
+    const carbs = prompt(t.carbs, p.carbs); if (carbs) p.carbs = parseFloat(carbs);
+    const kcal = prompt(t.kcal, p.kcal); if (kcal) p.kcal = parseFloat(kcal);
     saveProductsDB(); renderProductsList();
   }
-  function deleteProduct(i) { if (confirm('Удалить продукт?')) { productsDB.splice(i,1); saveProductsDB(); renderProductsList(); } }
+  function deleteProduct(i) { if (confirm(translations[currentLang].delete_product+'?')) { productsDB.splice(i,1); saveProductsDB(); renderProductsList(); } }
 
   function exportData() {
     const data = { profile: currentProfile, foods: todayFoods, weight: weightHistory, products: productsDB, templates: mealTemplates };
@@ -890,7 +863,7 @@
       }; r.readAsText(f);
     }; i.click();
   }
-  function resetAllData() { if (confirm('Точно сбросить ВСЁ?')) { localStorage.clear(); location.reload(); } }
+  function resetAllData() { if (confirm(translations[currentLang].reset+'?')) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
