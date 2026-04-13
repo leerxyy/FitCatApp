@@ -6,8 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>🐱 FitCat</title>
-  <!-- ZXing для сканера штрихкодов -->
+  <!-- ZXing + QuaggaJS -->
   <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { background: #0D1117; }
@@ -254,6 +255,9 @@
     .barcode-manual {
       margin-top: 8px; display: flex; gap: 8px;
     }
+    .scanner-hint {
+      margin-top: 12px; color: #9CA3AF; font-size: 14px;
+    }
     
     .weight-stats .flex > div { flex: 1; }
     #weightChangeStat.positive { color: #6BCB77; }
@@ -284,11 +288,14 @@
       <h2 style="margin: 0;">📷 Сканер штрихкода</h2>
       <button class="btn-small" onclick="closeScanner()">✕ Закрыть</button>
     </div>
-    <video id="scannerVideo" class="scanner-video"></video>
+    <video id="scannerVideo" class="scanner-video" playsinline></video>
     <div class="scanner-footer">
       <div class="barcode-manual">
         <input type="text" id="manualBarcode" placeholder="Введите штрихкод" style="flex: 2;">
         <button class="btn-small" onclick="lookupBarcode(document.getElementById('manualBarcode').value)" style="flex: 1;">🔍 Найти</button>
+      </div>
+      <div class="scanner-hint" id="scannerHint">
+        Наведите камеру на штрихкод
       </div>
       <button class="btn-secondary" onclick="closeScanner()" style="margin-top: 12px;">Отмена</button>
     </div>
@@ -446,9 +453,8 @@
       kcal: 'Калории', protein: 'Белки', fat: 'Жиры', carbs: 'Углеводы', water: 'Вода', empty_food: 'Добавьте первый продукт',
       error_fill: 'Пожалуйста, заполните все поля', overwrite_weight: 'Запись на эту дату уже есть. Заменить?',
       enter_goal: 'Введите целевой вес (кг):', error_goal: 'Цель должна быть от 30 до 500 кг',
-      scanner_title: '📷 Сканер штрихкода', close: '✕ Закрыть', manual_placeholder: 'Введите штрихкод',
-      search: '🔍 Найти', cancel: 'Отмена', product_not_found: 'Товар не найден',
-      camera_error: 'Не удалось получить доступ к камере'
+      product_not_found: 'Товар не найден', camera_error: 'Не удалось получить доступ к камере',
+      scanner_hint: 'Наведите камеру на штрихкод', scanner_failed: 'Не удалось распознать. Введите штрихкод вручную.'
     },
     en: {
       about: 'About you', name: 'Name', name_placeholder: 'Enter name', age: 'Age', age_placeholder: 'Enter age',
@@ -464,9 +470,8 @@
       kcal: 'Calories', protein: 'Protein', fat: 'Fat', carbs: 'Carbs', water: 'Water', empty_food: 'Add your first food',
       error_fill: 'Please fill in all fields', overwrite_weight: 'Entry for this date already exists. Replace?',
       enter_goal: 'Enter target weight (kg):', error_goal: 'Goal must be between 30 and 500 kg',
-      scanner_title: '📷 Barcode Scanner', close: '✕ Close', manual_placeholder: 'Enter barcode',
-      search: '🔍 Search', cancel: 'Cancel', product_not_found: 'Product not found',
-      camera_error: 'Could not access camera'
+      product_not_found: 'Product not found', camera_error: 'Could not access camera',
+      scanner_hint: 'Point camera at barcode', scanner_failed: 'Could not scan. Enter barcode manually.'
     },
     cn: {
       about: '关于你', name: '名字', name_placeholder: '输入名字', age: '年龄', age_placeholder: '输入年龄',
@@ -482,9 +487,8 @@
       kcal: '卡路里', protein: '蛋白质', fat: '脂肪', carbs: '碳水', water: '水', empty_food: '添加第一个食物',
       error_fill: '请填写所有字段', overwrite_weight: '该日期已有记录。替换？',
       enter_goal: '输入目标体重 (kg):', error_goal: '目标需在30至500 kg之间',
-      scanner_title: '📷 条码扫描器', close: '✕ 关闭', manual_placeholder: '输入条码',
-      search: '🔍 搜索', cancel: '取消', product_not_found: '未找到商品',
-      camera_error: '无法访问相机'
+      product_not_found: '未找到商品', camera_error: '无法访问相机',
+      scanner_hint: '将相机对准条码', scanner_failed: '无法扫描。请手动输入条码。'
     }
   };
 
@@ -494,10 +498,14 @@
   let todayFoods = [];
   let weightHistory = [];
   let chartInstance = null;
-  let codeReader = null;
+  
+  // Сканер
+  let zxingReader = null;
+  let quaggaActive = false;
   let scanningActive = false;
+  let scanTimeout = null;
 
-  // ========== ФУНКЦИИ ЯЗЫКА ==========
+  // ========== ЯЗЫК ==========
   function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('fitcat_lang', lang);
@@ -519,9 +527,10 @@
     }
   }
 
-  // ========== СКАНЕР ==========
+  // ========== СКАНЕР (ZXing + QuaggaJS) ==========
   function openScanner() {
     document.getElementById('scannerModal').style.display = 'flex';
+    document.getElementById('scannerHint').innerText = translations[currentLang].scanner_hint;
     startScanner();
   }
 
@@ -532,26 +541,55 @@
 
   async function startScanner() {
     const video = document.getElementById('scannerVideo');
-    codeReader = new ZXing.BrowserMultiFormatReader();
     scanningActive = true;
     
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: 1280, height: 720 } 
+      });
       video.srcObject = stream;
-      video.setAttribute('playsinline', true);
       video.play();
-      
-      codeReader.decodeFromVideoDevice(null, video, (result, err) => {
+
+      // 1. ZXing
+      zxingReader = new ZXing.BrowserMultiFormatReader();
+      zxingReader.decodeFromVideoDevice(null, video, (result, err) => {
         if (result && scanningActive) {
           const barcode = result.text;
-          lookupBarcode(barcode);
           stopScanner();
           closeScanner();
-        }
-        if (err && !(err instanceof ZXing.NotFoundException)) {
-          console.error(err);
+          lookupBarcode(barcode);
         }
       });
+
+      // 2. QuaggaJS (параллельно)
+      Quagga.init({
+        inputStream: { name: 'Live', type: 'LiveStream', target: video },
+        decoder: { readers: ['ean_reader', 'ean_8_reader', 'upc_reader'] },
+        locate: true,
+        numOfWorkers: 2,
+        frequency: 10
+      }, function(err) {
+        if (err) { console.log('Quagga init error:', err); return; }
+        quaggaActive = true;
+        Quagga.start();
+      });
+
+      Quagga.onDetected(function(result) {
+        if (result && result.codeResult && scanningActive) {
+          const barcode = result.codeResult.code;
+          stopScanner();
+          closeScanner();
+          lookupBarcode(barcode);
+        }
+      });
+
+      // Таймаут: если за 8 секунд не распознали — показываем подсказку
+      scanTimeout = setTimeout(() => {
+        if (scanningActive) {
+          document.getElementById('scannerHint').innerText = translations[currentLang].scanner_failed;
+        }
+      }, 8000);
+
     } catch (error) {
       alert(translations[currentLang].camera_error);
       closeScanner();
@@ -560,10 +598,18 @@
 
   function stopScanner() {
     scanningActive = false;
-    if (codeReader) {
-      codeReader.reset();
-      codeReader = null;
+    if (scanTimeout) clearTimeout(scanTimeout);
+    
+    if (zxingReader) {
+      zxingReader.reset();
+      zxingReader = null;
     }
+    
+    if (quaggaActive) {
+      Quagga.stop();
+      quaggaActive = false;
+    }
+    
     const video = document.getElementById('scannerVideo');
     if (video && video.srcObject) {
       video.srcObject.getTracks().forEach(track => track.stop());
@@ -593,7 +639,7 @@
     }
   }
 
-  // ========== ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений) ==========
+  // ========== ОСТАЛЬНОЕ (без изменений) ==========
   window.onload = function() {
     const savedLang = localStorage.getItem('fitcat_lang') || 'ru';
     setLanguage(savedLang);
