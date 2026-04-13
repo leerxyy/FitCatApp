@@ -317,6 +317,26 @@
     .add-food-row { display: flex; gap: 8px; }
     .add-food-row input { padding: 10px; font-size: 14px; }
     
+    /* ========== СТАТИСТИКА ВЕСА ========== */
+    .weight-stats .flex > div { flex: 1; }
+    
+    #weightChangeStat.positive { color: #6BCB77; }
+    #weightChangeStat.negative { color: #F85149; }
+    
+    .weight-history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; background: rgba(1, 4, 9, 0.4);
+      border-radius: 12px; margin-bottom: 6px;
+    }
+    
+    .weight-history-date { font-size: 14px; color: #9CA3AF; }
+    .weight-history-value { font-weight: 600; font-size: 16px; }
+    .weight-history-delete { 
+      color: #F85149; cursor: pointer; padding: 4px 8px; 
+      font-size: 16px; transition: transform 0.2s;
+    }
+    .weight-history-delete:hover { transform: scale(1.2); }
+    
     /* ========== УТИЛИТЫ ========== */
     .flex { display: flex; gap: 8px; align-items: center; }
     .text-center { text-align: center; }
@@ -348,6 +368,7 @@
       
       <div class="input-group"><label data-i18n="height">Рост (см)</label><input type="number" id="setupHeight" data-i18n-placeholder="height_placeholder" placeholder="Введите рост" min="100" max="250"></div>
       <div class="input-group"><label data-i18n="weight_label">Вес (кг)</label><input type="number" id="setupWeight" data-i18n-placeholder="weight_placeholder" placeholder="Введите вес" min="30" max="450" step="0.1"></div>
+      <div class="input-group"><label data-i18n="target_weight">Целевой вес (кг)</label><input type="number" id="setupTargetWeight" data-i18n-placeholder="target_weight_placeholder" placeholder="Введите целевой вес" min="30" max="450" step="0.1"></div>
     </div>
     
     <div class="card">
@@ -430,15 +451,53 @@
       </div>
     </div>
     
+    <!-- СТРАНИЦА ВЕСА -->
     <div id="weightPage" class="page">
       <div class="card">
-        <h2 data-i18n="weight_log">Журнал веса</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="margin: 0;" data-i18n="weight_log">📊 Журнал веса</h2>
+          <button class="btn-small" onclick="setWeightGoal()" style="width: auto; padding: 8px 16px;">
+            <span data-i18n="set_goal">🎯 Задать цель</span>
+          </button>
+        </div>
+        
+        <!-- Статистика -->
+        <div id="weightStats" class="weight-stats" style="margin-bottom: 16px; padding: 12px; background: rgba(1,4,9,0.4); border-radius: 16px;">
+          <div class="flex" style="justify-content: space-around; text-align: center;">
+            <div>
+              <div class="text-small" data-i18n="start_weight">Старт</div>
+              <div style="font-size: 20px; font-weight: 700;" id="startWeightStat">—</div>
+            </div>
+            <div>
+              <div class="text-small" data-i18n="current_weight">Сейчас</div>
+              <div style="font-size: 20px; font-weight: 700;" id="currentWeightStat">—</div>
+            </div>
+            <div>
+              <div class="text-small" data-i18n="lost">Изменение</div>
+              <div style="font-size: 20px; font-weight: 700;" id="weightChangeStat">—</div>
+            </div>
+            <div>
+              <div class="text-small" data-i18n="to_goal">До цели</div>
+              <div style="font-size: 20px; font-weight: 700;" id="toGoalStat">—</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Форма добавления -->
         <div class="flex mb-2">
           <input type="number" id="newWeight" data-i18n-placeholder="weight_input" placeholder="Вес" step="0.1" style="flex: 2;">
           <input type="date" id="weightDate" style="flex: 2;">
-          <button class="btn-small" onclick="addWeightEntry()" style="flex: 1;"><span data-i18n="add">Добавить</span></button>
+          <button class="btn-small" onclick="addWeightEntry()" style="flex: 1;"><span data-i18n="add">➕</span></button>
         </div>
+        
+        <!-- График -->
         <canvas id="weightChart" style="width:100%; height:200px;"></canvas>
+        
+        <!-- Список записей -->
+        <div style="margin-top: 16px;">
+          <h3 style="margin-bottom: 8px;" data-i18n="history">📋 История</h3>
+          <div id="weightHistoryList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -473,6 +532,7 @@
       gender: 'Пол', female: 'Женский', male: 'Мужской',
       height: 'Рост (см)', height_placeholder: 'Введите рост',
       weight_label: 'Вес (кг)', weight_placeholder: 'Введите вес',
+      target_weight: 'Целевой вес (кг)', target_weight_placeholder: 'Введите целевой вес',
       activity: 'Активность',
       activity_low: 'Малая', activity_low_desc: 'Сидячая работа',
       activity_mid: 'Умеренная', activity_mid_desc: 'Тренировки 2-3 раза',
@@ -482,12 +542,17 @@
       settings_btn: 'Настройки', tab_today: 'Сегодня', tab_weight: 'Вес',
       progress: 'Прогресс', water_title: 'Вода', ml: 'мл',
       meals: 'Сегодня съедено', food_name: 'Название продукта', add_food: 'Добавить',
-      weight_log: 'Журнал веса', weight_input: 'Вес', add: 'Добавить',
+      weight_log: '📊 Журнал веса', weight_input: 'Вес', add: '➕',
+      set_goal: '🎯 Задать цель',
+      start_weight: 'Старт', current_weight: 'Сейчас', lost: 'Изменение', to_goal: 'До цели',
+      history: '📋 История',
       settings: 'Настройки', export: 'Скачать данные', import: 'Загрузить данные', reset: 'Сбросить всё', back: 'Назад',
       morning: 'Доброе утро', day: 'Добрый день', evening: 'Добрый вечер', night: 'Доброй ночи',
       kcal: 'Калории', protein: 'Белки', fat: 'Жиры', carbs: 'Углеводы', water: 'Вода',
       empty_food: 'Добавьте первый продукт',
-      error_fill: 'Пожалуйста, заполните все поля'
+      error_fill: 'Пожалуйста, заполните все поля',
+      overwrite_weight: 'Запись на эту дату уже есть. Заменить?',
+      enter_goal: 'Введите целевой вес (кг):'
     },
     en: {
       about: 'About you', name: 'Name', name_placeholder: 'Enter name',
@@ -495,6 +560,7 @@
       gender: 'Gender', female: 'Female', male: 'Male',
       height: 'Height (cm)', height_placeholder: 'Enter height',
       weight_label: 'Weight (kg)', weight_placeholder: 'Enter weight',
+      target_weight: 'Target weight (kg)', target_weight_placeholder: 'Enter target weight',
       activity: 'Activity',
       activity_low: 'Low', activity_low_desc: 'Sedentary',
       activity_mid: 'Moderate', activity_mid_desc: 'Exercise 2-3x/week',
@@ -504,12 +570,17 @@
       settings_btn: 'Settings', tab_today: 'Today', tab_weight: 'Weight',
       progress: 'Progress', water_title: 'Water', ml: 'ml',
       meals: 'Today\'s food', food_name: 'Food name', add_food: 'Add',
-      weight_log: 'Weight Log', weight_input: 'Weight', add: 'Add',
+      weight_log: '📊 Weight Log', weight_input: 'Weight', add: '➕',
+      set_goal: '🎯 Set Goal',
+      start_weight: 'Start', current_weight: 'Now', lost: 'Change', to_goal: 'To goal',
+      history: '📋 History',
       settings: 'Settings', export: 'Export Data', import: 'Import Data', reset: 'Reset All', back: 'Back',
       morning: 'Good morning', day: 'Good afternoon', evening: 'Good evening', night: 'Good night',
       kcal: 'Calories', protein: 'Protein', fat: 'Fat', carbs: 'Carbs', water: 'Water',
       empty_food: 'Add your first food',
-      error_fill: 'Please fill in all fields'
+      error_fill: 'Please fill in all fields',
+      overwrite_weight: 'Entry for this date already exists. Replace?',
+      enter_goal: 'Enter target weight (kg):'
     },
     cn: {
       about: '关于你', name: '名字', name_placeholder: '输入名字',
@@ -517,6 +588,7 @@
       gender: '性别', female: '女', male: '男',
       height: '身高 (cm)', height_placeholder: '输入身高',
       weight_label: '体重 (kg)', weight_placeholder: '输入体重',
+      target_weight: '目标体重 (kg)', target_weight_placeholder: '输入目标体重',
       activity: '活动量',
       activity_low: '低', activity_low_desc: '久坐',
       activity_mid: '中', activity_mid_desc: '每周运动2-3次',
@@ -526,12 +598,17 @@
       settings_btn: '设置', tab_today: '今天', tab_weight: '体重',
       progress: '进度', water_title: '水', ml: '毫升',
       meals: '今日饮食', food_name: '食物名称', add_food: '添加',
-      weight_log: '体重记录', weight_input: '体重', add: '添加',
+      weight_log: '📊 体重记录', weight_input: '体重', add: '➕',
+      set_goal: '🎯 设定目标',
+      start_weight: '起始', current_weight: '当前', lost: '变化', to_goal: '距目标',
+      history: '📋 记录',
       settings: '设置', export: '导出数据', import: '导入数据', reset: '全部重置', back: '返回',
       morning: '早上好', day: '下午好', evening: '晚上好', night: '晚安',
       kcal: '卡路里', protein: '蛋白质', fat: '脂肪', carbs: '碳水', water: '水',
       empty_food: '添加第一个食物',
-      error_fill: '请填写所有字段'
+      error_fill: '请填写所有字段',
+      overwrite_weight: '该日期已有记录。替换？',
+      enter_goal: '输入目标体重 (kg):'
     }
   };
   
@@ -561,6 +638,8 @@
       renderProgressBars();
       renderFoodList();
       updateWaterDisplay();
+      updateWeightStatsAndList();
+      renderWeightChart();
     }
   }
   
@@ -627,6 +706,7 @@
     const gender = document.querySelector('input[name="setupGender"]:checked')?.value;
     const height = parseFloat(document.getElementById('setupHeight').value);
     const weight = parseFloat(document.getElementById('setupWeight').value);
+    const targetWeight = parseFloat(document.getElementById('setupTargetWeight').value) || weight * 0.9;
     const activityEl = document.querySelector('.activity-item.selected');
     
     if (!name || !age || age < 10 || age > 100 || !gender || !height || height < 100 || height > 250 || !weight || weight < 30 || weight > 450 || !activityEl) {
@@ -636,7 +716,7 @@
     
     const activity = parseFloat(activityEl.dataset.activity);
     
-    currentProfile = { name, age, gender, height, weight, activity, startWeight: weight };
+    currentProfile = { name, age, gender, height, weight, activity, targetWeight, startWeight: weight };
     calculateTargets();
     saveAllData();
     localStorage.setItem('lastDate', new Date().toDateString());
@@ -688,7 +768,6 @@
       { id: 'water', label: t.water, current: waterAmount, target: dailyTargets.water, unit: currentLang === 'en' ? 'ml' : 'мл', cls: 'bar-water' }
     ];
 
-    // Если контейнер пуст, создаем структуру
     if (!document.querySelector('.progress-bar')) {
       let html = '';
       bars.forEach(b => {
@@ -712,7 +791,6 @@
       return;
     }
 
-    // Если элементы уже есть, просто обновляем их
     bars.forEach(b => {
       const pct = (b.current / b.target) * 100;
       const isOver = pct > 100;
@@ -825,12 +903,88 @@
     document.getElementById('waterGoalText').innerText = dailyTargets.water + (currentLang === 'en' ? ' ml' : ' мл');
   }
   
+  // ========== ФУНКЦИИ ВЕСА ==========
+  function setWeightGoal() {
+    const currentGoal = currentProfile?.targetWeight || 55;
+    const newGoal = prompt(translations[currentLang].enter_goal, currentGoal);
+    if (newGoal && !isNaN(newGoal) && parseFloat(newGoal) > 0) {
+      currentProfile.targetWeight = parseFloat(newGoal);
+      saveAllData();
+      updateWeightStatsAndList();
+      renderWeightChart();
+    }
+  }
+  
+  function updateWeightStatsAndList() {
+    const t = translations[currentLang];
+    const goalWeight = currentProfile?.targetWeight || currentProfile?.startWeight * 0.9 || 55;
+    
+    if (weightHistory.length > 0) {
+      const sorted = [...weightHistory].sort((a,b) => new Date(a.date) - new Date(b.date));
+      const startWeight = sorted[0].weight;
+      const currentWeight = sorted[sorted.length - 1].weight;
+      const change = currentWeight - startWeight;
+      const toGoal = currentWeight - goalWeight;
+      
+      document.getElementById('startWeightStat').innerText = startWeight.toFixed(1) + ' кг';
+      document.getElementById('currentWeightStat').innerText = currentWeight.toFixed(1) + ' кг';
+      
+      const changeEl = document.getElementById('weightChangeStat');
+      changeEl.innerText = (change > 0 ? '+' : '') + change.toFixed(1) + ' кг';
+      changeEl.className = change < 0 ? 'positive' : (change > 0 ? 'negative' : '');
+      
+      const goalEl = document.getElementById('toGoalStat');
+      goalEl.innerText = (toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' кг';
+      goalEl.style.color = toGoal <= 0 ? '#6BCB77' : '#9CA3AF';
+    } else {
+      document.getElementById('startWeightStat').innerText = '—';
+      document.getElementById('currentWeightStat').innerText = '—';
+      document.getElementById('weightChangeStat').innerText = '—';
+      document.getElementById('toGoalStat').innerText = '—';
+    }
+    
+    const listEl = document.getElementById('weightHistoryList');
+    if (weightHistory.length === 0) {
+      listEl.innerHTML = `<div class="text-center text-small" style="padding: 16px;">${t.empty_food || 'Нет записей'}</div>`;
+      return;
+    }
+    
+    const sorted = [...weightHistory].sort((a,b) => new Date(b.date) - new Date(a.date));
+    let html = '';
+    sorted.forEach((entry) => {
+      const originalIdx = weightHistory.findIndex(e => e.date === entry.date && e.weight === entry.weight);
+      html += `
+        <div class="weight-history-item">
+          <span class="weight-history-date">${entry.date}</span>
+          <span class="weight-history-value">${entry.weight} кг</span>
+          <span class="weight-history-delete" onclick="deleteWeightEntry(${originalIdx})">✕</span>
+        </div>
+      `;
+    });
+    listEl.innerHTML = html;
+  }
+  
+  function deleteWeightEntry(idx) {
+    weightHistory.splice(idx, 1);
+    saveAllData();
+    updateWeightStatsAndList();
+    renderWeightChart();
+  }
+  
   function addWeightEntry() {
     const weight = parseFloat(document.getElementById('newWeight').value);
     const date = document.getElementById('weightDate').value || new Date().toISOString().split('T')[0];
     if (!weight) return;
+    
+    const existingIdx = weightHistory.findIndex(e => e.date === date);
+    if (existingIdx >= 0) {
+      if (!confirm(translations[currentLang].overwrite_weight)) return;
+      weightHistory.splice(existingIdx, 1);
+    }
+    
     weightHistory.push({ date, weight });
     saveAllData();
+    updateWeightStatsAndList();
     renderWeightChart();
     document.getElementById('newWeight').value = '';
   }
@@ -839,24 +993,56 @@
     const ctx = document.getElementById('weightChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
     if (weightHistory.length === 0) return;
+    
     const sorted = [...weightHistory].sort((a,b) => new Date(a.date) - new Date(b.date));
+    const goalWeight = currentProfile?.targetWeight || currentProfile?.startWeight * 0.9 || 55;
+    
+    const firstWeight = sorted[0].weight;
+    const lastWeight = sorted[sorted.length - 1].weight;
+    let trendColor = '#4FACFE';
+    if (sorted.length > 1) {
+      if (lastWeight < firstWeight) trendColor = '#6BCB77';
+      else if (lastWeight > firstWeight) trendColor = '#F85149';
+    }
+    
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: sorted.map(e => e.date),
-        datasets: [{
-          label: currentLang === 'ru' ? 'Вес (кг)' : currentLang === 'en' ? 'Weight (kg)' : '体重 (kg)',
-          data: sorted.map(e => e.weight),
-          borderColor: '#4FACFE',
-          backgroundColor: 'rgba(79,172,254,0.1)',
-          tension: 0.3,
-          fill: true
-        }]
+        datasets: [
+          {
+            label: currentLang === 'ru' ? 'Вес (кг)' : currentLang === 'en' ? 'Weight (kg)' : '体重 (kg)',
+            data: sorted.map(e => e.weight),
+            borderColor: trendColor,
+            backgroundColor: trendColor + '20',
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: trendColor,
+            pointBorderColor: '#0D1117',
+            pointRadius: 4,
+            pointHoverRadius: 6
+          },
+          {
+            label: currentLang === 'ru' ? 'Цель' : currentLang === 'en' ? 'Goal' : '目标',
+            data: sorted.map(() => goalWeight),
+            borderColor: '#FFD93D',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          }
+        ]
       },
       options: {
         responsive: true,
-        plugins: { legend: { labels: { color: '#E6EDF3' } } },
-        scales: { x: { ticks: { color: '#9CA3AF' } }, y: { ticks: { color: '#9CA3AF' } } }
+        plugins: {
+          legend: { labels: { color: '#E6EDF3' } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.raw} кг` } }
+        },
+        scales: {
+          x: { ticks: { color: '#9CA3AF' }, grid: { display: false } },
+          y: { ticks: { color: '#9CA3AF' }, grid: { color: '#30363D' } }
+        }
       }
     });
   }
@@ -866,7 +1052,10 @@
     event.target.classList.add('active');
     document.getElementById('todayPage').classList.toggle('active', tab === 'today');
     document.getElementById('weightPage').classList.toggle('active', tab === 'weight');
-    if (tab === 'weight') renderWeightChart();
+    if (tab === 'weight') {
+      updateWeightStatsAndList();
+      renderWeightChart();
+    }
   }
   
   function showPage(pageId) {
