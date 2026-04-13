@@ -439,8 +439,6 @@
   let todayFoods = [];
   let weightHistory = [];
   let chartInstance = null;
-  let gradientAnimationFrame = null;
-  let gradientPhase = 0;
 
   function setLanguage(lang) {
     currentLang = lang;
@@ -758,44 +756,6 @@
     document.getElementById('newWeight').value = '';
   }
 
-  function animateGradient() {
-    if (!chartInstance || !chartInstance.data.datasets) {
-      gradientAnimationFrame = requestAnimationFrame(animateGradient);
-      return;
-    }
-    
-    gradientPhase += 0.015;
-    
-    const canvas = document.getElementById('weightChart');
-    const ctx = canvas.getContext('2d');
-    const dataset = chartInstance.data.datasets[0];
-    const baseColor = dataset.borderColor;
-    
-    const wavePos = (Math.sin(gradientPhase) * 0.5 + 0.5);
-    
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    
-    let r, g, b;
-    if (baseColor === '#F85149') { r = 248; g = 81; b = 73; }
-    else if (baseColor === '#6BCB77') { r = 107; g = 203; b = 119; }
-    else { r = 79; g = 172; b = 254; }
-    
-    const lightR = Math.min(255, r + 50);
-    const lightG = Math.min(255, g + 50);
-    const lightB = Math.min(255, b + 50);
-    
-    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.7)`);
-    gradient.addColorStop(wavePos * 0.5, `rgba(${r}, ${g}, ${b}, 0.4)`);
-    gradient.addColorStop(wavePos, `rgba(${lightR}, ${lightG}, ${lightB}, 0.5)`);
-    gradient.addColorStop(wavePos + 0.15, `rgba(${r}, ${g}, ${b}, 0.25)`);
-    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-    
-    dataset.backgroundColor = gradient;
-    chartInstance.update('none');
-    
-    gradientAnimationFrame = requestAnimationFrame(animateGradient);
-  }
-
   function renderWeightChart() {
     const canvas = document.getElementById('weightChart');
     const ctx = canvas.getContext('2d');
@@ -817,6 +777,13 @@
     const minWeight = Math.min(...weights, goalWeight) - 1;
     const maxWeight = Math.max(...weights, goalWeight) + 1;
     
+    // Создаём градиент для заливки под линией
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, trendColor + 'B3');      // 70% непрозрачности вверху
+    gradient.addColorStop(0.4, trendColor + '60');    // 38% 
+    gradient.addColorStop(0.7, trendColor + '20');    // 12%
+    gradient.addColorStop(1, trendColor + '00');      // полностью прозрачный внизу
+    
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
@@ -826,7 +793,7 @@
             label: currentLang === 'ru' ? 'Вес (кг)' : currentLang === 'en' ? 'Weight (kg)' : '体重 (kg)',
             data: sorted.map(e => e.weight),
             borderColor: trendColor,
-            backgroundColor: 'transparent',
+            backgroundColor: gradient,
             tension: 0.3,
             fill: true,
             pointBackgroundColor: trendColor,
@@ -858,9 +825,6 @@
         }
       }
     });
-    
-    if (gradientAnimationFrame) cancelAnimationFrame(gradientAnimationFrame);
-    animateGradient();
   }
 
   function switchTab(tab) {
@@ -868,15 +832,9 @@
     event.target.classList.add('active');
     document.getElementById('todayPage').classList.toggle('active', tab === 'today');
     document.getElementById('weightPage').classList.toggle('active', tab === 'weight');
-    
     if (tab === 'weight') {
       updateWeightStatsAndList();
       renderWeightChart();
-    } else {
-      if (gradientAnimationFrame) {
-        cancelAnimationFrame(gradientAnimationFrame);
-        gradientAnimationFrame = null;
-      }
     }
   }
 
