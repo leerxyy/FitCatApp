@@ -135,20 +135,19 @@
       50% { transform: translateY(-50%) scale(1.1); }
       100% { transform: translateY(-50%) scale(1); }
     }
-    .activity-options { display: flex; flex-direction: column; gap: 12px; }
-    .activity-item {
+    
+    /* Ежедневная активность */
+    .activity-daily-options { display: flex; flex-direction: column; gap: 12px; }
+    .activity-daily-item {
       background: rgba(1, 4, 9, 0.6); border: 1px solid #30363D; border-radius: 18px;
       padding: 14px 16px; display: flex; align-items: center; gap: 12px;
       cursor: pointer; transition: all 0.2s ease; backdrop-filter: blur(5px);
     }
-    .activity-item:hover { border-color: #4FACFE; transform: translateX(4px); }
-    .activity-item.selected {
+    .activity-daily-item.selected {
       border-color: #4FACFE;
       background: rgba(79,172,254,0.1);
       box-shadow: 0 0 20px rgba(79,172,254,0.15);
     }
-    .activity-text { font-weight: 600; margin-bottom: 2px; }
-    .activity-desc { font-size: 13px; color: #9CA3AF; }
     
     .btn-primary, .btn-secondary {
       width: 100%; border: none; border-radius: 40px; padding: 16px 24px;
@@ -183,6 +182,7 @@
     }
     .btn-small:hover { border-color: #4FACFE; background: rgba(79,172,254,0.1); transform: translateY(-2px); }
     
+    /* Шкалы */
     .progress-bar-container {
       height: 10px; background: rgba(33, 38, 45, 0.6);
       border-radius: 10px; margin: 8px 0 16px; overflow: hidden;
@@ -210,6 +210,7 @@
     .water-row { display: flex; gap: 12px; align-items: center; }
     .water-row input[type="number"] { width: 100px; }
     input[type="range"] { flex: 3; accent-color: #4FACFE; height: 6px; background: transparent; }
+    
     .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
     .tab {
       flex: 1; text-align: center; padding: 12px;
@@ -219,8 +220,10 @@
     }
     .tab:hover { background: rgba(79,172,254,0.1); color: #E6EDF3; }
     .tab.active { background: #4FACFE; color: #0D1117; }
+    
     .page { display: none; }
     .page.active { display: block; }
+    
     .food-list { margin: 16px 0; }
     .food-item {
       display: flex; align-items: center; gap: 12px; padding: 12px;
@@ -236,26 +239,18 @@
       flex-shrink: 0;
     }
     .food-toggle.checked { background: #4FACFE; border-color: #4FACFE; }
-    .food-toggle.checked::after {
-      content: '✓'; color: #0D1117;
-      font-size: 16px; font-weight: bold;
-    }
+    .food-toggle.checked::after { content: '✓'; color: #0D1117; font-size: 16px; font-weight: bold; }
     .food-toggle:hover { transform: scale(1.1); box-shadow: 0 0 10px rgba(79,172,254,0.5); }
     .food-info { flex: 1; }
     .food-name { font-weight: 500; }
     .food-macros { font-size: 12px; color: #9CA3AF; }
-    .food-delete {
-      color: #F85149; cursor: pointer; padding: 8px; font-size: 18px;
-      transition: transform 0.2s;
-    }
+    .food-delete { color: #F85149; cursor: pointer; padding: 8px; font-size: 18px; transition: transform 0.2s; }
     .food-delete:hover { transform: scale(1.2); }
     .add-food-form { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .add-food-row { display: flex; gap: 8px; }
     .add-food-row input { padding: 10px; font-size: 14px; }
     
-    .templates-bar {
-      display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
-    }
+    .templates-bar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .template-btn {
       background: rgba(26, 32, 39, 0.8); border: 1px solid #30363D;
       border-radius: 20px; padding: 8px 14px; font-size: 13px;
@@ -287,6 +282,33 @@
     .product-edit-macros { font-size: 12px; color: #9CA3AF; }
     .product-edit-actions { display: flex; gap: 4px; }
     
+    /* Умная вода */
+    .smart-water-modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(13, 17, 23, 0.95); z-index: 1000;
+      display: none; flex-direction: column; padding: 20px;
+    }
+    .smart-water-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px;
+    }
+    .smart-water-toggle {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0;
+    }
+    .toggle-switch {
+      width: 52px; height: 28px; background: #30363D;
+      border-radius: 28px; position: relative; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-switch.active { background: #4FACFE; }
+    .toggle-switch::after {
+      content: ''; position: absolute; width: 22px; height: 22px;
+      background: white; border-radius: 50%; top: 3px; left: 3px;
+      transition: left 0.2s;
+    }
+    .toggle-switch.active::after { left: 27px; }
+    
     .weight-stats .flex > div { flex: 1; }
     #weightChangeStat.positive { color: #6BCB77; }
     #weightChangeStat.negative { color: #F85149; }
@@ -297,10 +319,7 @@
     }
     .weight-history-date { font-size: 14px; color: #9CA3AF; }
     .weight-history-value { font-weight: 600; font-size: 16px; }
-    .weight-history-delete {
-      color: #F85149; cursor: pointer; padding: 4px 8px;
-      font-size: 16px; transition: transform 0.2s;
-    }
+    .weight-history-delete { color: #F85149; cursor: pointer; padding: 4px 8px; font-size: 16px; transition: transform 0.2s; }
     .weight-history-delete:hover { transform: scale(1.2); }
     .flex { display: flex; gap: 8px; align-items: center; }
     .text-center { text-align: center; }
@@ -310,6 +329,7 @@
 </head>
 <body>
 <div class="app">
+  <!-- Сканер -->
   <div id="scannerModal" class="scanner-container">
     <div class="scanner-header">
       <h2 style="margin: 0;" data-i18n="scanner_title">Сканер штрихкода</h2>
@@ -326,6 +346,58 @@
     </div>
   </div>
 
+  <!-- Умная вода -->
+  <div id="smartWaterModal" class="smart-water-modal">
+    <div class="smart-water-header">
+      <h2 style="margin: 0;">💧 Умная вода</h2>
+      <button class="btn-small" onclick="closeSmartWater()">✕ Закрыть</button>
+    </div>
+    <div class="card">
+      <div class="smart-water-toggle">
+        <span style="font-size: 16px;">Включить умную воду</span>
+        <div class="toggle-switch" id="smartWaterToggle" onclick="toggleSmartWater()"></div>
+      </div>
+    </div>
+    <div class="card" id="smartWaterSettings" style="display: none;">
+      <div class="smart-water-toggle">
+        <span>🌍 Учитывать погоду</span>
+        <div class="toggle-switch active" id="weatherToggle" onclick="toggleSetting('weather')"></div>
+      </div>
+      <div class="smart-water-toggle">
+        <span>👣 Учитывать шаги</span>
+        <div class="toggle-switch" id="stepsToggle" onclick="toggleSetting('steps')"></div>
+      </div>
+      <div class="smart-water-toggle">
+        <span>🏋️ Учитывать тренировки</span>
+        <div class="toggle-switch" id="trainingToggle" onclick="toggleSetting('training')"></div>
+      </div>
+      <div class="input-group" style="margin-top: 16px;">
+        <label>📍 Город</label>
+        <input type="text" id="cityInput" placeholder="Москва" value="Москва">
+      </div>
+      <div style="margin-top: 16px; padding: 12px; background: rgba(1,4,9,0.4); border-radius: 16px;">
+        <div class="flex" style="justify-content: space-between;">
+          <span>Базовая норма:</span>
+          <span id="baseWaterNorm">1820 мл</span>
+        </div>
+        <div class="flex" style="justify-content: space-between;" id="weatherBonusRow">
+          <span>🌡️ Погода (—°C):</span>
+          <span id="weatherBonus">0 мл</span>
+        </div>
+        <div class="flex" style="justify-content: space-between;" id="stepsBonusRow">
+          <span>👣 Шаги (—):</span>
+          <span id="stepsBonus">0 мл</span>
+        </div>
+        <div class="flex" style="justify-content: space-between; font-weight: 700; margin-top: 8px;">
+          <span>ИТОГО СЕГОДНЯ:</span>
+          <span id="totalWaterNorm">1820 мл</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="applySmartWater()" style="margin-top: 16px;">Применить</button>
+    </div>
+  </div>
+
+  <!-- Регистрация -->
   <div id="setupPage">
     <h1>🐱 FitCat</h1>
     <div class="card">
@@ -346,10 +418,19 @@
     </div>
     <div class="card">
       <h2 data-i18n="activity">Активность</h2>
-      <div class="activity-options">
-        <div class="activity-item" data-activity="1.2" onclick="selectActivity(this)"><div><div class="activity-text" data-i18n="activity_low">Малая</div><div class="activity-desc" data-i18n="activity_low_desc">Сидячая работа</div></div></div>
-        <div class="activity-item selected" data-activity="1.375" onclick="selectActivity(this)"><div><div class="activity-text" data-i18n="activity_mid">Умеренная</div><div class="activity-desc" data-i18n="activity_mid_desc">Тренировки 2-3 раза</div></div></div>
-        <div class="activity-item" data-activity="1.55" onclick="selectActivity(this)"><div><div class="activity-text" data-i18n="activity_high">Высокая</div><div class="activity-desc" data-i18n="activity_high_desc">Спорт 5+ раз</div></div></div>
+      <div class="activity-daily-options">
+        <div class="activity-daily-item" data-activity="1.2" onclick="selectSetupActivity(this)">
+          <div><div class="activity-text">🪑 Сидячий</div><div class="activity-desc">Весь день за компом</div></div>
+        </div>
+        <div class="activity-daily-item selected" data-activity="1.375" onclick="selectSetupActivity(this)">
+          <div><div class="activity-text">🚶 Умеренный</div><div class="activity-desc">Прогулка, дела</div></div>
+        </div>
+        <div class="activity-daily-item" data-activity="1.55" onclick="selectSetupActivity(this)">
+          <div><div class="activity-text">🏋️ Активный</div><div class="activity-desc">Тренировка</div></div>
+        </div>
+        <div class="activity-daily-item" data-activity="1.725" onclick="selectSetupActivity(this)">
+          <div><div class="activity-text">🔥 Очень активный</div><div class="activity-desc">Много ходьбы</div></div>
+        </div>
       </div>
     </div>
     <button class="btn-primary" onclick="completeSetup()"><span data-i18n="calculate">Рассчитать нормы</span></button>
@@ -364,6 +445,7 @@
     </div>
   </div>
 
+  <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h1 style="margin: 0;" id="greetingText">🐱 FitCat</h1>
@@ -371,15 +453,21 @@
     </div>
     <div class="tabs">
       <div class="tab active" onclick="switchTab('today')"><span data-i18n="tab_today">Сегодня</span></div>
+      <div class="tab" onclick="switchTab('activity')">🏃 Активность</div>
       <div class="tab" onclick="switchTab('weight')"><span data-i18n="tab_weight">Вес</span></div>
     </div>
+    
+    <!-- Сегодня -->
     <div id="todayPage" class="page active">
       <div class="card">
         <h2 data-i18n="progress">Прогресс</h2>
         <div id="progressBars"></div>
       </div>
       <div class="card">
-        <h2 data-i18n="water_title">Вода</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h2 data-i18n="water_title" style="margin: 0;">Вода</h2>
+          <button class="btn-small" onclick="openSmartWater()" style="width: auto; padding: 8px 12px;">⚙️</button>
+        </div>
         <div class="water-row">
           <input type="range" id="waterSlider" min="0" max="100" step="1" value="0">
           <input type="number" id="waterInput" min="0" step="50" value="0">
@@ -387,21 +475,20 @@
         </div>
         <div class="flex" style="justify-content: space-between; margin-top: 8px;">
           <span id="waterText">0 мл</span>
-          <span id="waterGoalText">2000 мл</span>
+          <span id="waterGoalText">1820 мл</span>
         </div>
+        <div id="smartWaterHint" class="text-small" style="margin-top: 8px;"></div>
       </div>
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h2 data-i18n="meals" style="margin: 0;">Сегодня съедено</h2>
           <button class="btn-small" onclick="openScanner()" style="width: auto; padding: 8px 12px;" data-i18n="scanner_btn">📷</button>
         </div>
-        
         <div class="templates-bar" id="templatesBar"></div>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
           <button class="btn-small" onclick="saveTemplate()" style="flex: 1;" data-i18n="save_template">Сохранить шаблон</button>
           <button class="btn-small" onclick="clearTodayFoods()" style="flex: 1;" data-i18n="clear_day">Очистить</button>
         </div>
-        
         <div class="food-list" id="foodListContainer"></div>
         <div class="add-food-form">
           <div class="input-group" style="position: relative;">
@@ -423,6 +510,51 @@
       </div>
     </div>
     
+    <!-- Активность -->
+    <div id="activityPage" class="page">
+      <div class="card">
+        <h2>🏃 Активность на сегодня</h2>
+        <div class="activity-daily-options">
+          <div class="activity-daily-item" data-activity="1.2" onclick="selectDailyActivity(this)">
+            <div><div class="activity-text">🪑 Сидячий</div><div class="activity-desc">Весь день за компом</div></div>
+          </div>
+          <div class="activity-daily-item" data-activity="1.375" onclick="selectDailyActivity(this)">
+            <div><div class="activity-text">🚶 Умеренный</div><div class="activity-desc">Прогулка, дела</div></div>
+          </div>
+          <div class="activity-daily-item" data-activity="1.55" onclick="selectDailyActivity(this)">
+            <div><div class="activity-text">🏋️ Активный</div><div class="activity-desc">Тренировка</div></div>
+          </div>
+          <div class="activity-daily-item" data-activity="1.725" onclick="selectDailyActivity(this)">
+            <div><div class="activity-text">🔥 Очень активный</div><div class="activity-desc">Много ходьбы</div></div>
+          </div>
+        </div>
+        <div id="activityPreview" style="margin-top: 20px; padding: 16px; background: rgba(1,4,9,0.4); border-radius: 16px;">
+          <div class="flex" style="justify-content: space-between;">
+            <span>🔥 Калории:</span>
+            <span id="previewKcal">1450 ккал</span>
+          </div>
+          <div class="flex" style="justify-content: space-between;">
+            <span>🥩 Белки:</span>
+            <span id="previewProtein">94 г</span>
+          </div>
+          <div class="flex" style="justify-content: space-between;">
+            <span>🧈 Жиры:</span>
+            <span id="previewFat">47 г</span>
+          </div>
+          <div class="flex" style="justify-content: space-between;">
+            <span>🍚 Углеводы:</span>
+            <span id="previewCarbs">160 г</span>
+          </div>
+          <div class="flex" style="justify-content: space-between;">
+            <span>💧 Вода:</span>
+            <span id="previewWater">1820 мл</span>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="applyDailyActivity()" style="margin-top: 20px;">✅ Применить на сегодня</button>
+      </div>
+    </div>
+    
+    <!-- Вес -->
     <div id="weightPage" class="page">
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -451,9 +583,11 @@
     </div>
   </div>
 
+  <!-- Настройки -->
   <div id="settingsPage" style="display: none;">
     <div class="card">
       <h2 data-i18n="settings">Настройки</h2>
+      <button class="btn-secondary" onclick="showProfile()">👤 Профиль</button>
       <button class="btn-secondary" onclick="exportData()"><span data-i18n="export">Скачать данные</span></button>
       <button class="btn-secondary" onclick="importData()"><span data-i18n="import">Загрузить данные</span></button>
       <button class="btn-secondary" onclick="showProductsManager()"><span data-i18n="my_products">Мои продукты</span></button>
@@ -469,6 +603,31 @@
     </div>
   </div>
   
+  <!-- Профиль -->
+  <div id="profilePage" style="display: none;">
+    <div class="card">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <button class="btn-small" onclick="showPage('settingsPage')">← Назад</button>
+        <h2 style="margin: 0;">👤 Профиль</h2>
+      </div>
+      <div class="input-group"><label data-i18n="name">Имя</label><input type="text" id="profileName"></div>
+      <div class="input-group"><label data-i18n="age">Возраст</label><input type="number" id="profileAge" min="10" max="100"></div>
+      <div class="input-group">
+        <label data-i18n="gender">Пол</label>
+        <div class="radio-group">
+          <input type="radio" name="profileGender" value="female" id="profileGenderFemale">
+          <label for="profileGenderFemale"><span data-i18n="female">Женский</span></label>
+          <input type="radio" name="profileGender" value="male" id="profileGenderMale">
+          <label for="profileGenderMale"><span data-i18n="male">Мужской</span></label>
+        </div>
+      </div>
+      <div class="input-group"><label data-i18n="height">Рост (см)</label><input type="number" id="profileHeight" min="100" max="250"></div>
+      <div class="input-group"><label data-i18n="weight_label">Вес (кг)</label><input type="number" id="profileWeight" min="30" max="500" step="0.1"></div>
+      <button class="btn-primary" onclick="saveProfile()">💾 Сохранить изменения</button>
+    </div>
+  </div>
+  
+  <!-- Мои продукты -->
   <div id="productsPage" style="display: none;">
     <div class="card">
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
@@ -487,8 +646,7 @@
       about: 'О себе', name: 'Имя', name_placeholder: 'Введите имя', age: 'Возраст', age_placeholder: 'Введите возраст',
       gender: 'Пол', female: 'Женский', male: 'Мужской', height: 'Рост (см)', height_placeholder: 'Введите рост',
       weight_label: 'Вес (кг)', weight_placeholder: 'Введите вес', activity: 'Активность',
-      activity_low: 'Малая', activity_low_desc: 'Сидячая работа', activity_mid: 'Умеренная', activity_mid_desc: 'Тренировки 2-3 раза',
-      activity_high: 'Высокая', activity_high_desc: 'Спорт 5+ раз', calculate: 'Рассчитать нормы', data_local: 'Данные только в твоём телефоне',
+      calculate: 'Рассчитать нормы', data_local: 'Данные только в твоём телефоне',
       language: 'Язык', tab_today: 'Сегодня', tab_weight: 'Вес', progress: 'Прогресс', water_title: 'Вода',
       ml: 'мл', meals: 'Сегодня съедено', food_name: 'Название продукта', add_food: 'Добавить', weight_log: 'Журнал веса',
       weight_input: 'Вес', add: '+', set_goal: 'Задать цель', start_weight: 'Старт', current_weight: 'Сейчас', lost: 'Изменение',
@@ -510,8 +668,7 @@
       about: 'About you', name: 'Name', name_placeholder: 'Enter name', age: 'Age', age_placeholder: 'Enter age',
       gender: 'Gender', female: 'Female', male: 'Male', height: 'Height (cm)', height_placeholder: 'Enter height',
       weight_label: 'Weight (kg)', weight_placeholder: 'Enter weight', activity: 'Activity',
-      activity_low: 'Low', activity_low_desc: 'Sedentary', activity_mid: 'Moderate', activity_mid_desc: 'Exercise 2-3x/week',
-      activity_high: 'High', activity_high_desc: 'Exercise 5+x/week', calculate: 'Calculate', data_local: 'Data stored locally',
+      calculate: 'Calculate', data_local: 'Data stored locally',
       language: 'Language', tab_today: 'Today', tab_weight: 'Weight', progress: 'Progress', water_title: 'Water',
       ml: 'ml', meals: 'Today\'s food', food_name: 'Food name', add_food: 'Add', weight_log: 'Weight Log',
       weight_input: 'Weight', add: '+', set_goal: 'Set Goal', start_weight: 'Start', current_weight: 'Now', lost: 'Change',
@@ -533,8 +690,7 @@
       about: '关于你', name: '名字', name_placeholder: '输入名字', age: '年龄', age_placeholder: '输入年龄',
       gender: '性别', female: '女', male: '男', height: '身高 (cm)', height_placeholder: '输入身高',
       weight_label: '体重 (kg)', weight_placeholder: '输入体重', activity: '活动量',
-      activity_low: '低', activity_low_desc: '久坐', activity_mid: '中', activity_mid_desc: '每周运动2-3次',
-      activity_high: '高', activity_high_desc: '每周运动5+次', calculate: '计算', data_local: '数据仅保存在本地',
+      calculate: '计算', data_local: '数据仅保存在本地',
       language: '语言', tab_today: '今天', tab_weight: '体重', progress: '进度', water_title: '水',
       ml: '毫升', meals: '今日饮食', food_name: '食物名称', add_food: '添加', weight_log: '体重记录',
       weight_input: '体重', add: '+', set_goal: '设定目标', start_weight: '起始', current_weight: '当前', lost: '变化',
@@ -556,13 +712,19 @@
 
   let currentLang = 'ru';
   let currentProfile = null;
-  let dailyTargets = { kcal: 1500, protein: 80, fat: 45, carbs: 150, water: 2000 };
+  let dailyTargets = { kcal: 1500, protein: 80, fat: 45, carbs: 150, water: 1820 };
   let todayFoods = [];
   let weightHistory = [];
   let chartInstance = null;
   let productsDB = [];
   let mealTemplates = [];
   let zxingReader = null, quaggaActive = false, scanningActive = false, scanTimeout = null;
+  
+  // Умная вода
+  let smartWaterEnabled = false;
+  let weatherData = { temp: null, condition: null, lastUpdate: null };
+  let dailyActivity = 1.375; // По умолчанию умеренная
+  let weatherInterval = null;
 
   function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
   function getBarColor(pct) {
@@ -583,11 +745,201 @@
       if (translations[lang]?.[key]) el.placeholder = translations[lang][key];
     });
     if (currentProfile) {
-      updateGreeting(); renderProgressBars(); renderFoodList(); updateWaterDisplay();
-      updateWeightStatsAndList(); renderWeightChart(); renderTemplates();
+      updateGreeting();
+      renderProgressBars();
+      renderFoodList();
+      updateWaterDisplay();
+      updateWeightStatsAndList();
+      renderWeightChart();
+      renderTemplates();
+      updateActivityUI();
     }
   }
 
+  // ========== УМНАЯ ВОДА ==========
+  function openSmartWater() {
+    document.getElementById('smartWaterModal').style.display = 'flex';
+    updateSmartWaterUI();
+  }
+  function closeSmartWater() { document.getElementById('smartWaterModal').style.display = 'none'; }
+  function toggleSmartWater() {
+    smartWaterEnabled = !smartWaterEnabled;
+    localStorage.setItem('smartWaterEnabled', smartWaterEnabled);
+    document.getElementById('smartWaterToggle').classList.toggle('active', smartWaterEnabled);
+    document.getElementById('smartWaterSettings').style.display = smartWaterEnabled ? 'block' : 'none';
+    
+    if (smartWaterEnabled) {
+      startWeatherUpdates();
+      updateSmartWaterCalculation();
+    } else {
+      stopWeatherUpdates();
+      dailyTargets.water = Math.round(currentProfile.weight * 35);
+      renderProgressBars();
+      updateWaterDisplay();
+    }
+    updateWaterHint();
+  }
+  function toggleSetting(setting) {
+    const key = `smart_${setting}`;
+    const val = localStorage.getItem(key) !== 'true';
+    localStorage.setItem(key, val);
+    document.getElementById(`${setting}Toggle`).classList.toggle('active', val);
+    updateSmartWaterCalculation();
+  }
+  async function updateWeather() {
+    const city = document.getElementById('cityInput').value || 'Moscow';
+    try {
+      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=3f91d43d9e9f9b8c7b3b3b3b3b3b3b3b&units=metric`);
+      const data = await res.json();
+      weatherData = { temp: data.main.temp, condition: data.weather[0].main, lastUpdate: Date.now() };
+      localStorage.setItem('weatherData', JSON.stringify(weatherData));
+    } catch (e) { console.log('Weather fetch failed'); }
+  }
+  function startWeatherUpdates() {
+    if (weatherInterval) clearInterval(weatherInterval);
+    updateWeather();
+    weatherInterval = setInterval(() => { updateWeather(); updateSmartWaterCalculation(); }, 60 * 60 * 1000);
+  }
+  function stopWeatherUpdates() { if (weatherInterval) { clearInterval(weatherInterval); weatherInterval = null; } }
+  function calculateWaterBonus() {
+    let bonus = 0;
+    if (localStorage.getItem('smart_weather') === 'true' && weatherData.temp) {
+      if (weatherData.temp >= 30) bonus += 500;
+      else if (weatherData.temp >= 25) bonus += 300;
+      else if (weatherData.temp >= 20) bonus += 100;
+    }
+    if (localStorage.getItem('smart_steps') === 'true') {
+      const steps = parseInt(localStorage.getItem('todaySteps') || 0);
+      if (steps > 12000) bonus += 400;
+      else if (steps > 8000) bonus += 200;
+    }
+    if (localStorage.getItem('smart_training') === 'true' && localStorage.getItem('hadTraining') === 'true') {
+      bonus += 300;
+    }
+    return bonus;
+  }
+  function updateSmartWaterCalculation() {
+    const base = Math.round(currentProfile?.weight * 35 || 1820);
+    const bonus = calculateWaterBonus();
+    const total = base + bonus;
+    
+    document.getElementById('baseWaterNorm').innerText = base + ' мл';
+    document.getElementById('weatherBonus').innerText = (localStorage.getItem('smart_weather') === 'true' ? (bonus > 0 ? '+' + bonus : '0') : 'выкл') + ' мл';
+    document.getElementById('stepsBonus').innerText = (localStorage.getItem('smart_steps') === 'true' ? (bonus > 0 ? '+' + bonus : '0') : 'выкл') + ' мл';
+    document.getElementById('totalWaterNorm').innerText = total + ' мл';
+    
+    if (smartWaterEnabled) {
+      dailyTargets.water = total;
+      renderProgressBars();
+      updateWaterDisplay();
+    }
+  }
+  function updateSmartWaterUI() {
+    document.getElementById('smartWaterToggle').classList.toggle('active', smartWaterEnabled);
+    document.getElementById('smartWaterSettings').style.display = smartWaterEnabled ? 'block' : 'none';
+    document.getElementById('weatherToggle').classList.toggle('active', localStorage.getItem('smart_weather') === 'true');
+    document.getElementById('stepsToggle').classList.toggle('active', localStorage.getItem('smart_steps') === 'true');
+    document.getElementById('trainingToggle').classList.toggle('active', localStorage.getItem('smart_training') === 'true');
+    updateSmartWaterCalculation();
+  }
+  function applySmartWater() {
+    if (smartWaterEnabled) {
+      updateSmartWaterCalculation();
+      updateWaterHint();
+    }
+    closeSmartWater();
+  }
+  function updateWaterHint() {
+    const hint = document.getElementById('smartWaterHint');
+    if (smartWaterEnabled) {
+      const bonus = calculateWaterBonus();
+      hint.innerText = `💧 Умная норма активна (+${bonus} мл)`;
+    } else {
+      hint.innerText = '';
+    }
+  }
+
+  // ========== ЕЖЕДНЕВНАЯ АКТИВНОСТЬ ==========
+  function selectSetupActivity(el) {
+    document.querySelectorAll('.activity-daily-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function selectDailyActivity(el) {
+    document.querySelectorAll('#activityPage .activity-daily-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    const coef = parseFloat(el.dataset.activity);
+    updateActivityPreview(coef);
+  }
+  function updateActivityPreview(coef) {
+    if (!currentProfile) return;
+    const p = currentProfile;
+    let bmr = p.gender === 'female' ? 447.6 + 9.2*p.weight + 3.1*p.height - 4.3*p.age : 88.36 + 13.4*p.weight + 4.8*p.height - 5.7*p.age;
+    let tdee = bmr * coef;
+    const kcal = Math.round(tdee * 0.85);
+    const protein = Math.round(p.weight * 1.8);
+    const fat = Math.round(p.weight * 0.9);
+    const carbs = Math.round((kcal - protein*4 - fat*9) / 4);
+    const water = smartWaterEnabled ? dailyTargets.water : Math.round(p.weight * 35);
+    
+    document.getElementById('previewKcal').innerText = kcal + ' ккал';
+    document.getElementById('previewProtein').innerText = protein + ' г';
+    document.getElementById('previewFat').innerText = fat + ' г';
+    document.getElementById('previewCarbs').innerText = carbs + ' г';
+    document.getElementById('previewWater').innerText = water + ' мл';
+  }
+  function applyDailyActivity() {
+    const selected = document.querySelector('#activityPage .activity-daily-item.selected');
+    if (!selected) return;
+    dailyActivity = parseFloat(selected.dataset.activity);
+    localStorage.setItem('dailyActivity', dailyActivity);
+    calculateTargets();
+    renderDashboard();
+    updateActivityUI();
+    showPage('mainPage');
+    vibrate();
+  }
+  function updateActivityUI() {
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs.length >= 3) {
+      const activityNames = ['🪑', '🚶', '🏋️', '🔥'];
+      const coefs = [1.2, 1.375, 1.55, 1.725];
+      const idx = coefs.indexOf(dailyActivity);
+      if (idx >= 0) tabs[1].innerHTML = `${activityNames[idx]} Активность`;
+    }
+  }
+
+  // ========== ПРОФИЛЬ ==========
+  function showProfile() {
+    if (!currentProfile) return;
+    document.getElementById('profileName').value = currentProfile.name || '';
+    document.getElementById('profileAge').value = currentProfile.age || '';
+    document.querySelector(`input[name="profileGender"][value="${currentProfile.gender}"]`).checked = true;
+    document.getElementById('profileHeight').value = currentProfile.height || '';
+    document.getElementById('profileWeight').value = currentProfile.weight || '';
+    showPage('profilePage');
+  }
+  function saveProfile() {
+    const name = document.getElementById('profileName').value.trim();
+    const age = parseInt(document.getElementById('profileAge').value);
+    const gender = document.querySelector('input[name="profileGender"]:checked')?.value;
+    const height = parseFloat(document.getElementById('profileHeight').value);
+    const weight = parseFloat(document.getElementById('profileWeight').value);
+    
+    if (!name || !age || age<10||age>100||!gender||!height||height<100||height>250||!weight||weight<30||weight>500) {
+      alert(translations[currentLang].error_fill);
+      return;
+    }
+    
+    currentProfile = { ...currentProfile, name, age, gender, height, weight };
+    saveAllData();
+    calculateTargets();
+    renderDashboard();
+    updateGreeting();
+    showPage('settingsPage');
+    vibrate();
+  }
+
+  // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
   function loadProductsDB() { const s = localStorage.getItem('fitcat_products'); if (s) productsDB = JSON.parse(s); }
   function saveProductsDB() { localStorage.setItem('fitcat_products', JSON.stringify(productsDB)); }
   function addToProductsDB(name, prot, fat, carbs, kcal) {
@@ -675,17 +1027,32 @@
 
   window.onload = function() {
     const sl = localStorage.getItem('fitcat_lang') || 'ru'; setLanguage(sl);
-    loadData(); loadProductsDB(); loadTemplates(); setupAutocomplete();
+    loadData();
+    loadProductsDB();
+    loadTemplates();
+    setupAutocomplete();
+    
+    smartWaterEnabled = localStorage.getItem('smartWaterEnabled') === 'true';
+    dailyActivity = parseFloat(localStorage.getItem('dailyActivity') || 1.375);
+    
     if (!currentProfile) {
       document.getElementById('setupPage').style.display = 'block';
       document.getElementById('mainPage').style.display = 'none';
     } else {
       document.getElementById('setupPage').style.display = 'none';
       document.getElementById('mainPage').style.display = 'block';
-      calculateTargets(); renderDashboard(); renderTemplates(); checkDateReset(); updateGreeting();
+      calculateTargets();
+      renderDashboard();
+      renderTemplates();
+      checkDateReset();
+      updateGreeting();
+      updateActivityUI();
+      if (smartWaterEnabled) { startWeatherUpdates(); updateSmartWaterCalculation(); }
+      updateWaterHint();
     }
     setupWaterControls();
   };
+  
   function loadData() {
     currentProfile = JSON.parse(localStorage.getItem('fitnessProfile') || 'null');
     todayFoods = JSON.parse(localStorage.getItem('todayFoods') || '[]');
@@ -698,32 +1065,58 @@
   }
   function checkDateReset() {
     const ld = localStorage.getItem('lastDate'), td = new Date().toDateString();
-    if (ld !== td) { todayFoods = []; localStorage.setItem('waterAmount', 0); localStorage.setItem('lastDate', td); saveAllData(); }
+    if (ld !== td) {
+      todayFoods = [];
+      localStorage.setItem('waterAmount', 0);
+      localStorage.setItem('hadTraining', false);
+      localStorage.setItem('lastDate', td);
+      saveAllData();
+    }
   }
   function updateGreeting() {
     const h = new Date().getHours(); let k = 'day';
     if (h>=5 && h<12) k='morning'; else if (h>=12 && h<18) k='day'; else if (h>=18 && h<23) k='evening'; else k='night';
     document.getElementById('greetingText').innerHTML = `🐱 ${translations[currentLang][k]}, ${currentProfile?.name||''}`;
   }
-  function selectActivity(el) { document.querySelectorAll('.activity-item').forEach(i=>i.classList.remove('selected')); el.classList.add('selected'); }
   function completeSetup() {
     const n = document.getElementById('setupName').value.trim();
     const a = parseInt(document.getElementById('setupAge').value);
     const g = document.querySelector('input[name="setupGender"]:checked')?.value;
     const h = parseFloat(document.getElementById('setupHeight').value);
     const w = parseFloat(document.getElementById('setupWeight').value);
-    const act = document.querySelector('.activity-item.selected');
-    if (!n || !a || a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500||!act) { alert(translations[currentLang].error_fill); return; }
-    currentProfile = { name: n, age: a, gender: g, height: h, weight: w, activity: parseFloat(act.dataset.activity), startWeight: w };
-    calculateTargets(); saveAllData(); localStorage.setItem('lastDate', new Date().toDateString());
-    document.getElementById('setupPage').style.display = 'none'; document.getElementById('mainPage').style.display = 'block';
-    updateGreeting(); renderDashboard(); renderTemplates();
+    const act = document.querySelector('#setupPage .activity-daily-item.selected');
+    
+    if (!n || !a || a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500||!act) {
+      alert(translations[currentLang].error_fill);
+      return;
+    }
+    
+    dailyActivity = parseFloat(act.dataset.activity);
+    localStorage.setItem('dailyActivity', dailyActivity);
+    
+    currentProfile = { name: n, age: a, gender: g, height: h, weight: w, startWeight: w };
+    calculateTargets();
+    saveAllData();
+    localStorage.setItem('lastDate', new Date().toDateString());
+    document.getElementById('setupPage').style.display = 'none';
+    document.getElementById('mainPage').style.display = 'block';
+    updateGreeting();
+    renderDashboard();
+    renderTemplates();
+    updateActivityUI();
   }
   function calculateTargets() {
     if (!currentProfile) return; const p = currentProfile;
     let bmr = p.gender === 'female' ? 447.6 + 9.2*p.weight + 3.1*p.height - 4.3*p.age : 88.36 + 13.4*p.weight + 4.8*p.height - 5.7*p.age;
-    let tdee = bmr * p.activity;
-    dailyTargets = { kcal: Math.round(tdee*0.85), protein: Math.round(p.weight*1.8), fat: Math.round(p.weight*0.9), carbs: Math.round((tdee*0.85 - p.weight*1.8*4 - p.weight*0.9*9)/4), water: Math.round(p.weight*35) };
+    let tdee = bmr * dailyActivity;
+    dailyTargets = {
+      kcal: Math.round(tdee * 0.85),
+      protein: Math.round(p.weight * 1.8),
+      fat: Math.round(p.weight * 0.9),
+      carbs: Math.round((tdee * 0.85 - p.weight * 1.8 * 4 - p.weight * 0.9 * 9) / 4),
+      water: smartWaterEnabled ? dailyTargets.water : Math.round(p.weight * 35)
+    };
+    if (!smartWaterEnabled) dailyTargets.water = Math.round(p.weight * 35);
   }
   function renderDashboard() { renderProgressBars(); renderFoodList(); updateWaterDisplay(); }
   function renderProgressBars() {
@@ -837,14 +1230,24 @@
   }
 
   function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); event.target.classList.add('active');
-    document.getElementById('todayPage').classList.toggle('active', tab==='today'); document.getElementById('weightPage').classList.toggle('active', tab==='weight');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('todayPage').classList.toggle('active', tab==='today');
+    document.getElementById('activityPage').classList.toggle('active', tab==='activity');
+    document.getElementById('weightPage').classList.toggle('active', tab==='weight');
     if (tab==='weight') { updateWeightStatsAndList(); renderWeightChart(); }
+    if (tab==='activity' && currentProfile) { updateActivityPreview(dailyActivity); }
   }
   function showPage(pageId) {
-    document.getElementById('mainPage').style.display = pageId==='mainPage'?'block':'none';
+    document.getElementById('mainPage').style.display = (pageId==='mainPage'||pageId==='activityPage') ? 'block' : 'none';
     document.getElementById('settingsPage').style.display = pageId==='settingsPage'?'block':'none';
+    document.getElementById('profilePage').style.display = pageId==='profilePage'?'block':'none';
     document.getElementById('productsPage').style.display = 'none';
+    if (pageId==='mainPage') {
+      document.getElementById('todayPage').classList.add('active');
+      document.getElementById('activityPage').classList.remove('active');
+      document.getElementById('weightPage').classList.remove('active');
+    }
   }
   function showProductsManager() {
     document.getElementById('mainPage').style.display = 'none';
