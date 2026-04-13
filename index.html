@@ -114,6 +114,21 @@
     input:hover { border-color: #4FACFE; }
     input::placeholder { color: #6B7280; opacity: 0.7; }
     
+    /* Поле даты с плейсхолдером */
+    input[type="date"] {
+      color-scheme: dark;
+      position: relative;
+    }
+    
+    input[type="date"]::-webkit-date-and-time-value {
+      text-align: left;
+      color: #6B7280;
+    }
+    
+    input[type="date"]:valid::-webkit-date-and-time-value {
+      color: #E6EDF3;
+    }
+    
     /* ========== КАСТОМНЫЕ РАДИО-КНОПКИ ========== */
     .radio-group {
       display: flex; gap: 24px; background: rgba(1, 4, 9, 0.6); 
@@ -368,7 +383,6 @@
       
       <div class="input-group"><label data-i18n="height">Рост (см)</label><input type="number" id="setupHeight" data-i18n-placeholder="height_placeholder" placeholder="Введите рост" min="100" max="250"></div>
       <div class="input-group"><label data-i18n="weight_label">Вес (кг)</label><input type="number" id="setupWeight" data-i18n-placeholder="weight_placeholder" placeholder="Введите вес" min="30" max="450" step="0.1"></div>
-      <div class="input-group"><label data-i18n="target_weight">Целевой вес (кг)</label><input type="number" id="setupTargetWeight" data-i18n-placeholder="target_weight_placeholder" placeholder="Введите целевой вес" min="30" max="450" step="0.1"></div>
     </div>
     
     <div class="card">
@@ -486,7 +500,7 @@
         <!-- Форма добавления -->
         <div class="flex mb-2">
           <input type="number" id="newWeight" data-i18n-placeholder="weight_input" placeholder="Вес" step="0.1" style="flex: 2;">
-          <input type="date" id="weightDate" style="flex: 2;">
+          <input type="date" id="weightDate" placeholder="Дата" style="flex: 2; padding: 14px 16px; font-size: 16px; background: rgba(1,4,9,0.6); border: 1px solid #30363D; border-radius: 16px; color: #E6EDF3;">
           <button class="btn-small" onclick="addWeightEntry()" style="flex: 1;"><span data-i18n="add">➕</span></button>
         </div>
         
@@ -532,7 +546,6 @@
       gender: 'Пол', female: 'Женский', male: 'Мужской',
       height: 'Рост (см)', height_placeholder: 'Введите рост',
       weight_label: 'Вес (кг)', weight_placeholder: 'Введите вес',
-      target_weight: 'Целевой вес (кг)', target_weight_placeholder: 'Введите целевой вес',
       activity: 'Активность',
       activity_low: 'Малая', activity_low_desc: 'Сидячая работа',
       activity_mid: 'Умеренная', activity_mid_desc: 'Тренировки 2-3 раза',
@@ -560,7 +573,6 @@
       gender: 'Gender', female: 'Female', male: 'Male',
       height: 'Height (cm)', height_placeholder: 'Enter height',
       weight_label: 'Weight (kg)', weight_placeholder: 'Enter weight',
-      target_weight: 'Target weight (kg)', target_weight_placeholder: 'Enter target weight',
       activity: 'Activity',
       activity_low: 'Low', activity_low_desc: 'Sedentary',
       activity_mid: 'Moderate', activity_mid_desc: 'Exercise 2-3x/week',
@@ -588,7 +600,6 @@
       gender: '性别', female: '女', male: '男',
       height: '身高 (cm)', height_placeholder: '输入身高',
       weight_label: '体重 (kg)', weight_placeholder: '输入体重',
-      target_weight: '目标体重 (kg)', target_weight_placeholder: '输入目标体重',
       activity: '活动量',
       activity_low: '低', activity_low_desc: '久坐',
       activity_mid: '中', activity_mid_desc: '每周运动2-3次',
@@ -618,6 +629,8 @@
   let todayFoods = [];
   let weightHistory = [];
   let chartInstance = null;
+  let gradientAnimationFrame = null;
+  let gradientPhase = 0;
   
   function setLanguage(lang) {
     currentLang = lang;
@@ -706,7 +719,6 @@
     const gender = document.querySelector('input[name="setupGender"]:checked')?.value;
     const height = parseFloat(document.getElementById('setupHeight').value);
     const weight = parseFloat(document.getElementById('setupWeight').value);
-    const targetWeight = parseFloat(document.getElementById('setupTargetWeight').value) || weight * 0.9;
     const activityEl = document.querySelector('.activity-item.selected');
     
     if (!name || !age || age < 10 || age > 100 || !gender || !height || height < 100 || height > 250 || !weight || weight < 30 || weight > 450 || !activityEl) {
@@ -716,7 +728,7 @@
     
     const activity = parseFloat(activityEl.dataset.activity);
     
-    currentProfile = { name, age, gender, height, weight, activity, targetWeight, startWeight: weight };
+    currentProfile = { name, age, gender, height, weight, activity, startWeight: weight };
     calculateTargets();
     saveAllData();
     localStorage.setItem('lastDate', new Date().toDateString());
@@ -905,7 +917,7 @@
   
   // ========== ФУНКЦИИ ВЕСА ==========
   function setWeightGoal() {
-    const currentGoal = currentProfile?.targetWeight || 55;
+    const currentGoal = currentProfile?.targetWeight || currentProfile?.startWeight * 0.9 || 55;
     const newGoal = prompt(translations[currentLang].enter_goal, currentGoal);
     if (newGoal && !isNaN(newGoal) && parseFloat(newGoal) > 0) {
       currentProfile.targetWeight = parseFloat(newGoal);
@@ -934,7 +946,7 @@
       changeEl.className = change < 0 ? 'positive' : (change > 0 ? 'negative' : '');
       
       const goalEl = document.getElementById('toGoalStat');
-      goalEl.innerText = (toGoal > 0 ? '+' : '') + toGoal.toFixed(1) + ' кг';
+      goalEl.innerText = toGoal.toFixed(1) + ' кг';
       goalEl.style.color = toGoal <= 0 ? '#6BCB77' : '#9CA3AF';
     } else {
       document.getElementById('startWeightStat').innerText = '—';
@@ -989,6 +1001,41 @@
     document.getElementById('newWeight').value = '';
   }
   
+  function createAnimatedGradient(ctx, width, height, baseColor) {
+    let r, g, b;
+    if (baseColor === '#F85149') { r = 248; g = 81; b = 73; }
+    else if (baseColor === '#6BCB77') { r = 107; g = 203; b = 119; }
+    else { r = 79; g = 172; b = 254; }
+    
+    const shift = Math.sin(gradientPhase) * 25;
+    
+    let r1, g1, b1, r2, g2, b2;
+    
+    if (baseColor === '#F85149') {
+      r1 = Math.min(255, r + shift); g1 = Math.max(0, g - shift/2); b1 = Math.max(0, b - shift/2);
+      r2 = Math.max(200, r - shift/2); g2 = Math.min(150, g + shift); b2 = Math.min(150, b + shift/2);
+    } else if (baseColor === '#6BCB77') {
+      r1 = Math.max(0, r - shift/2); g1 = Math.min(255, g + shift); b1 = Math.max(0, b - shift/2);
+      r2 = Math.min(150, r + shift/2); g2 = Math.max(150, g - shift/2); b2 = Math.min(150, b + shift);
+    } else {
+      r1 = Math.max(0, r - shift/2); g1 = Math.min(200, g + shift/2); b1 = Math.min(255, b + shift);
+      r2 = Math.min(150, r + shift); g2 = Math.max(100, g - shift/2); b2 = Math.max(200, b - shift/2);
+    }
+    
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, `rgba(${r1}, ${g1}, ${b1}, 0.5)`);
+    gradient.addColorStop(0.5, `rgba(${r2}, ${g2}, ${b2}, 0.25)`);
+    gradient.addColorStop(1, `rgba(${r1}, ${g1}, ${b1}, 0)`);
+    
+    return gradient;
+  }
+  
+  function animateGradient() {
+    gradientPhase += 0.02;
+    renderWeightChart();
+    gradientAnimationFrame = requestAnimationFrame(animateGradient);
+  }
+  
   function renderWeightChart() {
     const ctx = document.getElementById('weightChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
@@ -1005,6 +1052,9 @@
       else if (lastWeight > firstWeight) trendColor = '#F85149';
     }
     
+    const canvas = document.getElementById('weightChart');
+    const gradient = createAnimatedGradient(ctx, canvas.width, canvas.height, trendColor);
+    
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
@@ -1014,7 +1064,7 @@
             label: currentLang === 'ru' ? 'Вес (кг)' : currentLang === 'en' ? 'Weight (kg)' : '体重 (kg)',
             data: sorted.map(e => e.weight),
             borderColor: trendColor,
-            backgroundColor: trendColor + '20',
+            backgroundColor: gradient,
             tension: 0.3,
             fill: true,
             pointBackgroundColor: trendColor,
@@ -1035,6 +1085,7 @@
       },
       options: {
         responsive: true,
+        maintainAspectRatio: true,
         plugins: {
           legend: { labels: { color: '#E6EDF3' } },
           tooltip: { callbacks: { label: (ctx) => `${ctx.raw} кг` } }
@@ -1052,15 +1103,29 @@
     event.target.classList.add('active');
     document.getElementById('todayPage').classList.toggle('active', tab === 'today');
     document.getElementById('weightPage').classList.toggle('active', tab === 'weight');
+    
     if (tab === 'weight') {
       updateWeightStatsAndList();
       renderWeightChart();
+      
+      if (gradientAnimationFrame) cancelAnimationFrame(gradientAnimationFrame);
+      animateGradient();
+    } else {
+      if (gradientAnimationFrame) {
+        cancelAnimationFrame(gradientAnimationFrame);
+        gradientAnimationFrame = null;
+      }
     }
   }
   
   function showPage(pageId) {
     document.getElementById('mainPage').style.display = pageId === 'mainPage' ? 'block' : 'none';
     document.getElementById('settingsPage').style.display = pageId === 'settingsPage' ? 'block' : 'none';
+    
+    if (pageId !== 'weightPage' && gradientAnimationFrame) {
+      cancelAnimationFrame(gradientAnimationFrame);
+      gradientAnimationFrame = null;
+    }
   }
   
   function exportData() {
