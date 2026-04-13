@@ -681,32 +681,63 @@
     
     const t = translations[currentLang];
     const bars = [
-      { label: t.kcal, current: consumed.kcal, target: dailyTargets.kcal, unit: currentLang === 'en' ? 'kcal' : 'ккал', cls: 'bar-kcal' },
-      { label: t.protein, current: consumed.protein, target: dailyTargets.protein, unit: 'г', cls: 'bar-protein' },
-      { label: t.fat, current: consumed.fat, target: dailyTargets.fat, unit: 'г', cls: 'bar-fat' },
-      { label: t.carbs, current: consumed.carbs, target: dailyTargets.carbs, unit: 'г', cls: 'bar-carbs' },
-      { label: t.water, current: waterAmount, target: dailyTargets.water, unit: currentLang === 'en' ? 'ml' : 'мл', cls: 'bar-water' }
+      { id: 'kcal', label: t.kcal, current: consumed.kcal, target: dailyTargets.kcal, unit: currentLang === 'en' ? 'kcal' : 'ккал', cls: 'bar-kcal' },
+      { id: 'protein', label: t.protein, current: consumed.protein, target: dailyTargets.protein, unit: 'г', cls: 'bar-protein' },
+      { id: 'fat', label: t.fat, current: consumed.fat, target: dailyTargets.fat, unit: 'г', cls: 'bar-fat' },
+      { id: 'carbs', label: t.carbs, current: consumed.carbs, target: dailyTargets.carbs, unit: 'г', cls: 'bar-carbs' },
+      { id: 'water', label: t.water, current: waterAmount, target: dailyTargets.water, unit: currentLang === 'en' ? 'ml' : 'мл', cls: 'bar-water' }
     ];
-    
-    let html = '';
+
+    // Если контейнер пуст, создаем структуру
+    if (!document.querySelector('.progress-bar')) {
+      let html = '';
+      bars.forEach(b => {
+        const pct = (b.current / b.target) * 100;
+        const isOver = pct > 100;
+        const displayPct = Math.round(pct);
+        const barClass = isOver ? 'bar-over' : b.cls;
+        html += `
+          <div class="bar-group" id="bar-group-${b.id}">
+            <div class="flex" style="justify-content: space-between;">
+              <span>${b.label} ${Math.round(b.current)}/${b.target} ${b.unit}</span>
+              <span class="bar-percent" style="color: ${isOver ? '#F85149' : '#9CA3AF'}">${displayPct}%</span>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar ${barClass}" id="bar-${b.id}" style="width: ${pct}%; ${isOver ? 'background: #F85149;' : ''}"></div>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('progressBars').innerHTML = html;
+      return;
+    }
+
+    // Если элементы уже есть, просто обновляем их
     bars.forEach(b => {
       const pct = (b.current / b.target) * 100;
       const isOver = pct > 100;
       const displayPct = Math.round(pct);
       const barClass = isOver ? 'bar-over' : b.cls;
       
-      html += `
-        <div class="flex" style="justify-content: space-between;">
-          <span>${b.label} ${Math.round(b.current)}/${b.target} ${b.unit}</span>
-          <span style="color: ${isOver ? '#F85149' : '#9CA3AF'}">${displayPct}%</span>
-        </div>
-        <div class="progress-bar-container">
-          <div class="progress-bar ${barClass}" style="width: ${pct}%; ${isOver ? 'background: #F85149;' : ''}"></div>
-        </div>
-      `;
+      const barGroup = document.getElementById(`bar-group-${b.id}`);
+      if (barGroup) {
+        const labelSpan = barGroup.querySelector('.flex span:first-child');
+        const percentSpan = barGroup.querySelector('.bar-percent');
+        if (labelSpan) labelSpan.innerText = `${b.label} ${Math.round(b.current)}/${b.target} ${b.unit}`;
+        if (percentSpan) {
+          percentSpan.innerText = `${displayPct}%`;
+          percentSpan.style.color = isOver ? '#F85149' : '#9CA3AF';
+        }
+        
+        const barElement = document.getElementById(`bar-${b.id}`);
+        if (barElement) {
+          barElement.style.width = pct + '%';
+          barElement.className = `progress-bar ${barClass}`;
+          if (isOver) barElement.style.background = '#F85149';
+          else barElement.style.background = '';
+        }
+      }
     });
-    
-    document.getElementById('progressBars').innerHTML = html;
   }
   
   function renderFoodList() {
