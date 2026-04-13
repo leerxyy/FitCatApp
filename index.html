@@ -759,43 +759,41 @@
   }
 
   function animateGradient() {
-  if (!chartInstance || !chartInstance.data.datasets) {
+    if (!chartInstance || !chartInstance.data.datasets) {
+      gradientAnimationFrame = requestAnimationFrame(animateGradient);
+      return;
+    }
+    
+    gradientPhase += 0.015;
+    
+    const canvas = document.getElementById('weightChart');
+    const ctx = canvas.getContext('2d');
+    const dataset = chartInstance.data.datasets[0];
+    const baseColor = dataset.borderColor;
+    
+    const wavePos = (Math.sin(gradientPhase) * 0.5 + 0.5);
+    
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    
+    let r, g, b;
+    if (baseColor === '#F85149') { r = 248; g = 81; b = 73; }
+    else if (baseColor === '#6BCB77') { r = 107; g = 203; b = 119; }
+    else { r = 79; g = 172; b = 254; }
+    
+    const lightR = Math.min(255, r + 50);
+    const lightG = Math.min(255, g + 50);
+    const lightB = Math.min(255, b + 50);
+    
+    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.7)`);
+    gradient.addColorStop(wavePos * 0.5, `rgba(${r}, ${g}, ${b}, 0.4)`);
+    gradient.addColorStop(wavePos, `rgba(${lightR}, ${lightG}, ${lightB}, 0.5)`);
+    gradient.addColorStop(wavePos + 0.15, `rgba(${r}, ${g}, ${b}, 0.25)`);
+    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+    
+    dataset.backgroundColor = gradient;
+    chartInstance.update('none');
+    
     gradientAnimationFrame = requestAnimationFrame(animateGradient);
-    return;
-  }
-  
-  gradientPhase += 0.015;
-  
-  const canvas = document.getElementById('weightChart');
-  const ctx = canvas.getContext('2d');
-  const dataset = chartInstance.data.datasets[0];
-  const baseColor = dataset.borderColor;
-  
-  // Вертикальная волна
-  const wavePos = (Math.sin(gradientPhase) * 0.5 + 0.5) * canvas.height;
-  
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  
-  let r, g, b;
-  if (baseColor === '#F85149') { r = 248; g = 81; b = 73; }
-  else if (baseColor === '#6BCB77') { r = 107; g = 203; b = 119; }
-  else { r = 79; g = 172; b = 254; }
-  
-  const lightR = Math.min(255, r + 60);
-  const lightG = Math.min(255, g + 60);
-  const lightB = Math.min(255, b + 60);
-  
-  // ВАЖНО: плавное исчезновение к низу
-  gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.7)`);
-  gradient.addColorStop(wavePos / canvas.height * 0.7, `rgba(${r}, ${g}, ${b}, 0.4)`);
-  gradient.addColorStop(wavePos / canvas.height, `rgba(${lightR}, ${lightG}, ${lightB}, 0.5)`);
-  gradient.addColorStop(wavePos / canvas.height + 0.2, `rgba(${r}, ${g}, ${b}, 0.2)`);
-  gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`); // ← ПОЛНАЯ ПРОЗРАЧНОСТЬ ВНИЗУ
-  
-  dataset.backgroundColor = gradient;
-  chartInstance.update('none');
-  
-  gradientAnimationFrame = requestAnimationFrame(animateGradient);
   }
 
   function renderWeightChart() {
@@ -803,31 +801,64 @@
     const ctx = canvas.getContext('2d');
     if (chartInstance) chartInstance.destroy();
     if (weightHistory.length === 0) return;
+    
     const sorted = [...weightHistory].sort((a,b) => new Date(a.date) - new Date(b.date));
     const goalWeight = currentProfile?.targetWeight || currentProfile?.startWeight * 0.9 || 55;
-    const firstWeight = sorted[0].weight, lastWeight = sorted[sorted.length - 1].weight;
+    
+    const firstWeight = sorted[0].weight;
+    const lastWeight = sorted[sorted.length - 1].weight;
     let trendColor = '#4FACFE';
-    if (sorted.length > 1) { if (lastWeight < firstWeight) trendColor = '#6BCB77'; else if (lastWeight > firstWeight) trendColor = '#F85149'; }
+    if (sorted.length > 1) {
+      if (lastWeight < firstWeight) trendColor = '#6BCB77';
+      else if (lastWeight > firstWeight) trendColor = '#F85149';
+    }
+    
     const weights = sorted.map(e => e.weight);
-    const minWeight = Math.min(...weights, goalWeight) - 1, maxWeight = Math.max(...weights, goalWeight) + 1;
+    const minWeight = Math.min(...weights, goalWeight) - 1;
+    const maxWeight = Math.max(...weights, goalWeight) + 1;
+    
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: sorted.map(e => e.date),
         datasets: [
-          { label: currentLang === 'ru' ? 'Вес (кг)' : currentLang === 'en' ? 'Weight (kg)' : '体重 (kg)', data: sorted.map(e => e.weight), borderColor: trendColor, backgroundColor: 'transparent', tension: 0.3, fill: true, pointBackgroundColor: trendColor, pointBorderColor: '#0D1117', pointRadius: 5, pointHoverRadius: 8 },
-          { label: currentLang === 'ru' ? 'Цель' : currentLang === 'en' ? 'Goal' : '目标', data: sorted.map(() => goalWeight), borderColor: '#FFD93D', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, fill: false }
+          {
+            label: currentLang === 'ru' ? 'Вес (кг)' : currentLang === 'en' ? 'Weight (kg)' : '体重 (kg)',
+            data: sorted.map(e => e.weight),
+            borderColor: trendColor,
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: trendColor,
+            pointBorderColor: '#0D1117',
+            pointRadius: 5,
+            pointHoverRadius: 8
+          },
+          {
+            label: currentLang === 'ru' ? 'Цель' : currentLang === 'en' ? 'Goal' : '目标',
+            data: sorted.map(() => goalWeight),
+            borderColor: '#FFD93D',
+            borderDash: [5, 5],
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          }
         ]
       },
       options: {
-        responsive: true, maintainAspectRatio: true,
+        responsive: true,
+        maintainAspectRatio: true,
         plugins: {
           legend: { labels: { color: '#E6EDF3' } },
           tooltip: { enabled: true, mode: 'index', intersect: false, callbacks: { label: (ctx) => `${ctx.raw} кг` } }
         },
-        scales: { x: { ticks: { color: '#9CA3AF' }, grid: { display: false } }, y: { min: minWeight, max: maxWeight, ticks: { color: '#9CA3AF', stepSize: 0.5 }, grid: { color: '#30363D' } } }
+        scales: {
+          x: { ticks: { color: '#9CA3AF' }, grid: { display: false } },
+          y: { min: minWeight, max: maxWeight, ticks: { color: '#9CA3AF', stepSize: 0.5 }, grid: { color: '#30363D' } }
+        }
       }
     });
+    
     if (gradientAnimationFrame) cancelAnimationFrame(gradientAnimationFrame);
     animateGradient();
   }
@@ -837,8 +868,16 @@
     event.target.classList.add('active');
     document.getElementById('todayPage').classList.toggle('active', tab === 'today');
     document.getElementById('weightPage').classList.toggle('active', tab === 'weight');
-    if (tab === 'weight') { updateWeightStatsAndList(); renderWeightChart(); }
-    else { if (gradientAnimationFrame) { cancelAnimationFrame(gradientAnimationFrame); gradientAnimationFrame = null; } }
+    
+    if (tab === 'weight') {
+      updateWeightStatsAndList();
+      renderWeightChart();
+    } else {
+      if (gradientAnimationFrame) {
+        cancelAnimationFrame(gradientAnimationFrame);
+        gradientAnimationFrame = null;
+      }
+    }
   }
 
   function showPage(pageId) {
