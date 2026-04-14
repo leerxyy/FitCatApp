@@ -371,12 +371,25 @@
     .text-small { font-size: 13px; color: #9CA3AF; }
     .mb-2 { margin-bottom: 8px; }
 
+    /* АНИМАЦИЯ ПРИВЕТСТВИЯ */
+    .greeting-fade {
+      transition: opacity 0.4s ease;
+      opacity: 1;
+    }
+    .greeting-fade.fade-out {
+      opacity: 0;
+    }
+
     /* СТРИК ЭМОДЗИ */
     .streak-emoji {
       font-size: 28px;
       line-height: 1;
       display: inline-block;
-      cursor: default;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .streak-emoji.bounce {
+      transform: translateY(-6px);
     }
     .streak-emoji.none {
       filter: drop-shadow(0 0 8px #6B7280) drop-shadow(0 0 15px #4B5563);
@@ -406,6 +419,27 @@
       50% { filter: drop-shadow(0 0 20px #00FFFF) drop-shadow(0 0 40px #0088FF); }
       75% { filter: drop-shadow(0 0 20px #8800FF) drop-shadow(0 0 40px #FF00FF); }
       100% { filter: drop-shadow(0 0 20px #FF0000) drop-shadow(0 0 40px #FF8800); }
+    }
+
+    /* ПОДСКАЗКА СТРИКА */
+    .streak-tooltip {
+      position: fixed;
+      background: #1A2027;
+      border: 1px solid #4FACFE;
+      border-radius: 16px;
+      padding: 10px 18px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #E6EDF3;
+      white-space: nowrap;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .streak-tooltip.show {
+      opacity: 1;
     }
   </style>
 </head>
@@ -510,18 +544,8 @@
   <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <!-- ЛЕВАЯ ЧАСТЬ: приветствие + огонёк -->
-      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-        <h1 style="display: flex; align-items: center; gap: 6px; margin: 0;">
-          <span>🐱</span>
-          <span id="greetingPrefix">Добрый вечер,</span>
-          <span id="greetingName">Анна</span>
-        </h1>
-        <span id="streakEmoji" class="streak-emoji none" style="font-size: 28px;">🕯️</span>
-      </div>
-      
-      <!-- ПРАВАЯ ЧАСТЬ: аватарка -->
-      <div class="header-photo" id="headerPhoto" onclick="showProfile()" style="flex-shrink: 0; margin-left: 8px;">
+      <h1 style="margin: 0;" id="greetingText" class="greeting-fade">🐱 FitCat</h1>
+      <div class="header-photo" id="headerPhoto" onclick="showProfile()">
         <span id="headerInitials" class="header-initials">🐱</span>
       </div>
     </div>
@@ -798,6 +822,7 @@
   let currentSteps = 8000;
   let currentTemp = 22;
   let waterAmount = 0;
+  let greetingTimeout = null;
 
   function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
   function getBarColor(pct) {
@@ -855,8 +880,51 @@
       
       emoji.className = 'streak-emoji ' + emojiClass;
       emoji.textContent = emojiChar;
-      emoji.title = `Серия: ${streak} дней подряд!`;
+      emoji.title = `${streak} дн.`;
+      
+      setupStreakInteractions(emoji);
     }
+  }
+
+  function setupStreakInteractions(emoji) {
+    if (!emoji || emoji.dataset.hasListeners) return;
+    emoji.dataset.hasListeners = 'true';
+
+    emoji.addEventListener('click', (e) => {
+      e.stopPropagation();
+      emoji.classList.add('bounce');
+      setTimeout(() => emoji.classList.remove('bounce'), 200);
+    });
+
+    emoji.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      showStreakTooltip(emoji);
+    });
+  }
+
+  function showStreakTooltip(emoji) {
+    const streak = localStorage.getItem('fitcat_streak') || '1';
+    
+    const oldTooltip = document.querySelector('.streak-tooltip');
+    if (oldTooltip) oldTooltip.remove();
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'streak-tooltip';
+    tooltip.innerHTML = `${streak} дн.`;
+
+    document.body.appendChild(tooltip);
+    
+    const rect = emoji.getBoundingClientRect();
+    tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+    tooltip.style.top = (rect.bottom + 8) + 'px';
+    tooltip.style.transform = 'translateX(-50%)';
+
+    setTimeout(() => tooltip.classList.add('show'), 10);
+
+    setTimeout(() => {
+      tooltip.classList.remove('show');
+      setTimeout(() => tooltip.remove(), 300);
+    }, 2000);
   }
 
   // ========== ФОТО ПРОФИЛЯ ==========
@@ -879,26 +947,17 @@
     }
   }
 
-  function uploadPhoto() {
-    document.getElementById('photoInput').click();
-  }
+  function uploadPhoto() { document.getElementById('photoInput').click(); }
 
   function handlePhotoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
-    if (file.size > 3 * 1024 * 1024) {
-      alert('Фото слишком большое. Максимум 3 МБ.');
-      return;
-    }
+    if (file.size > 3 * 1024 * 1024) { alert('Фото слишком большое. Максимум 3 МБ.'); return; }
     
     const reader = new FileReader();
     reader.onload = (e) => {
       localStorage.setItem('profilePhoto', e.target.result);
-      
-      const profilePhoto = document.getElementById('profilePhoto');
-      profilePhoto.innerHTML = `<img src="${e.target.result}" alt="Profile">`;
-      
+      document.getElementById('profilePhoto').innerHTML = `<img src="${e.target.result}" alt="Profile">`;
       updateHeaderPhoto();
       vibrate();
     };
@@ -907,11 +966,8 @@
 
   function deletePhoto() {
     localStorage.removeItem('profilePhoto');
-    
-    const profilePhoto = document.getElementById('profilePhoto');
     const initials = currentProfile ? getInitials(currentProfile.name) : '🐱';
-    profilePhoto.innerHTML = `<span id="profileInitials" class="profile-initials">${initials}</span>`;
-    
+    document.getElementById('profilePhoto').innerHTML = `<span class="profile-initials">${initials}</span>`;
     updateHeaderPhoto();
     vibrate();
   }
@@ -925,7 +981,7 @@
     }
   }
 
-  // ========== ВОДА (КНОПКИ) ==========
+  // ========== ВОДА ==========
   function addWater(ml) {
     waterAmount = Math.max(0, waterAmount + ml);
     if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
@@ -956,33 +1012,21 @@
     document.getElementById('smartWaterModal').style.display = 'flex';
     document.getElementById('tempSlider').value = currentTemp;
     document.getElementById('stepsSlider').value = currentSteps;
-    updateTempDisplay();
-    updateStepsDisplay();
-    updateTrainingUI();
-    updateWaterCalculation();
+    updateTempDisplay(); updateStepsDisplay(); updateTrainingUI(); updateWaterCalculation();
   }
   function closeSmartWater() { document.getElementById('smartWaterModal').style.display = 'none'; }
   function updateTempDisplay() {
-    const val = parseInt(document.getElementById('tempSlider').value);
-    currentTemp = val;
-    document.getElementById('tempDisplay').innerText = val + '°C';
+    currentTemp = parseInt(document.getElementById('tempSlider').value);
+    document.getElementById('tempDisplay').innerText = currentTemp + '°C';
     updateWaterCalculation();
   }
   function updateStepsDisplay() {
-    const val = parseInt(document.getElementById('stepsSlider').value);
-    currentSteps = val;
-    document.getElementById('stepsDisplay').innerText = val.toLocaleString();
+    currentSteps = parseInt(document.getElementById('stepsSlider').value);
+    document.getElementById('stepsDisplay').innerText = currentSteps.toLocaleString();
     updateWaterCalculation();
   }
-  function getTempBonus(temp) {
-    if (temp < 0) return 0; if (temp < 15) return 0; if (temp < 20) return 50;
-    if (temp < 25) return 150; if (temp < 30) return 300; return 500;
-  }
-  function getStepsBonus(steps) {
-    if (steps < 2500) return 0; if (steps < 5000) return 50; if (steps < 7500) return 100;
-    if (steps < 10000) return 150; if (steps < 12500) return 200; if (steps < 15000) return 250;
-    return 300;
-  }
+  function getTempBonus(t) { if (t<0) return 0; if (t<15) return 0; if (t<20) return 50; if (t<25) return 150; if (t<30) return 300; return 500; }
+  function getStepsBonus(s) { if (s<2500) return 0; if (s<5000) return 50; if (s<7500) return 100; if (s<10000) return 150; if (s<12500) return 200; if (s<15000) return 250; return 300; }
   function toggleTraining() {
     trainingToday = !trainingToday;
     localStorage.setItem('hadTraining', trainingToday);
@@ -992,7 +1036,7 @@
   }
   function updateTrainingUI() {
     const btn = document.getElementById('trainingToggle');
-    if (trainingToday) { btn.classList.add('checked'); } else { btn.classList.remove('checked'); }
+    trainingToday ? btn.classList.add('checked') : btn.classList.remove('checked');
   }
   function updateWaterCalculation() {
     if (!currentProfile) return;
@@ -1001,7 +1045,6 @@
     const stepsBonus = getStepsBonus(currentSteps);
     const trainingBonus = trainingToday ? 300 : 0;
     const total = base + tempBonus + stepsBonus + trainingBonus;
-    
     document.getElementById('baseWaterNorm').innerText = base + ' мл';
     document.getElementById('tempBonus').innerText = '+' + tempBonus + ' мл';
     document.getElementById('stepsBonus').innerText = '+' + stepsBonus + ' мл';
@@ -1013,48 +1056,19 @@
     currentTemp = parseInt(document.getElementById('tempSlider').value);
     localStorage.setItem('currentSteps', currentSteps);
     localStorage.setItem('currentTemp', currentTemp);
-    
     const base = Math.round(currentProfile.weight * 35);
-    const tempBonus = getTempBonus(currentTemp);
-    const stepsBonus = getStepsBonus(currentSteps);
-    const trainingBonus = trainingToday ? 300 : 0;
-    dailyTargets.water = base + tempBonus + stepsBonus + trainingBonus;
-    
+    dailyTargets.water = base + getTempBonus(currentTemp) + getStepsBonus(currentSteps) + (trainingToday ? 300 : 0);
     if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
     localStorage.setItem('waterAmount', waterAmount);
-    
-    renderProgressBars();
-    updateWaterDisplay();
-    updateWaterHint();
-    closeSmartWater();
-    vibrate();
+    renderProgressBars(); updateWaterDisplay(); updateWaterHint(); closeSmartWater(); vibrate();
   }
   function updateWaterHint() {
     const hint = document.getElementById('smartWaterHint');
     const bonus = dailyTargets.water - Math.round(currentProfile.weight * 35);
-    if (bonus > 0) hint.innerText = `Умная норма: +${bonus} мл`; else hint.innerText = '';
+    hint.innerText = bonus > 0 ? `Умная норма: +${bonus} мл` : '';
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const tempSlider = document.getElementById('tempSlider');
-    const stepsSlider = document.getElementById('stepsSlider');
-    if (tempSlider) tempSlider.addEventListener('input', updateTempDisplay);
-    if (stepsSlider) stepsSlider.addEventListener('input', updateStepsDisplay);
-    
-    const tempTicks = document.getElementById('tempTicks');
-    const stepsTicks = document.getElementById('stepsTicks');
-    if (tempTicks) { for (let i = 0; i < 51; i++) tempTicks.innerHTML += '<span class="tick"></span>'; }
-    if (stepsTicks) { for (let i = 0; i < 21; i++) stepsTicks.innerHTML += '<span class="tick"></span>'; }
-    
-    if (localStorage.getItem('card_waterCard_collapsed') === 'true') {
-      document.getElementById('waterContent').classList.add('collapsed');
-    }
-    if (localStorage.getItem('card_mealsCard_collapsed') === 'true') {
-      document.getElementById('mealsContent').classList.add('collapsed');
-    }
-  });
-
-  // ========== ЕЖЕДНЕВНАЯ АКТИВНОСТЬ ==========
+  // ========== АКТИВНОСТЬ ==========
   function selectDailyActivity(el) {
     document.querySelectorAll('#activityPage .activity-daily-item').forEach(i => i.classList.remove('selected'));
     el.classList.add('selected');
@@ -1066,14 +1080,10 @@
     let bmr = p.gender === 'female' ? 447.6 + 9.2*p.weight + 3.1*p.height - 4.3*p.age : 88.36 + 13.4*p.weight + 4.8*p.height - 5.7*p.age;
     let tdee = bmr * coef;
     const kcal = Math.round(tdee * 0.85);
-    const protein = Math.round(p.weight * 1.8);
-    const fat = Math.round(p.weight * 0.9);
-    const carbs = Math.round((kcal - protein*4 - fat*9) / 4);
-    
     document.getElementById('previewKcal').innerText = kcal + ' ккал';
-    document.getElementById('previewProtein').innerText = protein + ' г';
-    document.getElementById('previewFat').innerText = fat + ' г';
-    document.getElementById('previewCarbs').innerText = carbs + ' г';
+    document.getElementById('previewProtein').innerText = Math.round(p.weight * 1.8) + ' г';
+    document.getElementById('previewFat').innerText = Math.round(p.weight * 0.9) + ' г';
+    document.getElementById('previewCarbs').innerText = Math.round((kcal - p.weight*1.8*4 - p.weight*0.9*9)/4) + ' г';
     document.getElementById('previewWater').innerText = dailyTargets.water + ' мл';
   }
   function applyDailyActivity() {
@@ -1081,11 +1091,7 @@
     if (!selected) return;
     dailyActivity = parseFloat(selected.dataset.activity);
     localStorage.setItem('dailyActivity', dailyActivity);
-    calculateTargets();
-    renderDashboard();
-    updateActivityUI();
-    showPage('mainPage');
-    vibrate();
+    calculateTargets(); renderDashboard(); updateActivityUI(); showPage('mainPage'); vibrate();
   }
   function updateActivityUI() {
     const tabs = document.querySelectorAll('.tab');
@@ -1105,16 +1111,10 @@
     document.querySelector(`input[name="profileGender"][value="${currentProfile.gender}"]`).checked = true;
     document.getElementById('profileHeight').value = currentProfile.height || '';
     document.getElementById('profileWeight').value = currentProfile.weight || '';
-    
     const savedPhoto = localStorage.getItem('profilePhoto');
     const profilePhoto = document.getElementById('profilePhoto');
-    if (savedPhoto) {
-      profilePhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
-    } else {
-      const initials = getInitials(currentProfile.name);
-      profilePhoto.innerHTML = `<span id="profileInitials" class="profile-initials">${initials}</span>`;
-    }
-    
+    if (savedPhoto) profilePhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
+    else profilePhoto.innerHTML = `<span class="profile-initials">${getInitials(currentProfile.name)}</span>`;
     showPage('profilePage');
   }
   function saveProfile() {
@@ -1123,28 +1123,24 @@
     const gender = document.querySelector('input[name="profileGender"]:checked')?.value;
     const height = parseFloat(document.getElementById('profileHeight').value);
     const weight = parseFloat(document.getElementById('profileWeight').value);
-    
     if (!name || !age || age<10||age>100||!gender||!height||height<100||height>250||!weight||weight<30||weight>500) {
       alert(translations[currentLang].error_fill); return;
     }
     currentProfile = { ...currentProfile, name, age, gender, height, weight };
-    saveAllData(); calculateTargets(); renderDashboard(); updateGreeting();
-    updateHeaderPhoto();
+    saveAllData(); calculateTargets(); renderDashboard(); updateGreeting(); updateHeaderPhoto();
     showPage('mainPage'); vibrate();
   }
   function deleteAccount() {
-    if (confirm(translations[currentLang].confirm_delete)) {
-      localStorage.clear();
-      location.reload();
-    }
+    if (confirm(translations[currentLang].confirm_delete)) { localStorage.clear(); location.reload(); }
   }
 
-  // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
+  // ========== ОСТАЛЬНОЕ ==========
   function loadProductsDB() { const s = localStorage.getItem('fitcat_products'); if (s) productsDB = JSON.parse(s); }
   function saveProductsDB() { localStorage.setItem('fitcat_products', JSON.stringify(productsDB)); }
   function addToProductsDB(name, prot, fat, carbs, kcal) {
-    const ex = productsDB.find(p => p.name.toLowerCase() === name.toLowerCase());
-    if (!ex) { productsDB.push({ name, protein: prot, fat, carbs, kcal }); saveProductsDB(); }
+    if (!productsDB.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+      productsDB.push({ name, protein: prot, fat, carbs, kcal }); saveProductsDB();
+    }
   }
   function setupAutocomplete() {
     const inp = document.getElementById('foodName'), list = document.getElementById('autocompleteList');
@@ -1244,6 +1240,15 @@
       updateWaterHint(); updateHeaderPhoto();
     }
     updateStreak();
+    
+    const tempSlider = document.getElementById('tempSlider');
+    const stepsSlider = document.getElementById('stepsSlider');
+    if (tempSlider) tempSlider.addEventListener('input', updateTempDisplay);
+    if (stepsSlider) stepsSlider.addEventListener('input', updateStepsDisplay);
+    
+    ['tempTicks','stepsTicks'].forEach(id => { const el = document.getElementById(id); if (el) for (let i=0; i<51; i++) el.innerHTML += '<span class="tick"></span>'; });
+    if (localStorage.getItem('card_waterCard_collapsed') === 'true') document.getElementById('waterContent').classList.add('collapsed');
+    if (localStorage.getItem('card_mealsCard_collapsed') === 'true') document.getElementById('mealsContent').classList.add('collapsed');
   };
   
   function loadData() {
@@ -1264,11 +1269,28 @@
     }
   }
   function updateGreeting() {
+    if (greetingTimeout) clearTimeout(greetingTimeout);
     const h = new Date().getHours(); let k = 'day';
     if (h>=5 && h<12) k='morning'; else if (h>=12 && h<18) k='day'; else if (h>=18 && h<23) k='evening'; else k='night';
-    document.getElementById('greetingPrefix').innerText = translations[currentLang][k] + ',';
-    document.getElementById('greetingName').innerText = currentProfile?.name || '';
-    updateStreak();
+    const greetingEl = document.getElementById('greetingText');
+    const name = currentProfile?.name || '';
+    greetingEl.classList.add('greeting-fade');
+    greetingEl.innerHTML = `🐱 ${translations[currentLang][k]}, ${name}`;
+    
+    greetingTimeout = setTimeout(() => {
+      greetingEl.classList.add('fade-out');
+      setTimeout(() => {
+        const streak = localStorage.getItem('fitcat_streak') || '1';
+        let emojiClass = 'none', emojiChar = '🕯️';
+        if (streak == 2) { emojiClass = 'red'; emojiChar = '🔥'; }
+        else if (streak == 3) { emojiClass = 'yellow'; emojiChar = '🔥'; }
+        else if (streak == 4) { emojiClass = 'purple'; emojiChar = '🔥'; }
+        else if (streak >= 5) { emojiClass = 'rainbow'; emojiChar = '🔥'; }
+        greetingEl.innerHTML = `🐱 FitCat <span id="streakEmoji" class="streak-emoji ${emojiClass}">${emojiChar}</span>`;
+        greetingEl.classList.remove('fade-out');
+        updateStreak();
+      }, 400);
+    }, 2000);
   }
   function completeSetup() {
     const n = document.getElementById('setupName').value.trim();
@@ -1276,7 +1298,6 @@
     const g = document.querySelector('input[name="setupGender"]:checked')?.value;
     const h = parseFloat(document.getElementById('setupHeight').value);
     const w = parseFloat(document.getElementById('setupWeight').value);
-    
     if (!n || !a || a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500) {
       alert(translations[currentLang].error_fill); return;
     }
@@ -1316,13 +1337,7 @@
         h += `<div class="bar-group" id="bar-group-${b.cls}"><div class="flex" style="justify-content:space-between;"><span>${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}</span><span class="bar-percent" style="color:${col}">${Math.round(pct)}%</span></div><div class="progress-bar-container"><div class="progress-bar ${b.cls}" id="bar-${b.cls}" style="width:0%;"></div></div></div>`;
       });
       container.innerHTML = h;
-      requestAnimationFrame(() => {
-        bars.forEach(b=>{
-          const pct = Math.min((b.cur/b.tar)*100, 100);
-          const bar = document.getElementById(`bar-${b.cls}`);
-          if (bar) bar.style.width = pct + '%';
-        });
-      });
+      requestAnimationFrame(() => bars.forEach(b=>{ const bar = document.getElementById(`bar-${b.cls}`); if (bar) bar.style.width = Math.min((b.cur/b.tar)*100, 100) + '%'; }));
     } else {
       bars.forEach(b=>{
         const pct = Math.min((b.cur/b.tar)*100, 100), col = getBarColor(pct);
@@ -1403,9 +1418,7 @@
     document.getElementById('weightPage').classList.toggle('active', tab==='weight');
     if (tab==='weight') { updateWeightStatsAndList(); renderWeightChart(); }
     if (tab==='activity' && currentProfile) { 
-      document.querySelectorAll('#activityPage .activity-daily-item').forEach(el => {
-        el.classList.toggle('selected', parseFloat(el.dataset.activity) === dailyActivity);
-      });
+      document.querySelectorAll('#activityPage .activity-daily-item').forEach(el => el.classList.toggle('selected', parseFloat(el.dataset.activity) === dailyActivity));
       updateActivityPreview(dailyActivity);
     }
   }
