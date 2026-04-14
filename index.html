@@ -370,6 +370,44 @@
     .text-center { text-align: center; }
     .text-small { font-size: 13px; color: #9CA3AF; }
     .mb-2 { margin-bottom: 8px; }
+
+    /* СТРИК ЭМОДЗИ */
+    .streak-emoji {
+      font-size: 28px;
+      line-height: 1;
+      display: inline-block;
+      margin-left: 6px;
+      cursor: default;
+    }
+    .streak-emoji.none {
+      filter: drop-shadow(0 0 8px #6B7280) drop-shadow(0 0 15px #4B5563);
+    }
+    .streak-emoji.red {
+      filter: drop-shadow(0 0 15px #FF4500) drop-shadow(0 0 30px #FF4500);
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+    .streak-emoji.yellow {
+      filter: drop-shadow(0 0 20px #FFD700) drop-shadow(0 0 40px #FFD700);
+      animation: glowPulse 1.6s ease-in-out infinite;
+    }
+    .streak-emoji.purple {
+      filter: drop-shadow(0 0 25px #A855F7) drop-shadow(0 0 50px #A855F7);
+      animation: glowPulse 1.2s ease-in-out infinite;
+    }
+    .streak-emoji.rainbow {
+      animation: rainbowGlow 3s linear infinite, glowPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+    @keyframes rainbowGlow {
+      0% { filter: drop-shadow(0 0 20px #FF0000) drop-shadow(0 0 40px #FF8800); }
+      25% { filter: drop-shadow(0 0 20px #FFFF00) drop-shadow(0 0 40px #00FF00); }
+      50% { filter: drop-shadow(0 0 20px #00FFFF) drop-shadow(0 0 40px #0088FF); }
+      75% { filter: drop-shadow(0 0 20px #8800FF) drop-shadow(0 0 40px #FF00FF); }
+      100% { filter: drop-shadow(0 0 20px #FF0000) drop-shadow(0 0 40px #FF8800); }
+    }
   </style>
 </head>
 <body>
@@ -473,7 +511,10 @@
   <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h1 style="margin: 0;" id="greetingText">🐱 FitCat</h1>
+      <h1 style="margin: 0;" id="greetingText">
+        🐱 <span id="greetingMessage"></span>
+        <span id="streakEmoji" class="streak-emoji none">🕯️</span>
+      </h1>
       <div class="header-photo" id="headerPhoto" onclick="showProfile()">
         <span id="headerInitials" class="header-initials">🐱</span>
       </div>
@@ -490,7 +531,6 @@
         <div id="progressBars"></div>
       </div>
       
-      <!-- ВОДА С КНОПКАМИ -->
       <div class="card" id="waterCard">
         <div class="card-header" onclick="toggleCard('waterCard')">
           <h2 data-i18n="water_title" style="margin: 0;">Вода</h2>
@@ -519,7 +559,6 @@
         </div>
       </div>
       
-      <!-- ЕДА -->
       <div class="card" id="mealsCard">
         <div class="card-header" onclick="toggleCard('mealsCard')">
           <h2 data-i18n="meals" style="margin: 0;">Сегодня съедено</h2>
@@ -776,6 +815,41 @@
       updateGreeting(); renderProgressBars(); renderFoodList(); updateWaterDisplay();
       updateWeightStatsAndList(); renderWeightChart(); renderTemplates(); updateActivityUI();
       updateHeaderPhoto();
+    }
+  }
+
+  // ========== СТРИК ==========
+  function updateStreak() {
+    let streak = parseInt(localStorage.getItem('fitcat_streak') || 0);
+    const lastOpen = localStorage.getItem('fitcat_lastOpen');
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+    if (!lastOpen) {
+      streak = 1;
+    } else if (lastOpen === today) {
+      // уже заходила сегодня
+    } else if (lastOpen === yesterday) {
+      streak = Math.min(streak + 1, 5);
+    } else {
+      streak = 1;
+    }
+
+    localStorage.setItem('fitcat_streak', streak);
+    localStorage.setItem('fitcat_lastOpen', today);
+
+    const emoji = document.getElementById('streakEmoji');
+    if (emoji) {
+      let emojiClass, emojiChar;
+      if (streak === 1) { emojiClass = 'none'; emojiChar = '🕯️'; }
+      else if (streak === 2) { emojiClass = 'red'; emojiChar = '🔥'; }
+      else if (streak === 3) { emojiClass = 'yellow'; emojiChar = '🔥'; }
+      else if (streak === 4) { emojiClass = 'purple'; emojiChar = '🔥'; }
+      else { emojiClass = 'rainbow'; emojiChar = '🔥'; }
+      
+      emoji.className = 'streak-emoji ' + emojiClass;
+      emoji.textContent = emojiChar;
+      emoji.title = `Серия: ${streak} дней подряд!`;
     }
   }
 
@@ -1163,6 +1237,7 @@
       calculateTargets(); renderDashboard(); renderTemplates(); checkDateReset(); updateGreeting(); updateActivityUI();
       updateWaterHint(); updateHeaderPhoto();
     }
+    updateStreak();
   };
   
   function loadData() {
@@ -1185,7 +1260,7 @@
   function updateGreeting() {
     const h = new Date().getHours(); let k = 'day';
     if (h>=5 && h<12) k='morning'; else if (h>=12 && h<18) k='day'; else if (h>=18 && h<23) k='evening'; else k='night';
-    document.getElementById('greetingText').innerHTML = `🐱 ${translations[currentLang][k]}, ${currentProfile?.name||''}`;
+    document.getElementById('greetingMessage').innerText = translations[currentLang][k] + ', ' + (currentProfile?.name||'');
   }
   function completeSetup() {
     const n = document.getElementById('setupName').value.trim();
@@ -1200,7 +1275,7 @@
     currentProfile = { name: n, age: a, gender: g, height: h, weight: w, startWeight: w };
     calculateTargets(); saveAllData(); localStorage.setItem('lastDate', new Date().toDateString());
     document.getElementById('setupPage').style.display = 'none'; document.getElementById('mainPage').style.display = 'block';
-    updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI(); updateHeaderPhoto();
+    updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI(); updateHeaderPhoto(); updateStreak();
   }
   function calculateTargets() {
     if (!currentProfile) return; const p = currentProfile;
