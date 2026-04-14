@@ -49,18 +49,31 @@
     .greeting-wrapper {
       position: relative;
       height: 48px;
-      min-width: 220px;
+      min-width: 180px;
+      max-width: 100%;
       overflow: visible;
     }
     .greeting-slide {
       position: absolute;
-      top: 0; left: 0;
+      top: 0; left: 0; right: 0;
       display: flex;
       align-items: center;
-      white-space: nowrap;
       transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.3s ease;
       opacity: 1;
       transform: translateY(0);
+    }
+    .greeting-slide h1 {
+      font-size: 28px; font-weight: 700; margin: 0;
+      white-space: normal; word-break: break-word;
+      background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #A855F7 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; background-size: 200% 100%;
+      animation: textShimmer 4s ease-in-out infinite;
+    }
+    @keyframes textShimmer {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
     .greeting-slide.hidden {
       transform: translateY(-100%);
@@ -76,18 +89,6 @@
       opacity: 1;
     }
     
-    h1 {
-      font-size: 28px; font-weight: 700; margin: 0; white-space: nowrap;
-      background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #A855F7 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; background-size: 200% 100%;
-      animation: textShimmer 4s ease-in-out infinite;
-    }
-    @keyframes textShimmer {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
     h2 { font-size: 18px; font-weight: 600; color: #9CA3AF; margin-bottom: 16px; letter-spacing: -0.3px; }
     .card {
       background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(12px);
@@ -390,15 +391,19 @@
   <!-- Главный экран -->
   <div id="mainPage" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;width:100%;">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0;max-width:calc(100% - 60px);">
+      <!-- ЛЕВАЯ ЧАСТЬ: приветствие (с переносом) -->
+      <div style="flex:1; min-width:0; max-width:calc(100% - 100px);">
         <div class="greeting-wrapper">
           <div class="greeting-slide" id="greetingSlide1"><h1>🐱 FitCat</h1></div>
           <div class="greeting-slide next" id="greetingSlide2"><h1>🐱 FitCat</h1></div>
         </div>
-        <span id="streakEmoji" class="streak-emoji none" style="margin-left:4px;">🕯️</span>
       </div>
-      <div class="header-photo" id="headerPhoto" onclick="showProfile()" style="margin-left:8px;">
-        <span id="headerInitials" class="header-initials">🐱</span>
+      <!-- ПРАВАЯ ЧАСТЬ: огонёк + аватарка -->
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:8px;">
+        <span id="streakEmoji" class="streak-emoji none">🕯️</span>
+        <div class="header-photo" id="headerPhoto" onclick="showProfile()">
+          <span id="headerInitials" class="header-initials">🐱</span>
+        </div>
       </div>
     </div>
     <div class="tabs">
