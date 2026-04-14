@@ -11,16 +11,21 @@
   <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { background: #0D1117; }
+    html { background: #0D1117; min-height: 100vh; }
     body {
-      background: #0D1117;
-      background-image: linear-gradient(135deg, #0D1117 0%, #1A1B2F 50%, #16213E 100%);
-      background-attachment: fixed;
+      background: transparent;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       color: #E6EDF3;
       padding: 16px 12px 40px;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #0D1117 0%, #1A1B2F 50%, #16213E 100%);
+      z-index: -1;
       animation: bgPulse 8s ease-in-out infinite;
       background-size: 200% 200%;
     }
@@ -384,11 +389,7 @@
       line-height: 1;
       display: inline-block;
       cursor: pointer;
-      transition: opacity 0.4s ease, transform 0.2s ease, filter 0.3s ease;
-      opacity: 1;
-    }
-    .streak-emoji.hidden {
-      opacity: 0;
+      transition: transform 0.2s ease, filter 0.3s ease;
     }
     .streak-emoji.bounce {
       transform: translateY(-6px);
@@ -442,6 +443,52 @@
     }
     .streak-tooltip.show {
       opacity: 1;
+    }
+
+    /* ШКАЛА ИМТ */
+    .bmi-container {
+      margin: 16px 0 8px;
+    }
+    .bmi-value {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .bmi-scale {
+      position: relative;
+      height: 24px;
+      margin: 8px 0;
+    }
+    .bmi-gradient {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 8px;
+      background: linear-gradient(to right, #4FACFE, #6BCB77, #FFD93D, #FF8E53, #F85149);
+      border-radius: 4px;
+    }
+    .bmi-marker {
+      position: absolute;
+      top: -4px;
+      width: 4px;
+      height: 16px;
+      background: white;
+      border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px rgba(255,255,255,0.5);
+      transition: left 0.3s ease;
+    }
+    .bmi-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 11px;
+      color: #9CA3AF;
+    }
+    .bmi-categories {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 11px;
     }
   </style>
 </head>
@@ -653,7 +700,7 @@
           <h2 style="margin: 0;" data-i18n="weight_log">Журнал веса</h2>
           <button class="btn-small" onclick="setWeightGoal()" style="width: auto; padding: 8px 16px;"><span data-i18n="set_goal">Задать цель</span></button>
         </div>
-        <div id="weightStats" class="weight-stats" style="margin-bottom: 16px; padding: 12px; background: rgba(1,4,9,0.4); border-radius: 16px;">
+        <div id="weightStats" class="weight-stats" style="margin-bottom: 12px; padding: 12px; background: rgba(1,4,9,0.4); border-radius: 16px;">
           <div class="flex" style="justify-content: space-around; text-align: center;">
             <div><div class="text-small" data-i18n="start_weight">Старт</div><div style="font-size: 20px; font-weight: 700;" id="startWeightStat">—</div></div>
             <div><div class="text-small" data-i18n="current_weight">Сейчас</div><div style="font-size: 20px; font-weight: 700;" id="currentWeightStat">—</div></div>
@@ -661,6 +708,25 @@
             <div><div class="text-small" data-i18n="to_goal">До цели</div><div style="font-size: 20px; font-weight: 700;" id="toGoalStat">—</div></div>
           </div>
         </div>
+        
+        <!-- ШКАЛА ИМТ -->
+        <div class="bmi-container">
+          <div class="bmi-value" id="bmiValue">—</div>
+          <div class="bmi-scale">
+            <div class="bmi-gradient"></div>
+            <div class="bmi-marker" id="bmiMarker" style="left: 0%;"></div>
+          </div>
+          <div class="bmi-labels">
+            <span>16</span><span>18.5</span><span>25</span><span>30</span><span>35</span><span>40</span>
+          </div>
+          <div class="bmi-categories">
+            <span style="color: #4FACFE;">🔵</span>
+            <span style="color: #6BCB77;">🟢 Норма</span>
+            <span style="color: #FFD93D;">🟡</span>
+            <span style="color: #F85149;">🔴</span>
+          </div>
+        </div>
+        
         <div class="flex mb-2">
           <input type="number" id="newWeight" data-i18n-placeholder="weight_input" placeholder="Вес" step="0.1" min="30" max="500" style="flex: 2;">
           <input type="date" id="weightDate" style="flex: 2; padding: 14px 16px; font-size: 16px; background: rgba(1,4,9,0.6); border: 1px solid #30363D; border-radius: 16px; color: #E6EDF3; -webkit-appearance: none; appearance: none; min-width: 0;">
@@ -911,86 +977,43 @@
     tooltip.style.top = (rect.bottom + 8) + 'px';
     tooltip.style.transform = 'translateX(-50%)';
     setTimeout(() => tooltip.classList.add('show'), 10);
-    setTimeout(() => {
-      tooltip.classList.remove('show');
-      setTimeout(() => tooltip.remove(), 300);
-    }, 2000);
+    setTimeout(() => { tooltip.classList.remove('show'); setTimeout(() => tooltip.remove(), 300); }, 2000);
   }
 
   // ========== ФОТО ==========
-  function getInitials(name) {
-    if (!name) return '🐱';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  }
+  function getInitials(name) { if (!name) return '🐱'; const parts = name.trim().split(/\s+/); return parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase(); }
   function updateHeaderPhoto() {
     const headerPhoto = document.getElementById('headerPhoto');
     const savedPhoto = localStorage.getItem('profilePhoto');
-    if (savedPhoto) headerPhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
-    else {
-      const initials = currentProfile ? getInitials(currentProfile.name) : '🐱';
-      headerPhoto.innerHTML = `<span class="header-initials">${initials}</span>`;
-    }
+    headerPhoto.innerHTML = savedPhoto ? `<img src="${savedPhoto}" alt="Profile">` : `<span class="header-initials">${currentProfile ? getInitials(currentProfile.name) : '🐱'}</span>`;
   }
   function uploadPhoto() { document.getElementById('photoInput').click(); }
   function handlePhotoUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 3 * 1024 * 1024) { alert('Фото слишком большое. Максимум 3 МБ.'); return; }
+    const file = event.target.files[0]; if (!file) return;
+    if (file.size > 3*1024*1024) { alert('Фото слишком большое. Максимум 3 МБ.'); return; }
     const reader = new FileReader();
-    reader.onload = (e) => {
-      localStorage.setItem('profilePhoto', e.target.result);
-      document.getElementById('profilePhoto').innerHTML = `<img src="${e.target.result}" alt="Profile">`;
-      updateHeaderPhoto(); vibrate();
-    };
+    reader.onload = e => { localStorage.setItem('profilePhoto', e.target.result); document.getElementById('profilePhoto').innerHTML = `<img src="${e.target.result}" alt="Profile">`; updateHeaderPhoto(); vibrate(); };
     reader.readAsDataURL(file);
   }
   function deletePhoto() {
     localStorage.removeItem('profilePhoto');
-    const initials = currentProfile ? getInitials(currentProfile.name) : '🐱';
-    document.getElementById('profilePhoto').innerHTML = `<span class="profile-initials">${initials}</span>`;
+    document.getElementById('profilePhoto').innerHTML = `<span class="profile-initials">${currentProfile ? getInitials(currentProfile.name) : '🐱'}</span>`;
     updateHeaderPhoto(); vibrate();
   }
 
   // ========== КАРТОЧКИ ==========
   function toggleCard(cardId) {
     const content = document.getElementById(cardId === 'waterCard' ? 'waterContent' : 'mealsContent');
-    if (content) {
-      content.classList.toggle('collapsed');
-      localStorage.setItem('card_' + cardId + '_collapsed', content.classList.contains('collapsed'));
-    }
+    if (content) { content.classList.toggle('collapsed'); localStorage.setItem('card_' + cardId + '_collapsed', content.classList.contains('collapsed')); }
   }
 
   // ========== ВОДА ==========
-  function addWater(ml) {
-    waterAmount = Math.max(0, waterAmount + ml);
-    if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
-    localStorage.setItem('waterAmount', waterAmount);
-    updateWaterDisplay(); renderProgressBars(); vibrate();
-  }
-  function setManualWater() {
-    const input = document.getElementById('manualWaterInput');
-    const ml = parseInt(input.value);
-    if (!isNaN(ml) && ml >= 0) {
-      waterAmount = Math.min(ml, dailyTargets.water);
-      localStorage.setItem('waterAmount', waterAmount);
-      updateWaterDisplay(); renderProgressBars(); vibrate();
-    }
-    input.value = '';
-  }
-  function updateWaterDisplay() {
-    document.getElementById('waterCurrent').innerText = waterAmount;
-    document.getElementById('waterGoal').innerText = dailyTargets.water + ' мл';
-  }
+  function addWater(ml) { waterAmount = Math.max(0, Math.min(waterAmount + ml, dailyTargets.water)); localStorage.setItem('waterAmount', waterAmount); updateWaterDisplay(); renderProgressBars(); vibrate(); }
+  function setManualWater() { const ml = parseInt(document.getElementById('manualWaterInput').value); if (!isNaN(ml) && ml >= 0) { waterAmount = Math.min(ml, dailyTargets.water); localStorage.setItem('waterAmount', waterAmount); updateWaterDisplay(); renderProgressBars(); vibrate(); } document.getElementById('manualWaterInput').value = ''; }
+  function updateWaterDisplay() { document.getElementById('waterCurrent').innerText = waterAmount; document.getElementById('waterGoal').innerText = dailyTargets.water + ' мл'; }
 
   // ========== УМНАЯ ВОДА ==========
-  function openSmartWater() {
-    document.getElementById('smartWaterModal').style.display = 'flex';
-    document.getElementById('tempSlider').value = currentTemp;
-    document.getElementById('stepsSlider').value = currentSteps;
-    updateTempDisplay(); updateStepsDisplay(); updateTrainingUI(); updateWaterCalculation();
-  }
+  function openSmartWater() { document.getElementById('smartWaterModal').style.display = 'flex'; document.getElementById('tempSlider').value = currentTemp; document.getElementById('stepsSlider').value = currentSteps; updateTempDisplay(); updateStepsDisplay(); updateTrainingUI(); updateWaterCalculation(); }
   function closeSmartWater() { document.getElementById('smartWaterModal').style.display = 'none'; }
   function updateTempDisplay() { currentTemp = parseInt(document.getElementById('tempSlider').value); document.getElementById('tempDisplay').innerText = currentTemp + '°C'; updateWaterCalculation(); }
   function updateStepsDisplay() { currentSteps = parseInt(document.getElementById('stepsSlider').value); document.getElementById('stepsDisplay').innerText = currentSteps.toLocaleString(); updateWaterCalculation(); }
@@ -1009,26 +1032,17 @@
     document.getElementById('totalWaterNorm').innerText = total + ' мл';
   }
   function applySmartWater() {
-    currentSteps = parseInt(document.getElementById('stepsSlider').value);
-    currentTemp = parseInt(document.getElementById('tempSlider').value);
-    localStorage.setItem('currentSteps', currentSteps);
-    localStorage.setItem('currentTemp', currentTemp);
+    currentSteps = parseInt(document.getElementById('stepsSlider').value); currentTemp = parseInt(document.getElementById('tempSlider').value);
+    localStorage.setItem('currentSteps', currentSteps); localStorage.setItem('currentTemp', currentTemp);
     dailyTargets.water = Math.round(currentProfile.weight * 35) + getTempBonus(currentTemp) + getStepsBonus(currentSteps) + (trainingToday ? 300 : 0);
     if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
     localStorage.setItem('waterAmount', waterAmount);
     renderProgressBars(); updateWaterDisplay(); updateWaterHint(); closeSmartWater(); vibrate();
   }
-  function updateWaterHint() {
-    const hint = document.getElementById('smartWaterHint');
-    const bonus = dailyTargets.water - Math.round(currentProfile.weight * 35);
-    hint.innerText = bonus > 0 ? `Умная норма: +${bonus} мл` : '';
-  }
+  function updateWaterHint() { const hint = document.getElementById('smartWaterHint'); const bonus = dailyTargets.water - Math.round(currentProfile.weight * 35); hint.innerText = bonus > 0 ? `Умная норма: +${bonus} мл` : ''; }
 
   // ========== АКТИВНОСТЬ ==========
-  function selectDailyActivity(el) {
-    document.querySelectorAll('#activityPage .activity-daily-item').forEach(i => i.classList.remove('selected'));
-    el.classList.add('selected'); updateActivityPreview(parseFloat(el.dataset.activity));
-  }
+  function selectDailyActivity(el) { document.querySelectorAll('#activityPage .activity-daily-item').forEach(i => i.classList.remove('selected')); el.classList.add('selected'); updateActivityPreview(parseFloat(el.dataset.activity)); }
   function updateActivityPreview(coef) {
     if (!currentProfile) return; const p = currentProfile;
     let bmr = p.gender === 'female' ? 447.6 + 9.2*p.weight + 3.1*p.height - 4.3*p.age : 88.36 + 13.4*p.weight + 4.8*p.height - 5.7*p.age;
@@ -1039,21 +1053,8 @@
     document.getElementById('previewCarbs').innerText = Math.round((kcal - p.weight*1.8*4 - p.weight*0.9*9)/4) + ' г';
     document.getElementById('previewWater').innerText = dailyTargets.water + ' мл';
   }
-  function applyDailyActivity() {
-    const selected = document.querySelector('#activityPage .activity-daily-item.selected');
-    if (!selected) return;
-    dailyActivity = parseFloat(selected.dataset.activity);
-    localStorage.setItem('dailyActivity', dailyActivity);
-    calculateTargets(); renderDashboard(); updateActivityUI(); showPage('mainPage'); vibrate();
-  }
-  function updateActivityUI() {
-    const tabs = document.querySelectorAll('.tab');
-    if (tabs.length >= 3) {
-      const names = ['Сидячий', 'Умеренный', 'Активный', 'Очень активный'];
-      const idx = [1.2, 1.375, 1.55, 1.725].indexOf(dailyActivity);
-      if (idx >= 0) tabs[1].innerHTML = names[idx];
-    }
-  }
+  function applyDailyActivity() { const s = document.querySelector('#activityPage .activity-daily-item.selected'); if (!s) return; dailyActivity = parseFloat(s.dataset.activity); localStorage.setItem('dailyActivity', dailyActivity); calculateTargets(); renderDashboard(); updateActivityUI(); showPage('mainPage'); vibrate(); }
+  function updateActivityUI() { const tabs = document.querySelectorAll('.tab'); if (tabs.length >= 3) { const names = ['Сидячий', 'Умеренный', 'Активный', 'Очень активный']; const idx = [1.2, 1.375, 1.55, 1.725].indexOf(dailyActivity); if (idx >= 0) tabs[1].innerHTML = names[idx]; } }
 
   // ========== ПРОФИЛЬ ==========
   function showProfile() {
@@ -1064,71 +1065,59 @@
     document.getElementById('profileHeight').value = currentProfile.height || '';
     document.getElementById('profileWeight').value = currentProfile.weight || '';
     const savedPhoto = localStorage.getItem('profilePhoto');
-    const profilePhoto = document.getElementById('profilePhoto');
-    if (savedPhoto) profilePhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
-    else profilePhoto.innerHTML = `<span class="profile-initials">${getInitials(currentProfile.name)}</span>`;
+    document.getElementById('profilePhoto').innerHTML = savedPhoto ? `<img src="${savedPhoto}" alt="Profile">` : `<span class="profile-initials">${getInitials(currentProfile.name)}</span>`;
     showPage('profilePage');
   }
   function saveProfile() {
-    const name = document.getElementById('profileName').value.trim();
-    const age = parseInt(document.getElementById('profileAge').value);
+    const name = document.getElementById('profileName').value.trim(); const age = parseInt(document.getElementById('profileAge').value);
     const gender = document.querySelector('input[name="profileGender"]:checked')?.value;
-    const height = parseFloat(document.getElementById('profileHeight').value);
-    const weight = parseFloat(document.getElementById('profileWeight').value);
-    if (!name || !age || age<10||age>100||!gender||!height||height<100||height>250||!weight||weight<30||weight>500) {
-      alert(translations[currentLang].error_fill); return;
-    }
+    const height = parseFloat(document.getElementById('profileHeight').value); const weight = parseFloat(document.getElementById('profileWeight').value);
+    if (!name || !age || age<10||age>100||!gender||!height||height<100||height>250||!weight||weight<30||weight>500) { alert(translations[currentLang].error_fill); return; }
     currentProfile = { ...currentProfile, name, age, gender, height, weight };
-    saveAllData(); calculateTargets(); renderDashboard(); updateGreeting(); updateHeaderPhoto();
+    saveAllData(); calculateTargets(); renderDashboard(); updateGreeting(); updateHeaderPhoto(); updateBMI();
     showPage('mainPage'); vibrate();
   }
   function deleteAccount() { if (confirm(translations[currentLang].confirm_delete)) { localStorage.clear(); location.reload(); } }
 
+  // ========== ИМТ ==========
+  function calculateBMI() {
+    if (!currentProfile) return 0;
+    const h = currentProfile.height / 100;
+    return currentProfile.weight / (h * h);
+  }
+  function updateBMI() {
+    const bmi = calculateBMI();
+    document.getElementById('bmiValue').innerText = bmi.toFixed(1);
+    const pct = Math.min(100, Math.max(0, ((bmi - 16) / (40 - 16)) * 100));
+    document.getElementById('bmiMarker').style.left = pct + '%';
+  }
+
   // ========== ЕДА ==========
   function loadProductsDB() { const s = localStorage.getItem('fitcat_products'); if (s) productsDB = JSON.parse(s); }
   function saveProductsDB() { localStorage.setItem('fitcat_products', JSON.stringify(productsDB)); }
-  function addToProductsDB(name, prot, fat, carbs, kcal) {
-    if (!productsDB.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-      productsDB.push({ name, protein: prot, fat, carbs, kcal }); saveProductsDB();
-    }
-  }
+  function addToProductsDB(name, prot, fat, carbs, kcal) { if (!productsDB.find(p => p.name.toLowerCase() === name.toLowerCase())) { productsDB.push({ name, protein: prot, fat, carbs, kcal }); saveProductsDB(); } }
   function setupAutocomplete() {
     const inp = document.getElementById('foodName'), list = document.getElementById('autocompleteList');
     inp.addEventListener('input', function() {
-      const val = this.value.toLowerCase();
-      if (val.length < 2) { list.style.display = 'none'; return; }
+      const val = this.value.toLowerCase(); if (val.length < 2) { list.style.display = 'none'; return; }
       const matches = productsDB.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
-      if (!matches.length) { list.style.display = 'none'; return; }
       list.innerHTML = matches.map(p => `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')">${p.name}</div>`).join('');
-      list.style.display = 'block';
+      list.style.display = matches.length ? 'block' : 'none';
     });
-    document.addEventListener('click', (e) => { if (!inp.contains(e.target) && !list.contains(e.target)) list.style.display = 'none'; });
+    document.addEventListener('click', e => { if (!inp.contains(e.target) && !list.contains(e.target)) list.style.display = 'none'; });
   }
   function fillFromProduct(name) {
     const p = productsDB.find(p => p.name === name);
-    if (p) {
-      document.getElementById('foodName').value = p.name;
-      document.getElementById('foodProt100').value = p.protein;
-      document.getElementById('foodFat100').value = p.fat;
-      document.getElementById('foodCarb100').value = p.carbs;
-      document.getElementById('foodKcal100').value = p.kcal;
-    }
+    if (p) { document.getElementById('foodName').value = p.name; document.getElementById('foodProt100').value = p.protein; document.getElementById('foodFat100').value = p.fat; document.getElementById('foodCarb100').value = p.carbs; document.getElementById('foodKcal100').value = p.kcal; }
     document.getElementById('autocompleteList').style.display = 'none';
   }
   function loadTemplates() { const s = localStorage.getItem('fitcat_templates'); if (s) mealTemplates = JSON.parse(s); }
   function saveTemplates() { localStorage.setItem('fitcat_templates', JSON.stringify(mealTemplates)); }
   function renderTemplates() {
     const c = document.getElementById('templatesBar'), t = translations[currentLang];
-    if (!mealTemplates.length) { c.innerHTML = `<div class="text-small">${t.no_templates}</div>`; return; }
-    c.innerHTML = mealTemplates.map((tmpl, i) => `<div class="template-btn" onclick="loadTemplate(${i})">${tmpl.name}</div><div class="template-btn" onclick="deleteTemplate(${i})" style="padding:8px;">✕</div>`).join('');
+    c.innerHTML = mealTemplates.length ? mealTemplates.map((tmpl, i) => `<div class="template-btn" onclick="loadTemplate(${i})">${tmpl.name}</div><div class="template-btn" onclick="deleteTemplate(${i})" style="padding:8px;">✕</div>`).join('') : `<div class="text-small" style="width:100%;text-align:center;">${t.no_templates}</div>`;
   }
-  function saveTemplate() {
-    if (!todayFoods.length) { alert('Нет блюд'); return; }
-    const n = prompt(translations[currentLang].template_name, 'Шаблон ' + (mealTemplates.length+1));
-    if (!n) return;
-    mealTemplates.push({ name: n, foods: JSON.parse(JSON.stringify(todayFoods)) });
-    saveTemplates(); renderTemplates(); vibrate();
-  }
+  function saveTemplate() { if (!todayFoods.length) { alert('Нет блюд'); return; } const n = prompt(translations[currentLang].template_name, 'Шаблон ' + (mealTemplates.length+1)); if (!n) return; mealTemplates.push({ name: n, foods: JSON.parse(JSON.stringify(todayFoods)) }); saveTemplates(); renderTemplates(); vibrate(); }
   function loadTemplate(i) { todayFoods = JSON.parse(JSON.stringify(mealTemplates[i].foods)); saveAllData(); renderDashboard(); vibrate(); }
   function deleteTemplate(i) { mealTemplates.splice(i,1); saveTemplates(); renderTemplates(); }
   function clearTodayFoods() { if (confirm('Очистить все блюда?')) { todayFoods = []; saveAllData(); renderDashboard(); vibrate(); } }
@@ -1136,9 +1125,9 @@
     const name = document.getElementById('foodName').value; if (!name) return alert('Введите название');
     const prot = parseFloat(document.getElementById('foodProt100').value)||0, fat = parseFloat(document.getElementById('foodFat100').value)||0;
     const carbs = parseFloat(document.getElementById('foodCarb100').value)||0, kcal = parseFloat(document.getElementById('foodKcal100').value)||0;
-    const weight = parseFloat(document.getElementById('foodWeight').value)||100;
-    const food = { name, weight, protein: Math.round(prot*weight/10)/10, fat: Math.round(fat*weight/10)/10, carbs: Math.round(carbs*weight/10)/10, kcal: Math.round(kcal*weight/100), checked: false };
-    todayFoods.push(food); addToProductsDB(name, prot, fat, carbs, kcal); saveAllData(); renderDashboard();
+    const weight = parseFloat(document.getElementById('foodWeight').value)||100, mult = weight/100;
+    todayFoods.push({ name, weight, protein: Math.round(prot*mult*10)/10, fat: Math.round(fat*mult*10)/10, carbs: Math.round(carbs*mult*10)/10, kcal: Math.round(kcal*mult), checked: false });
+    addToProductsDB(name, prot, fat, carbs, kcal); saveAllData(); renderDashboard();
     document.getElementById('foodName').value = document.getElementById('foodProt100').value = document.getElementById('foodFat100').value = document.getElementById('foodCarb100').value = document.getElementById('foodKcal100').value = document.getElementById('foodWeight').value = '';
     vibrate();
   }
@@ -1146,12 +1135,8 @@
   function deleteFood(i) { todayFoods.splice(i,1); saveAllData(); renderDashboard(); }
   function renderFoodList() {
     const t = translations[currentLang]; let h = '';
-    todayFoods.forEach((f,i)=>{
-      h += `<div class="food-item"><div class="food-toggle ${f.checked?'checked':''}" onclick="toggleFood(${i})"></div>
-        <div class="food-info"><div class="food-name">${f.name} (${f.weight}г)</div><div class="food-macros">${t.protein.slice(0,1)}:${f.protein} ${t.fat.slice(0,1)}:${f.fat} ${t.carbs.slice(0,1)}:${f.carbs} ${f.kcal} ${currentLang==='en'?'kcal':'ккал'}</div></div>
-        <span class="food-delete" onclick="deleteFood(${i})">✕</span></div>`;
-    });
-    document.getElementById('foodListContainer').innerHTML = h || `<div class="text-center text-small">${t.empty_food}</div>`;
+    todayFoods.forEach((f,i) => h += `<div class="food-item"><div class="food-toggle ${f.checked?'checked':''}" onclick="toggleFood(${i})"></div><div class="food-info"><div class="food-name">${f.name} (${f.weight}г)</div><div class="food-macros">${t.protein.slice(0,1)}:${f.protein} ${t.fat.slice(0,1)}:${f.fat} ${t.carbs.slice(0,1)}:${f.carbs} ${f.kcal} ${currentLang==='en'?'kcal':'ккал'}</div></div><span class="food-delete" onclick="deleteFood(${i})">✕</span></div>`);
+    document.getElementById('foodListContainer').innerHTML = h || `<div class="text-center text-small" style="padding:20px;">${t.empty_food}</div>`;
   }
 
   // ========== СКАНЕР ==========
@@ -1160,26 +1145,19 @@
   async function startScanner() {
     const v = document.getElementById('scannerVideo'); scanningActive = true;
     try {
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      v.srcObject = s; v.play();
+      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); v.srcObject = s; v.play();
       zxingReader = new ZXing.BrowserMultiFormatReader();
-      zxingReader.decodeFromVideoDevice(null, v, (r) => { if (r && scanningActive) { stopScanner(); closeScanner(); lookupBarcode(r.text); } });
-      Quagga.init({ inputStream: { name: 'Live', type: 'LiveStream', target: v }, decoder: { readers: ['ean_reader','ean_8_reader','upc_reader'] }, locate: true, numOfWorkers: 2, frequency: 10 }, (e) => { if (!e) { quaggaActive = true; Quagga.start(); } });
-      Quagga.onDetected((r) => { if (r?.codeResult?.code && scanningActive) { stopScanner(); closeScanner(); lookupBarcode(r.codeResult.code); } });
+      zxingReader.decodeFromVideoDevice(null, v, r => { if (r && scanningActive) { stopScanner(); closeScanner(); lookupBarcode(r.text); } });
+      Quagga.init({ inputStream: { name: 'Live', type: 'LiveStream', target: v }, decoder: { readers: ['ean_reader','ean_8_reader','upc_reader'] }, locate: true, numOfWorkers: 2, frequency: 10 }, e => { if (!e) { quaggaActive = true; Quagga.start(); } });
+      Quagga.onDetected(r => { if (r?.codeResult?.code && scanningActive) { stopScanner(); closeScanner(); lookupBarcode(r.codeResult.code); } });
       scanTimeout = setTimeout(() => { if (scanningActive) document.getElementById('scannerHint').innerText = translations[currentLang].scanner_failed; }, 8000);
     } catch (e) { alert(translations[currentLang].camera_error); closeScanner(); }
   }
-  function stopScanner() {
-    scanningActive = false; if (scanTimeout) clearTimeout(scanTimeout);
-    if (zxingReader) { zxingReader.reset(); zxingReader = null; }
-    if (quaggaActive) { Quagga.stop(); quaggaActive = false; }
-    const v = document.getElementById('scannerVideo'); if (v?.srcObject) { v.srcObject.getTracks().forEach(t=>t.stop()); v.srcObject = null; }
-  }
+  function stopScanner() { scanningActive = false; if (scanTimeout) clearTimeout(scanTimeout); if (zxingReader) { zxingReader.reset(); zxingReader = null; } if (quaggaActive) { Quagga.stop(); quaggaActive = false; } const v = document.getElementById('scannerVideo'); if (v?.srcObject) { v.srcObject.getTracks().forEach(t=>t.stop()); v.srcObject = null; } }
   async function lookupBarcode(b) {
     if (!b) return;
     try {
-      const r = await fetch(`https://world.openfoodfacts.org/api/v0/product/${b}.json`);
-      const d = await r.json();
+      const r = await fetch(`https://world.openfoodfacts.org/api/v0/product/${b}.json`); const d = await r.json();
       if (d.product) {
         const p = d.product;
         document.getElementById('foodName').value = p.product_name || '';
@@ -1193,10 +1171,7 @@
   }
 
   // ========== ВЕС ==========
-  function setWeightGoal() {
-    const cur = currentProfile?.targetWeight || (currentProfile?.startWeight*0.9).toFixed(1);
-    const g = prompt(translations[currentLang].enter_goal, cur); if (g && !isNaN(g) && g>=30 && g<=500) { currentProfile.targetWeight = parseFloat(g); saveAllData(); updateWeightStatsAndList(); renderWeightChart(); }
-  }
+  function setWeightGoal() { const cur = currentProfile?.targetWeight || (currentProfile?.startWeight*0.9).toFixed(1); const g = prompt(translations[currentLang].enter_goal, cur); if (g && !isNaN(g) && g>=30 && g<=500) { currentProfile.targetWeight = parseFloat(g); saveAllData(); updateWeightStatsAndList(); renderWeightChart(); } }
   function updateWeightStatsAndList() {
     const t = translations[currentLang], goal = currentProfile?.targetWeight || currentProfile?.startWeight*0.9 || 55;
     if (weightHistory.length) {
@@ -1210,13 +1185,15 @@
     const l = document.getElementById('weightHistoryList');
     if (!weightHistory.length) { l.innerHTML = `<div class="text-center text-small">Нет записей</div>`; return; }
     l.innerHTML = [...weightHistory].sort((a,b)=>new Date(b.date)-new Date(a.date)).map((e,i)=>`<div class="weight-history-item"><span class="weight-history-date">${e.date}</span><span class="weight-history-value">${e.weight} кг</span><span class="weight-history-delete" onclick="deleteWeightEntry(${i})">✕</span></div>`).join('');
+    updateBMI();
   }
   function deleteWeightEntry(i) { weightHistory.splice(i,1); saveAllData(); updateWeightStatsAndList(); renderWeightChart(); }
   function addWeightEntry() {
     const w = parseFloat(document.getElementById('newWeight').value), d = document.getElementById('weightDate').value || new Date().toISOString().split('T')[0];
     if (!w || w<30 || w>500) return;
     const ex = weightHistory.findIndex(e=>e.date===d); if (ex>=0 && !confirm(translations[currentLang].overwrite_weight)) return;
-    if (ex>=0) weightHistory.splice(ex,1); weightHistory.push({date:d, weight:w}); saveAllData(); updateWeightStatsAndList(); renderWeightChart();
+    if (ex>=0) weightHistory.splice(ex,1);
+    weightHistory.push({date:d, weight:w}); saveAllData(); updateWeightStatsAndList(); renderWeightChart();
     document.getElementById('newWeight').value = ''; vibrate();
   }
   function renderWeightChart() {
@@ -1249,12 +1226,11 @@
       document.getElementById('setupPage').style.display = 'none';
       document.getElementById('mainPage').style.display = 'block';
       calculateTargets(); renderDashboard(); renderTemplates(); checkDateReset(); updateGreeting(); updateActivityUI();
-      updateWaterHint(); updateHeaderPhoto();
+      updateWaterHint(); updateHeaderPhoto(); updateBMI();
     }
     updateStreak();
     
-    const tempSlider = document.getElementById('tempSlider');
-    const stepsSlider = document.getElementById('stepsSlider');
+    const tempSlider = document.getElementById('tempSlider'), stepsSlider = document.getElementById('stepsSlider');
     if (tempSlider) tempSlider.addEventListener('input', updateTempDisplay);
     if (stepsSlider) stepsSlider.addEventListener('input', updateStepsDisplay);
     ['tempTicks','stepsTicks'].forEach(id => { const el = document.getElementById(id); if (el) for (let i=0; i<51; i++) el.innerHTML += '<span class="tick"></span>'; });
@@ -1262,101 +1238,62 @@
     if (localStorage.getItem('card_mealsCard_collapsed') === 'true') document.getElementById('mealsContent').classList.add('collapsed');
   };
   
-  function loadData() {
-    currentProfile = JSON.parse(localStorage.getItem('fitnessProfile') || 'null');
-    todayFoods = JSON.parse(localStorage.getItem('todayFoods') || '[]');
-    weightHistory = JSON.parse(localStorage.getItem('weightHistory') || '[]');
-  }
-  function saveAllData() {
-    if (currentProfile) localStorage.setItem('fitnessProfile', JSON.stringify(currentProfile));
-    localStorage.setItem('todayFoods', JSON.stringify(todayFoods));
-    localStorage.setItem('weightHistory', JSON.stringify(weightHistory));
-  }
-  function checkDateReset() {
-    const ld = localStorage.getItem('lastDate'), td = new Date().toDateString();
-    if (ld !== td) {
-      todayFoods = []; localStorage.setItem('waterAmount', 0); localStorage.setItem('hadTraining', false);
-      trainingToday = false; waterAmount = 0; localStorage.setItem('lastDate', td); saveAllData();
-    }
-  }
+  function loadData() { currentProfile = JSON.parse(localStorage.getItem('fitnessProfile') || 'null'); todayFoods = JSON.parse(localStorage.getItem('todayFoods') || '[]'); weightHistory = JSON.parse(localStorage.getItem('weightHistory') || '[]'); }
+  function saveAllData() { if (currentProfile) localStorage.setItem('fitnessProfile', JSON.stringify(currentProfile)); localStorage.setItem('todayFoods', JSON.stringify(todayFoods)); localStorage.setItem('weightHistory', JSON.stringify(weightHistory)); }
+  function checkDateReset() { const ld = localStorage.getItem('lastDate'), td = new Date().toDateString(); if (ld !== td) { todayFoods = []; localStorage.setItem('waterAmount', 0); localStorage.setItem('hadTraining', false); trainingToday = false; waterAmount = 0; localStorage.setItem('lastDate', td); saveAllData(); } }
+  
   function updateGreeting() {
     if (greetingTimeout) clearTimeout(greetingTimeout);
     const h = new Date().getHours(); let k = 'day';
     if (h>=5 && h<12) k='morning'; else if (h>=12 && h<18) k='day'; else if (h>=18 && h<23) k='evening'; else k='night';
-    const greetingEl = document.getElementById('greetingText');
-    const streakEl = document.getElementById('streakEmoji');
-    const name = currentProfile?.name || '';
-    
-    if (streakEl) { streakEl.style.opacity = '0'; streakEl.classList.add('hidden'); }
-    greetingEl.classList.add('greeting-fade');
-    greetingEl.innerHTML = `🐱 ${translations[currentLang][k]}, ${name}`;
-    
+    const greetingEl = document.getElementById('greetingText'), streakEl = document.getElementById('streakEmoji'), name = currentProfile?.name || '';
+    if (streakEl) streakEl.style.display = 'none';
+    greetingEl.classList.add('greeting-fade'); greetingEl.innerHTML = `🐱 ${translations[currentLang][k]}, ${name}`;
     greetingTimeout = setTimeout(() => {
       greetingEl.classList.add('fade-out');
       setTimeout(() => {
-        greetingEl.innerHTML = `🐱 FitCat`;
-        greetingEl.classList.remove('fade-out');
-        if (streakEl) { streakEl.style.opacity = '1'; streakEl.classList.remove('hidden'); }
+        greetingEl.innerHTML = `🐱 FitCat`; greetingEl.classList.remove('fade-out');
+        if (streakEl) streakEl.style.display = 'inline-block';
         updateStreak();
       }, 400);
     }, 2000);
   }
+  
   function completeSetup() {
-    const n = document.getElementById('setupName').value.trim();
-    const a = parseInt(document.getElementById('setupAge').value);
+    const n = document.getElementById('setupName').value.trim(), a = parseInt(document.getElementById('setupAge').value);
     const g = document.querySelector('input[name="setupGender"]:checked')?.value;
-    const h = parseFloat(document.getElementById('setupHeight').value);
-    const w = parseFloat(document.getElementById('setupWeight').value);
-    if (!n || !a || a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500) {
-      alert(translations[currentLang].error_fill); return;
-    }
+    const h = parseFloat(document.getElementById('setupHeight').value), w = parseFloat(document.getElementById('setupWeight').value);
+    if (!n || !a || a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500) { alert(translations[currentLang].error_fill); return; }
     currentProfile = { name: n, age: a, gender: g, height: h, weight: w, startWeight: w };
     calculateTargets(); saveAllData(); localStorage.setItem('lastDate', new Date().toDateString());
     document.getElementById('setupPage').style.display = 'none'; document.getElementById('mainPage').style.display = 'block';
-    updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI(); updateHeaderPhoto(); updateStreak();
+    updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI(); updateHeaderPhoto(); updateBMI(); updateStreak();
   }
+  
   function calculateTargets() {
     if (!currentProfile) return; const p = currentProfile;
     let bmr = p.gender === 'female' ? 447.6 + 9.2*p.weight + 3.1*p.height - 4.3*p.age : 88.36 + 13.4*p.weight + 4.8*p.height - 5.7*p.age;
     let tdee = bmr * dailyActivity;
-    dailyTargets = {
-      kcal: Math.round(tdee * 0.85), protein: Math.round(p.weight * 1.8), fat: Math.round(p.weight * 0.9),
-      carbs: Math.round((tdee * 0.85 - p.weight * 1.8 * 4 - p.weight * 0.9 * 9) / 4),
-      water: Math.round(p.weight * 35)
-    };
+    dailyTargets = { kcal: Math.round(tdee*0.85), protein: Math.round(p.weight*1.8), fat: Math.round(p.weight*0.9), carbs: Math.round((tdee*0.85 - p.weight*1.8*4 - p.weight*0.9*9)/4), water: Math.round(p.weight*35) };
     if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
   }
+  
   function renderDashboard() { renderProgressBars(); renderFoodList(); updateWaterDisplay(); }
   function renderProgressBars() {
-    let c = { kcal:0, protein:0, fat:0, carbs:0 };
-    todayFoods.forEach(f=>{ if(f.checked) { c.kcal+=f.kcal||0; c.protein+=f.protein||0; c.fat+=f.fat||0; c.carbs+=f.carbs||0; } });
+    let c = { kcal:0, protein:0, fat:0, carbs:0 }; todayFoods.forEach(f=>{ if(f.checked) { c.kcal+=f.kcal||0; c.protein+=f.protein||0; c.fat+=f.fat||0; c.carbs+=f.carbs||0; } });
     const t = translations[currentLang];
     const bars = [
-      { l: t.kcal, cur: c.kcal, tar: dailyTargets.kcal, u: 'ккал', cls: 'bar-kcal' },
-      { l: t.protein, cur: c.protein, tar: dailyTargets.protein, u: 'г', cls: 'bar-protein' },
-      { l: t.fat, cur: c.fat, tar: dailyTargets.fat, u: 'г', cls: 'bar-fat' },
-      { l: t.carbs, cur: c.carbs, tar: dailyTargets.carbs, u: 'г', cls: 'bar-carbs' },
+      { l: t.kcal, cur: c.kcal, tar: dailyTargets.kcal, u: 'ккал', cls: 'bar-kcal' }, { l: t.protein, cur: c.protein, tar: dailyTargets.protein, u: 'г', cls: 'bar-protein' },
+      { l: t.fat, cur: c.fat, tar: dailyTargets.fat, u: 'г', cls: 'bar-fat' }, { l: t.carbs, cur: c.carbs, tar: dailyTargets.carbs, u: 'г', cls: 'bar-carbs' },
       { l: t.water, cur: waterAmount, tar: dailyTargets.water, u: 'мл', cls: 'bar-water' }
     ];
     let container = document.getElementById('progressBars');
     if (!container.querySelector('.progress-bar')) {
-      let h = '';
-      bars.forEach(b=>{
-        const pct = (b.cur/b.tar)*100, col = getBarColor(pct);
-        h += `<div class="bar-group" id="bar-group-${b.cls}"><div class="flex" style="justify-content:space-between;"><span>${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}</span><span class="bar-percent" style="color:${col}">${Math.round(pct)}%</span></div><div class="progress-bar-container"><div class="progress-bar ${b.cls}" id="bar-${b.cls}" style="width:0%;"></div></div></div>`;
-      });
+      let h = ''; bars.forEach(b=>{ const pct = (b.cur/b.tar)*100, col = getBarColor(pct); h += `<div class="bar-group" id="bar-group-${b.cls}"><div class="flex" style="justify-content:space-between;"><span>${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}</span><span class="bar-percent" style="color:${col}">${Math.round(pct)}%</span></div><div class="progress-bar-container"><div class="progress-bar ${b.cls}" id="bar-${b.cls}" style="width:0%;"></div></div></div>`; });
       container.innerHTML = h;
       requestAnimationFrame(() => bars.forEach(b=>{ const bar = document.getElementById(`bar-${b.cls}`); if (bar) bar.style.width = Math.min((b.cur/b.tar)*100, 100) + '%'; }));
     } else {
-      bars.forEach(b=>{
-        const pct = Math.min((b.cur/b.tar)*100, 100), col = getBarColor(pct);
-        const group = document.getElementById(`bar-group-${b.cls}`);
-        if (group) {
-          group.querySelector('.flex span:first-child').innerText = `${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}`;
-          const pr = group.querySelector('.bar-percent'); pr.innerText = Math.round(pct) + '%'; pr.style.color = col;
-          document.getElementById(`bar-${b.cls}`).style.width = pct + '%';
-        }
-      });
+      bars.forEach(b=>{ const pct = Math.min((b.cur/b.tar)*100, 100), col = getBarColor(pct); const group = document.getElementById(`bar-group-${b.cls}`); if (group) { group.querySelector('.flex span:first-child').innerText = `${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}`; const pr = group.querySelector('.bar-percent'); pr.innerText = Math.round(pct) + '%'; pr.style.color = col; document.getElementById(`bar-${b.cls}`).style.width = pct + '%'; } });
     }
   }
 
@@ -1365,58 +1302,29 @@
     document.getElementById('todayPage').classList.toggle('active', tab==='today');
     document.getElementById('activityPage').classList.toggle('active', tab==='activity');
     document.getElementById('weightPage').classList.toggle('active', tab==='weight');
-    if (tab==='weight') { updateWeightStatsAndList(); renderWeightChart(); }
-    if (tab==='activity' && currentProfile) { 
-      document.querySelectorAll('#activityPage .activity-daily-item').forEach(el => el.classList.toggle('selected', parseFloat(el.dataset.activity) === dailyActivity));
-      updateActivityPreview(dailyActivity);
-    }
+    if (tab==='weight') { updateWeightStatsAndList(); renderWeightChart(); updateBMI(); }
+    if (tab==='activity' && currentProfile) { document.querySelectorAll('#activityPage .activity-daily-item').forEach(el => el.classList.toggle('selected', parseFloat(el.dataset.activity) === dailyActivity)); updateActivityPreview(dailyActivity); }
   }
+  
   function showPage(pageId) {
     document.getElementById('mainPage').style.display = (pageId==='mainPage'||pageId==='activityPage') ? 'block' : 'none';
     document.getElementById('settingsPage').style.display = pageId==='settingsPage'?'block':'none';
     document.getElementById('profilePage').style.display = pageId==='profilePage'?'block':'none';
     document.getElementById('productsPage').style.display = 'none';
-    if (pageId==='mainPage') {
-      document.getElementById('todayPage').classList.add('active');
-      document.getElementById('activityPage').classList.remove('active');
-      document.getElementById('weightPage').classList.remove('active');
-    }
+    if (pageId==='mainPage') { document.getElementById('todayPage').classList.add('active'); document.getElementById('activityPage').classList.remove('active'); document.getElementById('weightPage').classList.remove('active'); }
   }
-  function showProductsManager() {
-    document.getElementById('mainPage').style.display = 'none'; document.getElementById('settingsPage').style.display = 'none';
-    document.getElementById('productsPage').style.display = 'block'; renderProductsList();
-  }
+  
+  function showProductsManager() { document.getElementById('mainPage').style.display = 'none'; document.getElementById('settingsPage').style.display = 'none'; document.getElementById('productsPage').style.display = 'block'; renderProductsList(); }
   function renderProductsList() {
     const t = translations[currentLang], c = document.getElementById('productsList');
     if (!productsDB.length) { c.innerHTML = `<div class="text-center text-small">${t.no_templates}</div>`; return; }
-    c.innerHTML = productsDB.map((p,i)=>`<div class="product-edit-item">
-      <div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">${p.protein}/${p.fat}/${p.carbs} ${p.kcal}${currentLang==='en'?'kcal':'ккал'}</div></div>
-      <div class="product-edit-actions"><button class="btn-small" onclick="editProduct(${i})">✏️</button><button class="btn-small" onclick="deleteProduct(${i})">🗑️</button></div>
-    </div>`).join('');
+    c.innerHTML = productsDB.map((p,i)=>`<div class="product-edit-item"><div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">${p.protein}/${p.fat}/${p.carbs} ${p.kcal}${currentLang==='en'?'kcal':'ккал'}</div></div><div class="product-edit-actions"><button class="btn-small" onclick="editProduct(${i})">✏️</button><button class="btn-small" onclick="deleteProduct(${i})">🗑️</button></div></div>`).join('');
   }
-  function editProduct(i) {
-    const p = productsDB[i], t = translations[currentLang];
-    const n = prompt(t.name, p.name); if (n) p.name = n;
-    const prot = prompt(t.protein, p.protein); if (prot) p.protein = parseFloat(prot);
-    const fat = prompt(t.fat, p.fat); if (fat) p.fat = parseFloat(fat);
-    const carbs = prompt(t.carbs, p.carbs); if (carbs) p.carbs = parseFloat(carbs);
-    const kcal = prompt(t.kcal, p.kcal); if (kcal) p.kcal = parseFloat(kcal);
-    saveProductsDB(); renderProductsList();
-  }
+  function editProduct(i) { const p = productsDB[i], t = translations[currentLang]; const n = prompt(t.name, p.name); if (n) p.name = n; const prot = prompt(t.protein, p.protein); if (prot) p.protein = parseFloat(prot); const fat = prompt(t.fat, p.fat); if (fat) p.fat = parseFloat(fat); const carbs = prompt(t.carbs, p.carbs); if (carbs) p.carbs = parseFloat(carbs); const kcal = prompt(t.kcal, p.kcal); if (kcal) p.kcal = parseFloat(kcal); saveProductsDB(); renderProductsList(); }
   function deleteProduct(i) { if (confirm(translations[currentLang].delete_product+'?')) { productsDB.splice(i,1); saveProductsDB(); renderProductsList(); } }
 
-  function exportData() {
-    const data = { profile: currentProfile, foods: todayFoods, weight: weightHistory, products: productsDB, templates: mealTemplates };
-    const b = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'fitcat_backup.json'; a.click();
-  }
-  function importData() {
-    const i = document.createElement('input'); i.type='file'; i.accept='.json'; i.onchange = e => {
-      const f = e.target.files[0], r = new FileReader(); r.onload = ev => {
-        const d = JSON.parse(ev.target.result); currentProfile = d.profile; todayFoods = d.foods; weightHistory = d.weight; productsDB = d.products||[]; mealTemplates = d.templates||[];
-        saveAllData(); saveProductsDB(); saveTemplates(); location.reload();
-      }; r.readAsText(f);
-    }; i.click();
-  }
+  function exportData() { const data = { profile: currentProfile, foods: todayFoods, weight: weightHistory, products: productsDB, templates: mealTemplates }; const b = new Blob([JSON.stringify(data)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'fitcat_backup.json'; a.click(); }
+  function importData() { const i = document.createElement('input'); i.type='file'; i.accept='.json'; i.onchange = e => { const f = e.target.files[0], r = new FileReader(); r.onload = ev => { const d = JSON.parse(ev.target.result); currentProfile = d.profile; todayFoods = d.foods; weightHistory = d.weight; productsDB = d.products||[]; mealTemplates = d.templates||[]; saveAllData(); saveProductsDB(); saveTemplates(); location.reload(); }; r.readAsText(f); }; i.click(); }
 </script>
 </body>
 </html>
