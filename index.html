@@ -43,7 +43,7 @@
     }
     .app { max-width: 480px; margin: 0 auto; animation: fadeIn 0.5s ease-out; }
     h1 {
-      font-size: 32px; font-weight: 700; margin-bottom: 24px;
+      font-size: 32px; font-weight: 700; margin: 0;
       background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #A855F7 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text; background-size: 200% 100%;
@@ -511,10 +511,10 @@
   <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h1 style="margin: 0;" id="greetingText">
-        🐱 <span id="greetingMessage"></span>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <h1 id="greetingText">🐱 FitCat</h1>
         <span id="streakEmoji" class="streak-emoji none">🕯️</span>
-      </h1>
+      </div>
       <div class="header-photo" id="headerPhoto" onclick="showProfile()">
         <span id="headerInitials" class="header-initials">🐱</span>
       </div>
@@ -1260,7 +1260,8 @@
   function updateGreeting() {
     const h = new Date().getHours(); let k = 'day';
     if (h>=5 && h<12) k='morning'; else if (h>=12 && h<18) k='day'; else if (h>=18 && h<23) k='evening'; else k='night';
-    document.getElementById('greetingMessage').innerText = translations[currentLang][k] + ', ' + (currentProfile?.name||'');
+    document.getElementById('greetingText').innerHTML = `🐱 ${translations[currentLang][k]}, ${currentProfile?.name||''}`;
+    updateStreak();
   }
   function completeSetup() {
     const n = document.getElementById('setupName').value.trim();
