@@ -49,7 +49,7 @@
     .greeting-wrapper {
       position: relative;
       height: 40px;
-      flex: 1;
+      min-width: 200px;
       overflow: hidden;
     }
     .greeting-slide {
@@ -57,11 +57,10 @@
       top: 0; left: 0;
       display: flex;
       align-items: center;
-      gap: 6px;
+      white-space: nowrap;
       transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.3s ease;
       opacity: 1;
       transform: translateY(0);
-      white-space: nowrap;
     }
     .greeting-slide.hidden {
       transform: translateY(-100%);
@@ -78,7 +77,7 @@
     }
     
     h1 {
-      font-size: 32px; font-weight: 700; margin: 0;
+      font-size: 28px; font-weight: 700; margin: 0;
       background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #A855F7 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text; background-size: 200% 100%;
@@ -149,10 +148,7 @@
       background-size: 300% 100%; border-radius: 40px; z-index: -1;
       animation: borderShimmer 4s linear infinite;
     }
-    @keyframes borderShimmer {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 300% 50%; }
-    }
+    @keyframes borderShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
     .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(79,172,254,0.3); }
     .btn-primary:active { transform: scale(0.98); }
     .btn-secondary { background: transparent; border: 1px solid #30363D; color: #E6EDF3; }
@@ -183,11 +179,7 @@
     .bar-fat { background-image: linear-gradient(90deg, #FFD93D, #FFB347, #FFA500, #FFD93D) !important; }
     .bar-carbs { background-image: linear-gradient(90deg, #6BCB77, #4D96FF, #9B59B6, #6BCB77) !important; }
     .bar-water { background-image: linear-gradient(90deg, #00F2FE, #4FACFE, #7FC8FF, #00F2FE) !important; }
-    @keyframes barShimmer {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+    @keyframes barShimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     
     .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
     .tab {
@@ -217,15 +209,24 @@
     .profile-photo {
       width: 100px; height: 100px; border-radius: 50%; background: #1A2027;
       border: 3px solid #4FACFE; margin: 0 auto 8px; cursor: pointer; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
     }
     .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
-    .profile-initials { font-size: 40px; font-weight: 600; color: #E6EDF3; }
+    .profile-initials { font-size: 40px; font-weight: 600; color: #E6EDF3; line-height: 1; }
+    
+    /* АВАТАРКА В ХЕДЕРЕ — ИНИЦИАЛЫ СТРОГО ПО ЦЕНТРУ */
     .header-photo {
       width: 48px; height: 48px; border-radius: 50%; background: #1A2027;
-      border: 2px solid #4FACFE; cursor: pointer; overflow: hidden; flex-shrink: 0;
+      border: 2px solid #4FACFE; cursor: pointer; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
     .header-photo img { width: 100%; height: 100%; object-fit: cover; }
-    .header-initials { font-size: 20px; font-weight: 600; color: #E6EDF3; }
+    .header-initials {
+      font-size: 20px; font-weight: 600; color: #E6EDF3;
+      line-height: 1; text-align: center; display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+    }
     
     .weight-stats .flex > div { flex: 1; }
     #weightChangeStat.positive { color: #6BCB77; }
@@ -239,7 +240,7 @@
     /* СТРИК ЭМОДЗИ */
     .streak-emoji {
       font-size: 28px; line-height: 1; display: inline-block; cursor: pointer;
-      transition: transform 0.2s ease, filter 0.3s ease;
+      transition: transform 0.2s ease, filter 0.3s ease; flex-shrink: 0;
     }
     .streak-emoji.bounce { transform: translateY(-6px); }
     .streak-emoji.none { filter: drop-shadow(0 0 8px #6B7280) drop-shadow(0 0 15px #4B5563); }
@@ -279,10 +280,7 @@
       background: white; border-radius: 2px; transform: translateX(-50%);
       box-shadow: 0 0 8px rgba(255,255,255,0.5); transition: left 0.3s ease;
     }
-    .bmi-labels {
-      display: flex; justify-content: space-between; margin-top: 4px;
-      font-size: 11px; color: #9CA3AF;
-    }
+    .bmi-labels { display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: #9CA3AF; }
     .bmi-tooltip {
       position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
       background: #1A2027; border: 1px solid #4FACFE; border-radius: 12px;
@@ -391,15 +389,17 @@
 
   <!-- Главный экран -->
   <div id="mainPage" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:6px;flex:1;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;width:100%;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0;">
         <div class="greeting-wrapper">
-          <div class="greeting-slide" id="greetingSlide1">🐱 FitCat</div>
-          <div class="greeting-slide next" id="greetingSlide2">🐱 FitCat</div>
+          <div class="greeting-slide" id="greetingSlide1"><h1>🐱 FitCat</h1></div>
+          <div class="greeting-slide next" id="greetingSlide2"><h1>🐱 FitCat</h1></div>
         </div>
         <span id="streakEmoji" class="streak-emoji none">🕯️</span>
       </div>
-      <div class="header-photo" id="headerPhoto" onclick="showProfile()"><span id="headerInitials" class="header-initials">🐱</span></div>
+      <div class="header-photo" id="headerPhoto" onclick="showProfile()" style="margin-left:12px;">
+        <span id="headerInitials" class="header-initials">🐱</span>
+      </div>
     </div>
     <div class="tabs">
       <div class="tab active" onclick="switchTab('today')">Сегодня</div>
@@ -664,7 +664,7 @@
   function loadData(){currentProfile=JSON.parse(localStorage.getItem('fitnessProfile')||'null');todayFoods=JSON.parse(localStorage.getItem('todayFoods')||'[]');weightHistory=JSON.parse(localStorage.getItem('weightHistory')||'[]')}
   function saveAllData(){if(currentProfile)localStorage.setItem('fitnessProfile',JSON.stringify(currentProfile));localStorage.setItem('todayFoods',JSON.stringify(todayFoods));localStorage.setItem('weightHistory',JSON.stringify(weightHistory))}
   function checkDateReset(){let ld=localStorage.getItem('lastDate'),td=new Date().toDateString();if(ld!==td){todayFoods=[];localStorage.setItem('waterAmount',0);localStorage.setItem('hadTraining',false);trainingToday=false;waterAmount=0;localStorage.setItem('lastDate',td);saveAllData()}}
-  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout);let h=new Date().getHours(),k='day';if(h>=5&&h<12)k='morning';else if(h>=12&&h<18)k='day';else if(h>=18&&h<23)k='evening';else k='night';let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||'';if(streak)streak.style.display='none';s1.innerHTML=`<h1 style="margin:0;">🐱 ${translations[currentLang][k]}, ${name}</h1>`;s2.innerHTML='<h1 style="margin:0;">🐱 FitCat</h1>';s1.classList.remove('hidden');s2.classList.remove('visible');greetingTimeout=setTimeout(()=>{s1.classList.add('hidden');s2.classList.add('visible');if(streak)streak.style.display='inline-block';updateStreak()},2000)}
+  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout);let h=new Date().getHours(),k='day';if(h>=5&&h<12)k='morning';else if(h>=12&&h<18)k='day';else if(h>=18&&h<23)k='evening';else k='night';let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||'';if(streak)streak.style.display='none';s1.innerHTML=`<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`;s2.innerHTML='<h1>🐱 FitCat</h1>';s1.classList.remove('hidden');s2.classList.remove('visible');greetingTimeout=setTimeout(()=>{s1.classList.add('hidden');s2.classList.add('visible');if(streak)streak.style.display='inline-block';updateStreak()},2000)}
   function completeSetup(){let n=document.getElementById('setupName').value.trim(),a=parseInt(document.getElementById('setupAge').value),g=document.querySelector('input[name="setupGender"]:checked')?.value,h=parseFloat(document.getElementById('setupHeight').value),w=parseFloat(document.getElementById('setupWeight').value);if(!n||!a||a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500){alert(translations[currentLang].error_fill);return}currentProfile={name:n,age:a,gender:g,height:h,weight:w,startWeight:w};calculateTargets();saveAllData();localStorage.setItem('lastDate',new Date().toDateString());document.getElementById('setupPage').style.display='none';document.getElementById('mainPage').style.display='block';updateGreeting();renderDashboard();renderTemplates();updateActivityUI();updateHeaderPhoto();updateBMI();updateStreak()}
   function calculateTargets(){if(!currentProfile)return;let p=currentProfile;let bmr=p.gender==='female'?447.6+9.2*p.weight+3.1*p.height-4.3*p.age:88.36+13.4*p.weight+4.8*p.height-5.7*p.age;let tdee=bmr*dailyActivity;dailyTargets={kcal:Math.round(tdee*0.85),protein:Math.round(p.weight*1.8),fat:Math.round(p.weight*0.9),carbs:Math.round((tdee*0.85-p.weight*1.8*4-p.weight*0.9*9)/4),water:Math.round(p.weight*35)};if(waterAmount>dailyTargets.water)waterAmount=dailyTargets.water}
   function renderDashboard(){renderProgressBars();renderFoodList();updateWaterDisplay()}
