@@ -181,6 +181,18 @@
     }
     .btn-small:hover { border-color: #4FACFE; background: rgba(79,172,254,0.1); transform: translateY(-2px); }
     
+    .water-buttons { display: flex; gap: 8px; margin: 12px 0; }
+    .water-btn {
+      flex: 1; background: rgba(26, 32, 39, 0.8); border: 1px solid #30363D;
+      border-radius: 30px; padding: 10px; font-size: 16px; font-weight: 600;
+      color: #E6EDF3; cursor: pointer; transition: all 0.2s;
+      backdrop-filter: blur(5px); text-align: center;
+    }
+    .water-btn:hover { border-color: #4FACFE; background: rgba(79,172,254,0.1); }
+    .water-manual { display: flex; gap: 8px; margin-top: 8px; }
+    .water-manual input { flex: 2; }
+    .water-manual button { flex: 1; }
+    
     .progress-bar-container {
       height: 10px; background: rgba(33, 38, 45, 0.6);
       border-radius: 10px; margin: 8px 0 16px; overflow: hidden;
@@ -204,10 +216,6 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    
-    .water-row { display: flex; gap: 12px; align-items: center; }
-    .water-row input[type="number"] { width: 100px; }
-    input[type="range"] { flex: 3; accent-color: #4FACFE; height: 6px; background: transparent; }
     
     .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
     .tab {
@@ -361,7 +369,6 @@
       <button class="btn-small" onclick="closeSmartWater()">Закрыть</button>
     </div>
     <div class="card">
-      <!-- Температура -->
       <div class="slider-container">
         <div class="slider-labels">
           <span>🥶 -10°</span><span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>🔥 40°+</span>
@@ -374,7 +381,6 @@
         <div class="slider-value">Сейчас: <span id="tempDisplay">22°C</span></div>
       </div>
       
-      <!-- Шаги -->
       <div class="slider-container">
         <div class="slider-labels">
           <span>0</span><span>5к</span><span>10к</span><span>15к</span><span>20к+</span>
@@ -387,13 +393,11 @@
         <div class="slider-value">Шаги: <span id="stepsDisplay">8 000</span></div>
       </div>
       
-      <!-- Тренировка -->
       <div class="flex" style="justify-content: space-between; align-items: center; margin: 16px 0;">
         <span>Тренировка сегодня</span>
         <label class="food-toggle" id="trainingToggle" onclick="toggleTraining()" style="width: 28px; height: 28px;"></label>
       </div>
       
-      <!-- Итоги -->
       <div style="padding: 16px; background: rgba(1,4,9,0.4); border-radius: 16px;">
         <div class="flex" style="justify-content: space-between;"><span>Базовая норма:</span><span id="baseWaterNorm">1820 мл</span></div>
         <div class="flex" style="justify-content: space-between;"><span>Температура:</span><span id="tempBonus">+150 мл</span></div>
@@ -454,22 +458,35 @@
         <h2 data-i18n="progress">Прогресс</h2>
         <div id="progressBars"></div>
       </div>
+      
+      <!-- ВОДА С КНОПКАМИ -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h2 data-i18n="water_title" style="margin: 0;">Вода</h2>
           <button class="btn-small" onclick="openSmartWater()" style="width: auto; padding: 8px 12px;">⚙️</button>
         </div>
-        <div class="water-row">
-          <input type="range" id="waterSlider" min="0" max="100" step="1" value="0">
-          <input type="number" id="waterInput" min="0" step="50" value="0">
-          <span data-i18n="ml">мл</span>
+        
+        <div style="text-align: center; margin: 12px 0;">
+          <span style="font-size: 28px; font-weight: 700;" id="waterCurrent">0</span>
+          <span style="color: #9CA3AF;"> / </span>
+          <span style="font-size: 20px; color: #9CA3AF;" id="waterGoal">1820 мл</span>
         </div>
-        <div class="flex" style="justify-content: space-between; margin-top: 8px;">
-          <span id="waterText">0 мл</span>
-          <span id="waterGoalText">1820 мл</span>
+        
+        <div class="water-buttons">
+          <div class="water-btn" onclick="addWater(-50)">−50</div>
+          <div class="water-btn" onclick="addWater(50)">+50</div>
+          <div class="water-btn" onclick="addWater(100)">+100</div>
+          <div class="water-btn" onclick="addWater(200)">+200</div>
         </div>
-        <div id="smartWaterHint" class="text-small" style="margin-top: 8px;"></div>
+        
+        <div class="water-manual">
+          <input type="number" id="manualWaterInput" placeholder="Введи мл" min="0" step="10">
+          <button class="btn-small" onclick="setManualWater()">✓</button>
+        </div>
+        
+        <div id="smartWaterHint" class="text-small" style="margin-top: 12px; text-align: center;"></div>
       </div>
+      
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h2 data-i18n="meals" style="margin: 0;">Сегодня съедено</h2>
@@ -607,6 +624,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+  // ========== ПЕРЕВОДЫ ==========
   const translations = {
     ru: {
       about: 'О себе', name: 'Имя', name_placeholder: 'Введите имя', age: 'Возраст', age_placeholder: 'Введите возраст',
@@ -689,6 +707,7 @@
   let trainingToday = false;
   let currentSteps = 8000;
   let currentTemp = 22;
+  let waterAmount = 0;
 
   function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
   function getBarColor(pct) {
@@ -712,6 +731,32 @@
       updateGreeting(); renderProgressBars(); renderFoodList(); updateWaterDisplay();
       updateWeightStatsAndList(); renderWeightChart(); renderTemplates(); updateActivityUI();
     }
+  }
+
+  // ========== ВОДА (КНОПКИ) ==========
+  function addWater(ml) {
+    waterAmount = Math.max(0, waterAmount + ml);
+    if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
+    localStorage.setItem('waterAmount', waterAmount);
+    updateWaterDisplay();
+    renderProgressBars();
+    vibrate();
+  }
+  function setManualWater() {
+    const input = document.getElementById('manualWaterInput');
+    const ml = parseInt(input.value);
+    if (!isNaN(ml) && ml >= 0) {
+      waterAmount = Math.min(ml, dailyTargets.water);
+      localStorage.setItem('waterAmount', waterAmount);
+      updateWaterDisplay();
+      renderProgressBars();
+      vibrate();
+    }
+    input.value = '';
+  }
+  function updateWaterDisplay() {
+    document.getElementById('waterCurrent').innerText = waterAmount;
+    document.getElementById('waterGoal').innerText = dailyTargets.water + ' мл';
   }
 
   // ========== УМНАЯ ВОДА ==========
@@ -781,6 +826,9 @@
     const stepsBonus = getStepsBonus(currentSteps);
     const trainingBonus = trainingToday ? 300 : 0;
     dailyTargets.water = base + tempBonus + stepsBonus + trainingBonus;
+    
+    if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
+    localStorage.setItem('waterAmount', waterAmount);
     
     renderProgressBars();
     updateWaterDisplay();
@@ -967,6 +1015,7 @@
     trainingToday = localStorage.getItem('hadTraining') === 'true';
     currentSteps = parseInt(localStorage.getItem('currentSteps') || 8000);
     currentTemp = parseInt(localStorage.getItem('currentTemp') || 22);
+    waterAmount = parseInt(localStorage.getItem('waterAmount') || 0);
     
     if (!currentProfile) {
       document.getElementById('setupPage').style.display = 'block';
@@ -977,7 +1026,6 @@
       calculateTargets(); renderDashboard(); renderTemplates(); checkDateReset(); updateGreeting(); updateActivityUI();
       updateWaterHint();
     }
-    setupWaterControls();
   };
   
   function loadData() {
@@ -994,7 +1042,7 @@
     const ld = localStorage.getItem('lastDate'), td = new Date().toDateString();
     if (ld !== td) {
       todayFoods = []; localStorage.setItem('waterAmount', 0); localStorage.setItem('hadTraining', false);
-      trainingToday = false; localStorage.setItem('lastDate', td); saveAllData();
+      trainingToday = false; waterAmount = 0; localStorage.setItem('lastDate', td); saveAllData();
     }
   }
   function updateGreeting() {
@@ -1026,18 +1074,19 @@
       carbs: Math.round((tdee * 0.85 - p.weight * 1.8 * 4 - p.weight * 0.9 * 9) / 4),
       water: Math.round(p.weight * 35)
     };
+    if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
   }
   function renderDashboard() { renderProgressBars(); renderFoodList(); updateWaterDisplay(); }
   function renderProgressBars() {
     let c = { kcal:0, protein:0, fat:0, carbs:0 };
     todayFoods.forEach(f=>{ if(f.checked) { c.kcal+=f.kcal||0; c.protein+=f.protein||0; c.fat+=f.fat||0; c.carbs+=f.carbs||0; } });
-    const w = parseInt(localStorage.getItem('waterAmount')||0), t = translations[currentLang];
+    const t = translations[currentLang];
     const bars = [
       { l: t.kcal, cur: c.kcal, tar: dailyTargets.kcal, u: 'ккал', cls: 'bar-kcal' },
       { l: t.protein, cur: c.protein, tar: dailyTargets.protein, u: 'г', cls: 'bar-protein' },
       { l: t.fat, cur: c.fat, tar: dailyTargets.fat, u: 'г', cls: 'bar-fat' },
       { l: t.carbs, cur: c.carbs, tar: dailyTargets.carbs, u: 'г', cls: 'bar-carbs' },
-      { l: t.water, cur: w, tar: dailyTargets.water, u: 'мл', cls: 'bar-water' }
+      { l: t.water, cur: waterAmount, tar: dailyTargets.water, u: 'мл', cls: 'bar-water' }
     ];
     let container = document.getElementById('progressBars');
     if (!container.querySelector('.progress-bar')) {
@@ -1087,16 +1136,6 @@
   }
   function toggleFood(i) { todayFoods[i].checked = !todayFoods[i].checked; saveAllData(); renderProgressBars(); renderFoodList(); vibrate(); }
   function deleteFood(i) { todayFoods.splice(i,1); saveAllData(); renderDashboard(); }
-  function setupWaterControls() {
-    const s = document.getElementById('waterSlider'), i = document.getElementById('waterInput');
-    function u(v) { const ml = Math.round((v/100)*dailyTargets.water); localStorage.setItem('waterAmount', ml); document.getElementById('waterText').innerText = ml+' мл'; s.value = v; i.value = ml; renderProgressBars(); }
-    s.addEventListener('input', e=>u(e.target.value)); i.addEventListener('change', e=>u((parseInt(e.target.value)/dailyTargets.water)*100));
-  }
-  function updateWaterDisplay() {
-    const ml = parseInt(localStorage.getItem('waterAmount')||0), pct = (ml/dailyTargets.water)*100;
-    document.getElementById('waterSlider').value = pct; document.getElementById('waterInput').value = ml;
-    document.getElementById('waterText').innerText = ml+' мл'; document.getElementById('waterGoalText').innerText = dailyTargets.water+' мл';
-  }
 
   function setWeightGoal() {
     const cur = currentProfile?.targetWeight || (currentProfile?.startWeight*0.9).toFixed(1);
