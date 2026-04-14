@@ -241,7 +241,15 @@
     /* СТРИК ЭМОДЗИ */
     .streak-emoji {
       font-size: 28px; line-height: 1; display: inline-block; cursor: pointer;
-      transition: transform 0.2s ease, filter 0.3s ease; flex-shrink: 0;
+      transition: transform 0.2s ease, filter 0.3s ease, opacity 0.6s ease, scale 0.4s ease;
+      flex-shrink: 0;
+      opacity: 1;
+      scale: 1;
+    }
+    /* плавное появление */
+    .streak-emoji.fade-in {
+      opacity: 0;
+      scale: 0.6;
     }
     .streak-emoji.bounce { transform: translateY(-6px); }
     .streak-emoji.none { filter: drop-shadow(0 0 8px #6B7280) drop-shadow(0 0 15px #4B5563); }
@@ -289,6 +297,19 @@
       opacity: 0; transition: opacity 0.2s; pointer-events: none;
     }
     .bmi-scale:hover .bmi-tooltip { opacity: 1; }
+
+    /* ОБВОДКА ДЛЯ АКТИВНОСТИ */
+    .activity-daily-options { display: flex; flex-direction: column; gap: 12px; }
+    .activity-daily-item {
+      background: rgba(1, 4, 9, 0.6); border: 1px solid #30363D; border-radius: 18px;
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+      cursor: pointer; transition: all 0.2s ease; backdrop-filter: blur(5px);
+    }
+    .activity-daily-item.selected {
+      border-color: #4FACFE;
+      background: rgba(79,172,254,0.1);
+      box-shadow: 0 0 20px rgba(79,172,254,0.15);
+    }
 
     .flex { display: flex; gap: 8px; align-items: center; }
     .text-center { text-align: center; }
@@ -391,16 +412,14 @@
   <!-- Главный экран -->
   <div id="mainPage" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;width:100%;">
-      <!-- ЛЕВАЯ ЧАСТЬ: приветствие (с переносом) -->
       <div style="flex:1; min-width:0; max-width:calc(100% - 100px);">
         <div class="greeting-wrapper">
           <div class="greeting-slide" id="greetingSlide1"><h1>🐱 FitCat</h1></div>
           <div class="greeting-slide next" id="greetingSlide2"><h1>🐱 FitCat</h1></div>
         </div>
       </div>
-      <!-- ПРАВАЯ ЧАСТЬ: огонёк + аватарка -->
       <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:8px;">
-        <span id="streakEmoji" class="streak-emoji none">🕯️</span>
+        <span id="streakEmoji" class="streak-emoji none fade-in">🕯️</span>
         <div class="header-photo" id="headerPhoto" onclick="showProfile()">
           <span id="headerInitials" class="header-initials">🐱</span>
         </div>
@@ -442,7 +461,7 @@
     
     <div id="activityPage" class="page">
       <div class="card"><h2>Активность на сегодня</h2>
-        <div class="activity-daily-options" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="activity-daily-options">
           <div class="activity-daily-item" data-activity="1.2" onclick="selectDailyActivity(this)">Сидячий</div>
           <div class="activity-daily-item" data-activity="1.375" onclick="selectDailyActivity(this)">Умеренный</div>
           <div class="activity-daily-item" data-activity="1.55" onclick="selectDailyActivity(this)">Активный</div>
@@ -576,13 +595,15 @@
   function getBarColor(p){if(p>=90&&p<=110)return'#6BCB77';if((p>=70&&p<90)||(p>110&&p<=130))return'#FFD93D';return'#F85149'}
   function setLanguage(l){currentLang=l;localStorage.setItem('fitcat_lang',l);document.querySelectorAll('[data-i18n]').forEach(e=>{let k=e.dataset.i18n;if(translations[l]?.[k])e.innerText=translations[l][k]});document.querySelectorAll('[data-i18n-placeholder]').forEach(e=>{let k=e.dataset.i18nPlaceholder;if(translations[l]?.[k])e.placeholder=translations[l][k]});if(currentProfile){updateGreeting();renderProgressBars();renderFoodList();updateWaterDisplay();updateWeightStatsAndList();renderWeightChart();renderTemplates();updateActivityUI();updateHeaderPhoto()}}
 
-  // ========== СТРИК ==========
+  // ========== СТРИК (ПЛАВНОЕ ПОЯВЛЕНИЕ) ==========
   function updateStreak(){
     let s=parseInt(localStorage.getItem('fitcat_streak')||0);let lo=localStorage.getItem('fitcat_lastOpen');let t=new Date().toDateString();let y=new Date(Date.now()-86400000).toDateString();
     if(!lo)s=1;else if(lo===t){}else if(lo===y)s=Math.min(s+1,5);else s=1;
     localStorage.setItem('fitcat_streak',s);localStorage.setItem('fitcat_lastOpen',t);
     let e=document.getElementById('streakEmoji');if(e){let c,ch;if(s===1){c='none';ch='🕯️'}else if(s===2){c='red';ch='🔥'}else if(s===3){c='yellow';ch='🔥'}else if(s===4){c='purple';ch='🔥'}else{c='rainbow';ch='🔥'}
-    e.className='streak-emoji '+c;e.textContent=ch;e.title=s+' дн.';setupStreakInteractions(e)}
+    e.className='streak-emoji '+c+' fade-in';e.textContent=ch;e.title=s+' дн.';setupStreakInteractions(e);
+    // плавное появление
+    requestAnimationFrame(()=>{e.classList.remove('fade-in');});}
   }
   function setupStreakInteractions(e){if(!e||e.dataset.hasListeners)return;e.dataset.hasListeners='true';e.addEventListener('click',(ev)=>{ev.stopPropagation();e.classList.add('bounce');setTimeout(()=>e.classList.remove('bounce'),200)});e.addEventListener('dblclick',(ev)=>{ev.stopPropagation();showStreakTooltip(e)})}
   function showStreakTooltip(e){let s=localStorage.getItem('fitcat_streak')||'1';let old=document.querySelector('.streak-tooltip');if(old)old.remove();let t=document.createElement('div');t.className='streak-tooltip';t.innerHTML=s+' дн.';document.body.appendChild(t);let r=e.getBoundingClientRect();t.style.left=(r.left+r.width/2)+'px';t.style.top=(r.bottom+8)+'px';t.style.transform='translateX(-50%)';setTimeout(()=>t.classList.add('show'),10);setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},2000)}
@@ -615,7 +636,7 @@
   function applySmartWater(){currentSteps=parseInt(document.getElementById('stepsSlider').value);currentTemp=parseInt(document.getElementById('tempSlider').value);localStorage.setItem('currentSteps',currentSteps);localStorage.setItem('currentTemp',currentTemp);dailyTargets.water=Math.round(currentProfile.weight*35)+getTempBonus(currentTemp)+getStepsBonus(currentSteps)+(trainingToday?300:0);if(waterAmount>dailyTargets.water)waterAmount=dailyTargets.water;localStorage.setItem('waterAmount',waterAmount);renderProgressBars();updateWaterDisplay();updateWaterHint();closeSmartWater();vibrate()}
   function updateWaterHint(){let h=document.getElementById('smartWaterHint');let b=dailyTargets.water-Math.round(currentProfile.weight*35);h.innerText=b>0?`Умная норма: +${b} мл`:''}
 
-  // ========== АКТИВНОСТЬ ==========
+  // ========== АКТИВНОСТЬ (ВОЗВРАЩЕНА ОБВОДКА) ==========
   function selectDailyActivity(el){document.querySelectorAll('#activityPage .activity-daily-item').forEach(i=>i.classList.remove('selected'));el.classList.add('selected');updateActivityPreview(parseFloat(el.dataset.activity))}
   function updateActivityPreview(coef){if(!currentProfile)return;let p=currentProfile;let bmr=p.gender==='female'?447.6+9.2*p.weight+3.1*p.height-4.3*p.age:88.36+13.4*p.weight+4.8*p.height-5.7*p.age;let kcal=Math.round(bmr*coef*0.85);document.getElementById('previewKcal').innerText=kcal+' ккал';document.getElementById('previewProtein').innerText=Math.round(p.weight*1.8)+' г';document.getElementById('previewFat').innerText=Math.round(p.weight*0.9)+' г';document.getElementById('previewCarbs').innerText=Math.round((kcal-p.weight*1.8*4-p.weight*0.9*9)/4)+' г';document.getElementById('previewWater').innerText=dailyTargets.water+' мл'}
   function applyDailyActivity(){let s=document.querySelector('#activityPage .activity-daily-item.selected');if(!s)return;dailyActivity=parseFloat(s.dataset.activity);localStorage.setItem('dailyActivity',dailyActivity);calculateTargets();renderDashboard();updateActivityUI();showPage('mainPage');vibrate()}
@@ -669,7 +690,7 @@
   function loadData(){currentProfile=JSON.parse(localStorage.getItem('fitnessProfile')||'null');todayFoods=JSON.parse(localStorage.getItem('todayFoods')||'[]');weightHistory=JSON.parse(localStorage.getItem('weightHistory')||'[]')}
   function saveAllData(){if(currentProfile)localStorage.setItem('fitnessProfile',JSON.stringify(currentProfile));localStorage.setItem('todayFoods',JSON.stringify(todayFoods));localStorage.setItem('weightHistory',JSON.stringify(weightHistory))}
   function checkDateReset(){let ld=localStorage.getItem('lastDate'),td=new Date().toDateString();if(ld!==td){todayFoods=[];localStorage.setItem('waterAmount',0);localStorage.setItem('hadTraining',false);trainingToday=false;waterAmount=0;localStorage.setItem('lastDate',td);saveAllData()}}
-  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout);let h=new Date().getHours(),k='day';if(h>=5&&h<12)k='morning';else if(h>=12&&h<18)k='day';else if(h>=18&&h<23)k='evening';else k='night';let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||'';if(streak)streak.style.display='none';s1.innerHTML=`<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`;s2.innerHTML='<h1>🐱 FitCat</h1>';s1.classList.remove('hidden');s2.classList.remove('visible');greetingTimeout=setTimeout(()=>{s1.classList.add('hidden');s2.classList.add('visible');if(streak)streak.style.display='inline-block';updateStreak()},2000)}
+  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout);let h=new Date().getHours(),k='day';if(h>=5&&h<12)k='morning';else if(h>=12&&h<18)k='day';else if(h>=18&&h<23)k='evening';else k='night';let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||'';if(streak){streak.style.opacity='0';streak.classList.add('fade-in');}s1.innerHTML=`<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`;s2.innerHTML='<h1>🐱 FitCat</h1>';s1.classList.remove('hidden');s2.classList.remove('visible');greetingTimeout=setTimeout(()=>{s1.classList.add('hidden');s2.classList.add('visible');if(streak){streak.style.display='inline-block';requestAnimationFrame(()=>{streak.style.opacity='1';streak.classList.remove('fade-in');});}updateStreak()},2000)}
   function completeSetup(){let n=document.getElementById('setupName').value.trim(),a=parseInt(document.getElementById('setupAge').value),g=document.querySelector('input[name="setupGender"]:checked')?.value,h=parseFloat(document.getElementById('setupHeight').value),w=parseFloat(document.getElementById('setupWeight').value);if(!n||!a||a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500){alert(translations[currentLang].error_fill);return}currentProfile={name:n,age:a,gender:g,height:h,weight:w,startWeight:w};calculateTargets();saveAllData();localStorage.setItem('lastDate',new Date().toDateString());document.getElementById('setupPage').style.display='none';document.getElementById('mainPage').style.display='block';updateGreeting();renderDashboard();renderTemplates();updateActivityUI();updateHeaderPhoto();updateBMI();updateStreak()}
   function calculateTargets(){if(!currentProfile)return;let p=currentProfile;let bmr=p.gender==='female'?447.6+9.2*p.weight+3.1*p.height-4.3*p.age:88.36+13.4*p.weight+4.8*p.height-5.7*p.age;let tdee=bmr*dailyActivity;dailyTargets={kcal:Math.round(tdee*0.85),protein:Math.round(p.weight*1.8),fat:Math.round(p.weight*0.9),carbs:Math.round((tdee*0.85-p.weight*1.8*4-p.weight*0.9*9)/4),water:Math.round(p.weight*35)};if(waterAmount>dailyTargets.water)waterAmount=dailyTargets.water}
   function renderDashboard(){renderProgressBars();renderFoodList();updateWaterDisplay()}
