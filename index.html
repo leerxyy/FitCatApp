@@ -371,7 +371,7 @@
     .text-small { font-size: 13px; color: #9CA3AF; }
     .mb-2 { margin-bottom: 8px; }
 
-    /* АНИМАЦИЯ ПРИВЕТСТВИЯ */
+    /* АНИМАЦИИ */
     .greeting-fade {
       transition: opacity 0.4s ease;
       opacity: 1;
@@ -379,14 +379,16 @@
     .greeting-fade.fade-out {
       opacity: 0;
     }
-
-    /* СТРИК ЭМОДЗИ */
     .streak-emoji {
       font-size: 28px;
       line-height: 1;
       display: inline-block;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: opacity 0.4s ease, transform 0.2s ease, filter 0.3s ease;
+      opacity: 1;
+    }
+    .streak-emoji.hidden {
+      opacity: 0;
     }
     .streak-emoji.bounce {
       transform: translateY(-6px);
@@ -859,15 +861,10 @@
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-    if (!lastOpen) {
-      streak = 1;
-    } else if (lastOpen === today) {
-      // уже заходила сегодня
-    } else if (lastOpen === yesterday) {
-      streak = Math.min(streak + 1, 5);
-    } else {
-      streak = 1;
-    }
+    if (!lastOpen) streak = 1;
+    else if (lastOpen === today) {}
+    else if (lastOpen === yesterday) streak = Math.min(streak + 1, 5);
+    else streak = 1;
 
     localStorage.setItem('fitcat_streak', streak);
     localStorage.setItem('fitcat_lastOpen', today);
@@ -880,11 +877,9 @@
       else if (streak === 3) { emojiClass = 'yellow'; emojiChar = '🔥'; }
       else if (streak === 4) { emojiClass = 'purple'; emojiChar = '🔥'; }
       else { emojiClass = 'rainbow'; emojiChar = '🔥'; }
-      
       emoji.className = 'streak-emoji ' + emojiClass;
       emoji.textContent = emojiChar;
       emoji.title = `${streak} дн.`;
-      
       setupStreakInteractions(emoji);
     }
   }
@@ -892,13 +887,11 @@
   function setupStreakInteractions(emoji) {
     if (!emoji || emoji.dataset.hasListeners) return;
     emoji.dataset.hasListeners = 'true';
-
     emoji.addEventListener('click', (e) => {
       e.stopPropagation();
       emoji.classList.add('bounce');
       setTimeout(() => emoji.classList.remove('bounce'), 200);
     });
-
     emoji.addEventListener('dblclick', (e) => {
       e.stopPropagation();
       showStreakTooltip(emoji);
@@ -907,75 +900,60 @@
 
   function showStreakTooltip(emoji) {
     const streak = localStorage.getItem('fitcat_streak') || '1';
-    
     const oldTooltip = document.querySelector('.streak-tooltip');
     if (oldTooltip) oldTooltip.remove();
-
     const tooltip = document.createElement('div');
     tooltip.className = 'streak-tooltip';
     tooltip.innerHTML = `${streak} дн.`;
-
     document.body.appendChild(tooltip);
-    
     const rect = emoji.getBoundingClientRect();
     tooltip.style.left = (rect.left + rect.width / 2) + 'px';
     tooltip.style.top = (rect.bottom + 8) + 'px';
     tooltip.style.transform = 'translateX(-50%)';
-
     setTimeout(() => tooltip.classList.add('show'), 10);
-
     setTimeout(() => {
       tooltip.classList.remove('show');
       setTimeout(() => tooltip.remove(), 300);
     }, 2000);
   }
 
-  // ========== ФОТО ПРОФИЛЯ ==========
+  // ========== ФОТО ==========
   function getInitials(name) {
     if (!name) return '🐱';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return name.slice(0, 2).toUpperCase();
   }
-
   function updateHeaderPhoto() {
     const headerPhoto = document.getElementById('headerPhoto');
     const savedPhoto = localStorage.getItem('profilePhoto');
-    
-    if (savedPhoto) {
-      headerPhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
-    } else {
+    if (savedPhoto) headerPhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
+    else {
       const initials = currentProfile ? getInitials(currentProfile.name) : '🐱';
-      headerPhoto.innerHTML = `<span id="headerInitials" class="header-initials">${initials}</span>`;
+      headerPhoto.innerHTML = `<span class="header-initials">${initials}</span>`;
     }
   }
-
   function uploadPhoto() { document.getElementById('photoInput').click(); }
-
   function handlePhotoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) { alert('Фото слишком большое. Максимум 3 МБ.'); return; }
-    
     const reader = new FileReader();
     reader.onload = (e) => {
       localStorage.setItem('profilePhoto', e.target.result);
       document.getElementById('profilePhoto').innerHTML = `<img src="${e.target.result}" alt="Profile">`;
-      updateHeaderPhoto();
-      vibrate();
+      updateHeaderPhoto(); vibrate();
     };
     reader.readAsDataURL(file);
   }
-
   function deletePhoto() {
     localStorage.removeItem('profilePhoto');
     const initials = currentProfile ? getInitials(currentProfile.name) : '🐱';
     document.getElementById('profilePhoto').innerHTML = `<span class="profile-initials">${initials}</span>`;
-    updateHeaderPhoto();
-    vibrate();
+    updateHeaderPhoto(); vibrate();
   }
 
-  // ========== СВОРАЧИВАНИЕ КАРТОЧЕК ==========
+  // ========== КАРТОЧКИ ==========
   function toggleCard(cardId) {
     const content = document.getElementById(cardId === 'waterCard' ? 'waterContent' : 'mealsContent');
     if (content) {
@@ -989,9 +967,7 @@
     waterAmount = Math.max(0, waterAmount + ml);
     if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
     localStorage.setItem('waterAmount', waterAmount);
-    updateWaterDisplay();
-    renderProgressBars();
-    vibrate();
+    updateWaterDisplay(); renderProgressBars(); vibrate();
   }
   function setManualWater() {
     const input = document.getElementById('manualWaterInput');
@@ -999,9 +975,7 @@
     if (!isNaN(ml) && ml >= 0) {
       waterAmount = Math.min(ml, dailyTargets.water);
       localStorage.setItem('waterAmount', waterAmount);
-      updateWaterDisplay();
-      renderProgressBars();
-      vibrate();
+      updateWaterDisplay(); renderProgressBars(); vibrate();
     }
     input.value = '';
   }
@@ -1018,40 +992,20 @@
     updateTempDisplay(); updateStepsDisplay(); updateTrainingUI(); updateWaterCalculation();
   }
   function closeSmartWater() { document.getElementById('smartWaterModal').style.display = 'none'; }
-  function updateTempDisplay() {
-    currentTemp = parseInt(document.getElementById('tempSlider').value);
-    document.getElementById('tempDisplay').innerText = currentTemp + '°C';
-    updateWaterCalculation();
-  }
-  function updateStepsDisplay() {
-    currentSteps = parseInt(document.getElementById('stepsSlider').value);
-    document.getElementById('stepsDisplay').innerText = currentSteps.toLocaleString();
-    updateWaterCalculation();
-  }
+  function updateTempDisplay() { currentTemp = parseInt(document.getElementById('tempSlider').value); document.getElementById('tempDisplay').innerText = currentTemp + '°C'; updateWaterCalculation(); }
+  function updateStepsDisplay() { currentSteps = parseInt(document.getElementById('stepsSlider').value); document.getElementById('stepsDisplay').innerText = currentSteps.toLocaleString(); updateWaterCalculation(); }
   function getTempBonus(t) { if (t<0) return 0; if (t<15) return 0; if (t<20) return 50; if (t<25) return 150; if (t<30) return 300; return 500; }
   function getStepsBonus(s) { if (s<2500) return 0; if (s<5000) return 50; if (s<7500) return 100; if (s<10000) return 150; if (s<12500) return 200; if (s<15000) return 250; return 300; }
-  function toggleTraining() {
-    trainingToday = !trainingToday;
-    localStorage.setItem('hadTraining', trainingToday);
-    updateTrainingUI();
-    updateWaterCalculation();
-    vibrate();
-  }
-  function updateTrainingUI() {
-    const btn = document.getElementById('trainingToggle');
-    trainingToday ? btn.classList.add('checked') : btn.classList.remove('checked');
-  }
+  function toggleTraining() { trainingToday = !trainingToday; localStorage.setItem('hadTraining', trainingToday); updateTrainingUI(); updateWaterCalculation(); vibrate(); }
+  function updateTrainingUI() { const btn = document.getElementById('trainingToggle'); trainingToday ? btn.classList.add('checked') : btn.classList.remove('checked'); }
   function updateWaterCalculation() {
     if (!currentProfile) return;
     const base = Math.round(currentProfile.weight * 35);
-    const tempBonus = getTempBonus(currentTemp);
-    const stepsBonus = getStepsBonus(currentSteps);
-    const trainingBonus = trainingToday ? 300 : 0;
-    const total = base + tempBonus + stepsBonus + trainingBonus;
+    const total = base + getTempBonus(currentTemp) + getStepsBonus(currentSteps) + (trainingToday ? 300 : 0);
     document.getElementById('baseWaterNorm').innerText = base + ' мл';
-    document.getElementById('tempBonus').innerText = '+' + tempBonus + ' мл';
-    document.getElementById('stepsBonus').innerText = '+' + stepsBonus + ' мл';
-    document.getElementById('trainingBonus').innerText = '+' + trainingBonus + ' мл';
+    document.getElementById('tempBonus').innerText = '+' + getTempBonus(currentTemp) + ' мл';
+    document.getElementById('stepsBonus').innerText = '+' + getStepsBonus(currentSteps) + ' мл';
+    document.getElementById('trainingBonus').innerText = '+' + (trainingToday ? 300 : 0) + ' мл';
     document.getElementById('totalWaterNorm').innerText = total + ' мл';
   }
   function applySmartWater() {
@@ -1059,8 +1013,7 @@
     currentTemp = parseInt(document.getElementById('tempSlider').value);
     localStorage.setItem('currentSteps', currentSteps);
     localStorage.setItem('currentTemp', currentTemp);
-    const base = Math.round(currentProfile.weight * 35);
-    dailyTargets.water = base + getTempBonus(currentTemp) + getStepsBonus(currentSteps) + (trainingToday ? 300 : 0);
+    dailyTargets.water = Math.round(currentProfile.weight * 35) + getTempBonus(currentTemp) + getStepsBonus(currentSteps) + (trainingToday ? 300 : 0);
     if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
     localStorage.setItem('waterAmount', waterAmount);
     renderProgressBars(); updateWaterDisplay(); updateWaterHint(); closeSmartWater(); vibrate();
@@ -1074,15 +1027,12 @@
   // ========== АКТИВНОСТЬ ==========
   function selectDailyActivity(el) {
     document.querySelectorAll('#activityPage .activity-daily-item').forEach(i => i.classList.remove('selected'));
-    el.classList.add('selected');
-    updateActivityPreview(parseFloat(el.dataset.activity));
+    el.classList.add('selected'); updateActivityPreview(parseFloat(el.dataset.activity));
   }
   function updateActivityPreview(coef) {
-    if (!currentProfile) return;
-    const p = currentProfile;
+    if (!currentProfile) return; const p = currentProfile;
     let bmr = p.gender === 'female' ? 447.6 + 9.2*p.weight + 3.1*p.height - 4.3*p.age : 88.36 + 13.4*p.weight + 4.8*p.height - 5.7*p.age;
-    let tdee = bmr * coef;
-    const kcal = Math.round(tdee * 0.85);
+    let kcal = Math.round(bmr * coef * 0.85);
     document.getElementById('previewKcal').innerText = kcal + ' ккал';
     document.getElementById('previewProtein').innerText = Math.round(p.weight * 1.8) + ' г';
     document.getElementById('previewFat').innerText = Math.round(p.weight * 0.9) + ' г';
@@ -1100,8 +1050,7 @@
     const tabs = document.querySelectorAll('.tab');
     if (tabs.length >= 3) {
       const names = ['Сидячий', 'Умеренный', 'Активный', 'Очень активный'];
-      const coefs = [1.2, 1.375, 1.55, 1.725];
-      const idx = coefs.indexOf(dailyActivity);
+      const idx = [1.2, 1.375, 1.55, 1.725].indexOf(dailyActivity);
       if (idx >= 0) tabs[1].innerHTML = names[idx];
     }
   }
@@ -1133,11 +1082,9 @@
     saveAllData(); calculateTargets(); renderDashboard(); updateGreeting(); updateHeaderPhoto();
     showPage('mainPage'); vibrate();
   }
-  function deleteAccount() {
-    if (confirm(translations[currentLang].confirm_delete)) { localStorage.clear(); location.reload(); }
-  }
+  function deleteAccount() { if (confirm(translations[currentLang].confirm_delete)) { localStorage.clear(); location.reload(); } }
 
-  // ========== ОСТАЛЬНОЕ ==========
+  // ========== ЕДА ==========
   function loadProductsDB() { const s = localStorage.getItem('fitcat_products'); if (s) productsDB = JSON.parse(s); }
   function saveProductsDB() { localStorage.setItem('fitcat_products', JSON.stringify(productsDB)); }
   function addToProductsDB(name, prot, fat, carbs, kcal) {
@@ -1168,12 +1115,11 @@
     }
     document.getElementById('autocompleteList').style.display = 'none';
   }
-
   function loadTemplates() { const s = localStorage.getItem('fitcat_templates'); if (s) mealTemplates = JSON.parse(s); }
   function saveTemplates() { localStorage.setItem('fitcat_templates', JSON.stringify(mealTemplates)); }
   function renderTemplates() {
     const c = document.getElementById('templatesBar'), t = translations[currentLang];
-    if (!mealTemplates.length) { c.innerHTML = `<div class="text-small" style="width:100%;text-align:center;">${t.no_templates}</div>`; return; }
+    if (!mealTemplates.length) { c.innerHTML = `<div class="text-small">${t.no_templates}</div>`; return; }
     c.innerHTML = mealTemplates.map((tmpl, i) => `<div class="template-btn" onclick="loadTemplate(${i})">${tmpl.name}</div><div class="template-btn" onclick="deleteTemplate(${i})" style="padding:8px;">✕</div>`).join('');
   }
   function saveTemplate() {
@@ -1186,7 +1132,29 @@
   function loadTemplate(i) { todayFoods = JSON.parse(JSON.stringify(mealTemplates[i].foods)); saveAllData(); renderDashboard(); vibrate(); }
   function deleteTemplate(i) { mealTemplates.splice(i,1); saveTemplates(); renderTemplates(); }
   function clearTodayFoods() { if (confirm('Очистить все блюда?')) { todayFoods = []; saveAllData(); renderDashboard(); vibrate(); } }
+  function addFood() {
+    const name = document.getElementById('foodName').value; if (!name) return alert('Введите название');
+    const prot = parseFloat(document.getElementById('foodProt100').value)||0, fat = parseFloat(document.getElementById('foodFat100').value)||0;
+    const carbs = parseFloat(document.getElementById('foodCarb100').value)||0, kcal = parseFloat(document.getElementById('foodKcal100').value)||0;
+    const weight = parseFloat(document.getElementById('foodWeight').value)||100;
+    const food = { name, weight, protein: Math.round(prot*weight/10)/10, fat: Math.round(fat*weight/10)/10, carbs: Math.round(carbs*weight/10)/10, kcal: Math.round(kcal*weight/100), checked: false };
+    todayFoods.push(food); addToProductsDB(name, prot, fat, carbs, kcal); saveAllData(); renderDashboard();
+    document.getElementById('foodName').value = document.getElementById('foodProt100').value = document.getElementById('foodFat100').value = document.getElementById('foodCarb100').value = document.getElementById('foodKcal100').value = document.getElementById('foodWeight').value = '';
+    vibrate();
+  }
+  function toggleFood(i) { todayFoods[i].checked = !todayFoods[i].checked; saveAllData(); renderProgressBars(); renderFoodList(); vibrate(); }
+  function deleteFood(i) { todayFoods.splice(i,1); saveAllData(); renderDashboard(); }
+  function renderFoodList() {
+    const t = translations[currentLang]; let h = '';
+    todayFoods.forEach((f,i)=>{
+      h += `<div class="food-item"><div class="food-toggle ${f.checked?'checked':''}" onclick="toggleFood(${i})"></div>
+        <div class="food-info"><div class="food-name">${f.name} (${f.weight}г)</div><div class="food-macros">${t.protein.slice(0,1)}:${f.protein} ${t.fat.slice(0,1)}:${f.fat} ${t.carbs.slice(0,1)}:${f.carbs} ${f.kcal} ${currentLang==='en'?'kcal':'ккал'}</div></div>
+        <span class="food-delete" onclick="deleteFood(${i})">✕</span></div>`;
+    });
+    document.getElementById('foodListContainer').innerHTML = h || `<div class="text-center text-small">${t.empty_food}</div>`;
+  }
 
+  // ========== СКАНЕР ==========
   function openScanner() { document.getElementById('scannerModal').style.display = 'flex'; startScanner(); }
   function closeScanner() { document.getElementById('scannerModal').style.display = 'none'; stopScanner(); }
   async function startScanner() {
@@ -1224,6 +1192,47 @@
     } catch (e) { alert(translations[currentLang].product_not_found); }
   }
 
+  // ========== ВЕС ==========
+  function setWeightGoal() {
+    const cur = currentProfile?.targetWeight || (currentProfile?.startWeight*0.9).toFixed(1);
+    const g = prompt(translations[currentLang].enter_goal, cur); if (g && !isNaN(g) && g>=30 && g<=500) { currentProfile.targetWeight = parseFloat(g); saveAllData(); updateWeightStatsAndList(); renderWeightChart(); }
+  }
+  function updateWeightStatsAndList() {
+    const t = translations[currentLang], goal = currentProfile?.targetWeight || currentProfile?.startWeight*0.9 || 55;
+    if (weightHistory.length) {
+      const s = [...weightHistory].sort((a,b)=>new Date(a.date)-new Date(b.date));
+      const start = s[0].weight, cur = s[s.length-1].weight, ch = cur-start, tg = cur-goal;
+      document.getElementById('startWeightStat').innerText = start.toFixed(1)+' кг';
+      document.getElementById('currentWeightStat').innerText = cur.toFixed(1)+' кг';
+      const ce = document.getElementById('weightChangeStat'); ce.innerText = (ch>0?'+':'')+ch.toFixed(1)+' кг'; ce.className = ch<0?'positive':(ch>0?'negative':'');
+      const ge = document.getElementById('toGoalStat'); ge.innerText = tg.toFixed(1)+' кг'; ge.style.color = tg<=0?'#6BCB77':'#9CA3AF';
+    } else { ['startWeightStat','currentWeightStat','weightChangeStat','toGoalStat'].forEach(id=>document.getElementById(id).innerText='—'); }
+    const l = document.getElementById('weightHistoryList');
+    if (!weightHistory.length) { l.innerHTML = `<div class="text-center text-small">Нет записей</div>`; return; }
+    l.innerHTML = [...weightHistory].sort((a,b)=>new Date(b.date)-new Date(a.date)).map((e,i)=>`<div class="weight-history-item"><span class="weight-history-date">${e.date}</span><span class="weight-history-value">${e.weight} кг</span><span class="weight-history-delete" onclick="deleteWeightEntry(${i})">✕</span></div>`).join('');
+  }
+  function deleteWeightEntry(i) { weightHistory.splice(i,1); saveAllData(); updateWeightStatsAndList(); renderWeightChart(); }
+  function addWeightEntry() {
+    const w = parseFloat(document.getElementById('newWeight').value), d = document.getElementById('weightDate').value || new Date().toISOString().split('T')[0];
+    if (!w || w<30 || w>500) return;
+    const ex = weightHistory.findIndex(e=>e.date===d); if (ex>=0 && !confirm(translations[currentLang].overwrite_weight)) return;
+    if (ex>=0) weightHistory.splice(ex,1); weightHistory.push({date:d, weight:w}); saveAllData(); updateWeightStatsAndList(); renderWeightChart();
+    document.getElementById('newWeight').value = ''; vibrate();
+  }
+  function renderWeightChart() {
+    const canvas = document.getElementById('weightChart'), ctx = canvas.getContext('2d'); if (chartInstance) chartInstance.destroy();
+    if (!weightHistory.length) return;
+    const s = [...weightHistory].sort((a,b)=>new Date(a.date)-new Date(b.date)), goal = currentProfile?.targetWeight || currentProfile?.startWeight*0.9 || 55;
+    let col = '#4FACFE'; if (s.length>1) { const f=s[0].weight, l=s[s.length-1].weight; if (l<f) col='#6BCB77'; else if (l>f) col='#F85149'; }
+    const w = s.map(e=>e.weight), min = Math.min(...w,goal)-1, max = Math.max(...w,goal)+1;
+    const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, col+'B3'); grad.addColorStop(0.4, col+'60'); grad.addColorStop(0.7, col+'20'); grad.addColorStop(1, col+'00');
+    chartInstance = new Chart(ctx, { type:'line', data:{ labels: s.map(e=>e.date), datasets: [
+      { label:'Вес (кг)', data: s.map(e=>e.weight), borderColor: col, backgroundColor: grad, tension:0.3, fill:true, pointBackgroundColor: col, pointBorderColor:'#0D1117', pointRadius:5 },
+      { label:'Цель', data: s.map(()=>goal), borderColor:'#FFD93D', borderDash:[5,5], borderWidth:2, pointRadius:0, fill:false }
+    ]}, options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#E6EDF3' } }, tooltip:{ callbacks:{ label:(c)=>`${c.raw} кг` } } }, scales:{ x:{ ticks:{ color:'#9CA3AF' } }, y:{ min, max, ticks:{ color:'#9CA3AF', stepSize:0.5 } } } } });
+  }
+
+  // ========== ОСТАЛЬНОЕ ==========
   window.onload = function() {
     const sl = localStorage.getItem('fitcat_lang') || 'ru'; setLanguage(sl);
     loadData(); loadProductsDB(); loadTemplates(); setupAutocomplete();
@@ -1248,7 +1257,6 @@
     const stepsSlider = document.getElementById('stepsSlider');
     if (tempSlider) tempSlider.addEventListener('input', updateTempDisplay);
     if (stepsSlider) stepsSlider.addEventListener('input', updateStepsDisplay);
-    
     ['tempTicks','stepsTicks'].forEach(id => { const el = document.getElementById(id); if (el) for (let i=0; i<51; i++) el.innerHTML += '<span class="tick"></span>'; });
     if (localStorage.getItem('card_waterCard_collapsed') === 'true') document.getElementById('waterContent').classList.add('collapsed');
     if (localStorage.getItem('card_mealsCard_collapsed') === 'true') document.getElementById('mealsContent').classList.add('collapsed');
@@ -1276,7 +1284,10 @@
     const h = new Date().getHours(); let k = 'day';
     if (h>=5 && h<12) k='morning'; else if (h>=12 && h<18) k='day'; else if (h>=18 && h<23) k='evening'; else k='night';
     const greetingEl = document.getElementById('greetingText');
+    const streakEl = document.getElementById('streakEmoji');
     const name = currentProfile?.name || '';
+    
+    if (streakEl) { streakEl.style.opacity = '0'; streakEl.classList.add('hidden'); }
     greetingEl.classList.add('greeting-fade');
     greetingEl.innerHTML = `🐱 ${translations[currentLang][k]}, ${name}`;
     
@@ -1285,6 +1296,7 @@
       setTimeout(() => {
         greetingEl.innerHTML = `🐱 FitCat`;
         greetingEl.classList.remove('fade-out');
+        if (streakEl) { streakEl.style.opacity = '1'; streakEl.classList.remove('hidden'); }
         updateStreak();
       }, 400);
     }, 2000);
@@ -1346,66 +1358,6 @@
         }
       });
     }
-  }
-  function renderFoodList() {
-    const t = translations[currentLang]; let h = '';
-    todayFoods.forEach((f,i)=>{
-      h += `<div class="food-item"><div class="food-toggle ${f.checked?'checked':''}" onclick="toggleFood(${i})"></div>
-        <div class="food-info"><div class="food-name">${f.name} (${f.weight}г)</div><div class="food-macros">${t.protein.slice(0,1)}:${f.protein} ${t.fat.slice(0,1)}:${f.fat} ${t.carbs.slice(0,1)}:${f.carbs} ${f.kcal} ${currentLang==='en'?'kcal':'ккал'}</div></div>
-        <span class="food-delete" onclick="deleteFood(${i})">✕</span></div>`;
-    });
-    document.getElementById('foodListContainer').innerHTML = h || `<div class="text-center text-small" style="padding:20px;">${t.empty_food}</div>`;
-  }
-  function addFood() {
-    const name = document.getElementById('foodName').value; if (!name) return alert('Введите название');
-    const prot = parseFloat(document.getElementById('foodProt100').value)||0, fat = parseFloat(document.getElementById('foodFat100').value)||0;
-    const carbs = parseFloat(document.getElementById('foodCarb100').value)||0, kcal = parseFloat(document.getElementById('foodKcal100').value)||0;
-    const weight = parseFloat(document.getElementById('foodWeight').value)||100, mult = weight/100;
-    const food = { name, weight, protein: Math.round(prot*mult*10)/10, fat: Math.round(fat*mult*10)/10, carbs: Math.round(carbs*mult*10)/10, kcal: Math.round(kcal*mult), checked: false };
-    todayFoods.push(food); addToProductsDB(name, prot, fat, carbs, kcal); saveAllData(); renderDashboard();
-    document.getElementById('foodName').value = document.getElementById('foodProt100').value = document.getElementById('foodFat100').value = document.getElementById('foodCarb100').value = document.getElementById('foodKcal100').value = document.getElementById('foodWeight').value = '';
-    vibrate();
-  }
-  function toggleFood(i) { todayFoods[i].checked = !todayFoods[i].checked; saveAllData(); renderProgressBars(); renderFoodList(); vibrate(); }
-  function deleteFood(i) { todayFoods.splice(i,1); saveAllData(); renderDashboard(); }
-
-  function setWeightGoal() {
-    const cur = currentProfile?.targetWeight || (currentProfile?.startWeight*0.9).toFixed(1);
-    const g = prompt(translations[currentLang].enter_goal, cur); if (g && !isNaN(g) && g>=30 && g<=500) { currentProfile.targetWeight = parseFloat(g); saveAllData(); updateWeightStatsAndList(); renderWeightChart(); }
-  }
-  function updateWeightStatsAndList() {
-    const t = translations[currentLang], goal = currentProfile?.targetWeight || currentProfile?.startWeight*0.9 || 55;
-    if (weightHistory.length) {
-      const s = [...weightHistory].sort((a,b)=>new Date(a.date)-new Date(b.date));
-      const start = s[0].weight, cur = s[s.length-1].weight, ch = cur-start, tg = cur-goal;
-      document.getElementById('startWeightStat').innerText = start.toFixed(1)+' кг';
-      document.getElementById('currentWeightStat').innerText = cur.toFixed(1)+' кг';
-      const ce = document.getElementById('weightChangeStat'); ce.innerText = (ch>0?'+':'')+ch.toFixed(1)+' кг'; ce.className = ch<0?'positive':(ch>0?'negative':'');
-      const ge = document.getElementById('toGoalStat'); ge.innerText = tg.toFixed(1)+' кг'; ge.style.color = tg<=0?'#6BCB77':'#9CA3AF';
-    } else { ['startWeightStat','currentWeightStat','weightChangeStat','toGoalStat'].forEach(id=>document.getElementById(id).innerText='—'); }
-    const l = document.getElementById('weightHistoryList');
-    if (!weightHistory.length) { l.innerHTML = `<div class="text-center text-small">Нет записей</div>`; return; }
-    l.innerHTML = [...weightHistory].sort((a,b)=>new Date(b.date)-new Date(a.date)).map((e,i)=>`<div class="weight-history-item"><span class="weight-history-date">${e.date}</span><span class="weight-history-value">${e.weight} кг</span><span class="weight-history-delete" onclick="deleteWeightEntry(${i})">✕</span></div>`).join('');
-  }
-  function deleteWeightEntry(i) { weightHistory.splice(i,1); saveAllData(); updateWeightStatsAndList(); renderWeightChart(); }
-  function addWeightEntry() {
-    const w = parseFloat(document.getElementById('newWeight').value), d = document.getElementById('weightDate').value || new Date().toISOString().split('T')[0];
-    if (!w || w<30 || w>500) return;
-    const ex = weightHistory.findIndex(e=>e.date===d); if (ex>=0 && !confirm(translations[currentLang].overwrite_weight)) return;
-    if (ex>=0) weightHistory.splice(ex,1); weightHistory.push({date:d, weight:w}); saveAllData(); updateWeightStatsAndList(); renderWeightChart();
-    document.getElementById('newWeight').value = ''; vibrate();
-  }
-  function renderWeightChart() {
-    const canvas = document.getElementById('weightChart'), ctx = canvas.getContext('2d'); if (chartInstance) chartInstance.destroy();
-    if (!weightHistory.length) return;
-    const s = [...weightHistory].sort((a,b)=>new Date(a.date)-new Date(b.date)), goal = currentProfile?.targetWeight || currentProfile?.startWeight*0.9 || 55;
-    let col = '#4FACFE'; if (s.length>1) { const f=s[0].weight, l=s[s.length-1].weight; if (l<f) col='#6BCB77'; else if (l>f) col='#F85149'; }
-    const w = s.map(e=>e.weight), min = Math.min(...w,goal)-1, max = Math.max(...w,goal)+1;
-    const grad = ctx.createLinearGradient(0,0,0,canvas.height); grad.addColorStop(0, col+'B3'); grad.addColorStop(0.4, col+'60'); grad.addColorStop(0.7, col+'20'); grad.addColorStop(1, col+'00');
-    chartInstance = new Chart(ctx, { type:'line', data:{ labels: s.map(e=>e.date), datasets: [
-      { label:'Вес (кг)', data: s.map(e=>e.weight), borderColor: col, backgroundColor: grad, tension:0.3, fill:true, pointBackgroundColor: col, pointBorderColor:'#0D1117', pointRadius:5 },
-      { label:'Цель', data: s.map(()=>goal), borderColor:'#FFD93D', borderDash:[5,5], borderWidth:2, pointRadius:0, fill:false }
-    ]}, options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#E6EDF3' } }, tooltip:{ callbacks:{ label:(c)=>`${c.raw} кг` } } }, scales:{ x:{ ticks:{ color:'#9CA3AF' } }, y:{ min, max, ticks:{ color:'#9CA3AF', stepSize:0.5 } } } } });
   }
 
   function switchTab(tab) {
