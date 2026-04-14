@@ -376,7 +376,6 @@
       font-size: 28px;
       line-height: 1;
       display: inline-block;
-      margin-left: 6px;
       cursor: default;
     }
     .streak-emoji.none {
@@ -510,12 +509,14 @@
 
   <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <h1 id="greetingText">🐱 FitCat</h1>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+      <h1 style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+        <span>🐱</span>
+        <span id="greetingPrefix">Добрый вечер,</span>
+        <span id="greetingName">Анна</span>
         <span id="streakEmoji" class="streak-emoji none">🕯️</span>
-      </div>
-      <div class="header-photo" id="headerPhoto" onclick="showProfile()">
+      </h1>
+      <div class="header-photo" id="headerPhoto" onclick="showProfile()" style="flex-shrink: 0;">
         <span id="headerInitials" class="header-initials">🐱</span>
       </div>
     </div>
@@ -1260,7 +1261,8 @@
   function updateGreeting() {
     const h = new Date().getHours(); let k = 'day';
     if (h>=5 && h<12) k='morning'; else if (h>=12 && h<18) k='day'; else if (h>=18 && h<23) k='evening'; else k='night';
-    document.getElementById('greetingText').innerHTML = `🐱 ${translations[currentLang][k]}, ${currentProfile?.name||''}`;
+    document.getElementById('greetingPrefix').innerText = translations[currentLang][k] + ',';
+    document.getElementById('greetingName').innerText = currentProfile?.name || '';
     updateStreak();
   }
   function completeSetup() {
