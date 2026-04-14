@@ -509,16 +509,19 @@
 
   <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <!-- ЛЕВАЯ ЧАСТЬ: приветствие + огонёк -->
       <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-        <h1 style="display: flex; align-items: center; gap: 6px;">
+        <h1 style="display: flex; align-items: center; gap: 6px; margin: 0;">
           <span>🐱</span>
           <span id="greetingPrefix">Добрый вечер,</span>
           <span id="greetingName">Анна</span>
         </h1>
-        <span id="streakEmoji" class="streak-emoji none">🕯️</span>
+        <span id="streakEmoji" class="streak-emoji none" style="font-size: 28px;">🕯️</span>
       </div>
-      <div class="header-photo" id="headerPhoto" onclick="showProfile()" style="flex-shrink: 0;">
+      
+      <!-- ПРАВАЯ ЧАСТЬ: аватарка -->
+      <div class="header-photo" id="headerPhoto" onclick="showProfile()" style="flex-shrink: 0; margin-left: 8px;">
         <span id="headerInitials" class="header-initials">🐱</span>
       </div>
     </div>
