@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, shrink-to-fit=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-healthkit" content="yes">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230D1117'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='%234FACFE'%3E🐱%3C/text%3E%3C/svg%3E">
   <title>🐱 FitCat</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
@@ -136,7 +137,6 @@
       100% { transform: translateY(-50%) scale(1); }
     }
     
-    /* Ежедневная активность */
     .activity-daily-options { display: flex; flex-direction: column; gap: 12px; }
     .activity-daily-item {
       background: rgba(1, 4, 9, 0.6); border: 1px solid #30363D; border-radius: 18px;
@@ -182,7 +182,6 @@
     }
     .btn-small:hover { border-color: #4FACFE; background: rgba(79,172,254,0.1); transform: translateY(-2px); }
     
-    /* Шкалы */
     .progress-bar-container {
       height: 10px; background: rgba(33, 38, 45, 0.6);
       border-radius: 10px; margin: 8px 0 16px; overflow: hidden;
@@ -282,32 +281,41 @@
     .product-edit-macros { font-size: 12px; color: #9CA3AF; }
     .product-edit-actions { display: flex; gap: 4px; }
     
-    /* Умная вода */
     .smart-water-modal {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(13, 17, 23, 0.95); z-index: 1000;
       display: none; flex-direction: column; padding: 20px;
+      overflow-y: auto;
     }
     .smart-water-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 24px;
     }
-    .smart-water-toggle {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 0;
+    .temp-slider-container { padding: 20px 0; }
+    .temp-labels { display: flex; justify-content: space-between; margin-bottom: 8px; color: #9CA3AF; font-size: 12px; }
+    .temp-slider-wrapper { position: relative; height: 40px; }
+    .temp-gradient {
+      position: absolute; top: 50%; left: 0; right: 0; height: 8px;
+      background: linear-gradient(to right, #4FACFE, #6BCB77, #FFD93D, #FF8E53, #F85149);
+      border-radius: 4px; transform: translateY(-50%);
     }
-    .toggle-switch {
-      width: 52px; height: 28px; background: #30363D;
-      border-radius: 28px; position: relative; cursor: pointer;
-      transition: background 0.2s;
+    .temp-ticks {
+      position: absolute; top: 50%; left: 0; right: 0;
+      display: flex; justify-content: space-between;
+      transform: translateY(-50%); pointer-events: none;
     }
-    .toggle-switch.active { background: #4FACFE; }
-    .toggle-switch::after {
-      content: ''; position: absolute; width: 22px; height: 22px;
-      background: white; border-radius: 50%; top: 3px; left: 3px;
-      transition: left 0.2s;
+    .tick { width: 2px; height: 12px; background: rgba(255,255,255,0.3); }
+    input[type=range] {
+      position: absolute; top: 50%; left: 0; right: 0; width: 100%;
+      transform: translateY(-50%); background: transparent; z-index: 2;
+      -webkit-appearance: none;
     }
-    .toggle-switch.active::after { left: 27px; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 24px; height: 24px;
+      background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 2px solid #4FACFE; cursor: pointer;
+    }
+    .temp-value { text-align: center; margin-top: 16px; font-size: 18px; font-weight: 600; }
     
     .weight-stats .flex > div { flex: 1; }
     #weightChangeStat.positive { color: #6BCB77; }
@@ -350,50 +358,41 @@
   <div id="smartWaterModal" class="smart-water-modal">
     <div class="smart-water-header">
       <h2 style="margin: 0;">💧 Умная вода</h2>
-      <button class="btn-small" onclick="closeSmartWater()">✕ Закрыть</button>
+      <button class="btn-small" onclick="closeSmartWater()">Закрыть</button>
     </div>
     <div class="card">
-      <div class="smart-water-toggle">
-        <span style="font-size: 16px;">Включить умную воду</span>
-        <div class="toggle-switch" id="smartWaterToggle" onclick="toggleSmartWater()"></div>
-      </div>
-    </div>
-    <div class="card" id="smartWaterSettings" style="display: none;">
-      <div class="smart-water-toggle">
-        <span>🌍 Учитывать погоду</span>
-        <div class="toggle-switch active" id="weatherToggle" onclick="toggleSetting('weather')"></div>
-      </div>
-      <div class="smart-water-toggle">
-        <span>👣 Учитывать шаги</span>
-        <div class="toggle-switch" id="stepsToggle" onclick="toggleSetting('steps')"></div>
-      </div>
-      <div class="smart-water-toggle">
-        <span>🏋️ Учитывать тренировки</span>
-        <div class="toggle-switch" id="trainingToggle" onclick="toggleSetting('training')"></div>
-      </div>
-      <div class="input-group" style="margin-top: 16px;">
-        <label>📍 Город</label>
-        <input type="text" id="cityInput" placeholder="Москва" value="Москва">
-      </div>
-      <div style="margin-top: 16px; padding: 12px; background: rgba(1,4,9,0.4); border-radius: 16px;">
-        <div class="flex" style="justify-content: space-between;">
-          <span>Базовая норма:</span>
-          <span id="baseWaterNorm">1820 мл</span>
+      <div class="temp-slider-container">
+        <div class="temp-labels">
+          <span>🥶 -10°</span><span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>🔥 40°+</span>
         </div>
-        <div class="flex" style="justify-content: space-between;" id="weatherBonusRow">
-          <span>🌡️ Погода (—°C):</span>
-          <span id="weatherBonus">0 мл</span>
+        <div class="temp-slider-wrapper">
+          <div class="temp-gradient"></div>
+          <input type="range" id="tempSlider" min="-10" max="40" value="22" step="1">
+          <div class="temp-ticks" id="tempTicks"></div>
         </div>
-        <div class="flex" style="justify-content: space-between;" id="stepsBonusRow">
-          <span>👣 Шаги (—):</span>
-          <span id="stepsBonus">0 мл</span>
-        </div>
-        <div class="flex" style="justify-content: space-between; font-weight: 700; margin-top: 8px;">
-          <span>ИТОГО СЕГОДНЯ:</span>
-          <span id="totalWaterNorm">1820 мл</span>
-        </div>
+        <div class="temp-value">Сейчас: <span id="tempDisplay">22°C</span></div>
       </div>
-      <button class="btn-primary" onclick="applySmartWater()" style="margin-top: 16px;">Применить</button>
+      
+      <div class="input-group">
+        <label>Шаги сегодня</label>
+        <input type="number" id="manualSteps" placeholder="Введи шаги" step="100" min="0">
+        <div class="text-small" style="margin-top: 4px;" id="stepsHint"></div>
+      </div>
+      
+      <div class="flex" style="justify-content: space-between; align-items: center; margin: 16px 0;">
+        <span>Тренировка сегодня</span>
+        <label class="food-toggle" id="trainingToggle" onclick="toggleTraining()" style="width: 28px; height: 28px;"></label>
+      </div>
+      
+      <div style="padding: 16px; background: rgba(1,4,9,0.4); border-radius: 16px;">
+        <div class="flex" style="justify-content: space-between;"><span>Базовая норма:</span><span id="baseWaterNorm">1820 мл</span></div>
+        <div class="flex" style="justify-content: space-between;"><span>Температура:</span><span id="tempBonus">+150 мл</span></div>
+        <div class="flex" style="justify-content: space-between;"><span>Шаги:</span><span id="stepsBonus">0 мл</span></div>
+        <div class="flex" style="justify-content: space-between;"><span>Тренировка:</span><span id="trainingBonus">0 мл</span></div>
+        <div class="flex" style="justify-content: space-between; font-weight: 700; margin-top: 8px;"><span>ИТОГО СЕГОДНЯ:</span><span id="totalWaterNorm">1820 мл</span></div>
+      </div>
+      
+      <button class="btn-primary" onclick="applySmartWater()" style="margin-top: 20px;">Применить</button>
     </div>
   </div>
 
@@ -416,23 +415,6 @@
       <div class="input-group"><label data-i18n="height">Рост (см)</label><input type="number" id="setupHeight" data-i18n-placeholder="height_placeholder" placeholder="Введите рост" min="100" max="250"></div>
       <div class="input-group"><label data-i18n="weight_label">Вес (кг)</label><input type="number" id="setupWeight" data-i18n-placeholder="weight_placeholder" placeholder="Введите вес" min="30" max="500" step="0.1"></div>
     </div>
-    <div class="card">
-      <h2 data-i18n="activity">Активность</h2>
-      <div class="activity-daily-options">
-        <div class="activity-daily-item" data-activity="1.2" onclick="selectSetupActivity(this)">
-          <div><div class="activity-text">🪑 Сидячий</div><div class="activity-desc">Весь день за компом</div></div>
-        </div>
-        <div class="activity-daily-item selected" data-activity="1.375" onclick="selectSetupActivity(this)">
-          <div><div class="activity-text">🚶 Умеренный</div><div class="activity-desc">Прогулка, дела</div></div>
-        </div>
-        <div class="activity-daily-item" data-activity="1.55" onclick="selectSetupActivity(this)">
-          <div><div class="activity-text">🏋️ Активный</div><div class="activity-desc">Тренировка</div></div>
-        </div>
-        <div class="activity-daily-item" data-activity="1.725" onclick="selectSetupActivity(this)">
-          <div><div class="activity-text">🔥 Очень активный</div><div class="activity-desc">Много ходьбы</div></div>
-        </div>
-      </div>
-    </div>
     <button class="btn-primary" onclick="completeSetup()"><span data-i18n="calculate">Рассчитать нормы</span></button>
     <div class="text-center text-small" style="margin-top: 16px;" data-i18n="data_local">Данные только в твоём телефоне</div>
     <div class="card" style="margin-top: 20px;">
@@ -453,11 +435,10 @@
     </div>
     <div class="tabs">
       <div class="tab active" onclick="switchTab('today')"><span data-i18n="tab_today">Сегодня</span></div>
-      <div class="tab" onclick="switchTab('activity')">🏃 Активность</div>
+      <div class="tab" onclick="switchTab('activity')">Активность</div>
       <div class="tab" onclick="switchTab('weight')"><span data-i18n="tab_weight">Вес</span></div>
     </div>
     
-    <!-- Сегодня -->
     <div id="todayPage" class="page active">
       <div class="card">
         <h2 data-i18n="progress">Прогресс</h2>
@@ -482,7 +463,7 @@
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h2 data-i18n="meals" style="margin: 0;">Сегодня съедено</h2>
-          <button class="btn-small" onclick="openScanner()" style="width: auto; padding: 8px 12px;" data-i18n="scanner_btn">📷</button>
+          <button class="btn-small" onclick="openScanner()" style="width: auto; padding: 8px 12px;">📷</button>
         </div>
         <div class="templates-bar" id="templatesBar"></div>
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -510,51 +491,26 @@
       </div>
     </div>
     
-    <!-- Активность -->
     <div id="activityPage" class="page">
       <div class="card">
-        <h2>🏃 Активность на сегодня</h2>
+        <h2>Активность на сегодня</h2>
         <div class="activity-daily-options">
-          <div class="activity-daily-item" data-activity="1.2" onclick="selectDailyActivity(this)">
-            <div><div class="activity-text">🪑 Сидячий</div><div class="activity-desc">Весь день за компом</div></div>
-          </div>
-          <div class="activity-daily-item" data-activity="1.375" onclick="selectDailyActivity(this)">
-            <div><div class="activity-text">🚶 Умеренный</div><div class="activity-desc">Прогулка, дела</div></div>
-          </div>
-          <div class="activity-daily-item" data-activity="1.55" onclick="selectDailyActivity(this)">
-            <div><div class="activity-text">🏋️ Активный</div><div class="activity-desc">Тренировка</div></div>
-          </div>
-          <div class="activity-daily-item" data-activity="1.725" onclick="selectDailyActivity(this)">
-            <div><div class="activity-text">🔥 Очень активный</div><div class="activity-desc">Много ходьбы</div></div>
-          </div>
+          <div class="activity-daily-item" data-activity="1.2" onclick="selectDailyActivity(this)">Сидячий</div>
+          <div class="activity-daily-item" data-activity="1.375" onclick="selectDailyActivity(this)">Умеренный</div>
+          <div class="activity-daily-item" data-activity="1.55" onclick="selectDailyActivity(this)">Активный</div>
+          <div class="activity-daily-item" data-activity="1.725" onclick="selectDailyActivity(this)">Очень активный</div>
         </div>
         <div id="activityPreview" style="margin-top: 20px; padding: 16px; background: rgba(1,4,9,0.4); border-radius: 16px;">
-          <div class="flex" style="justify-content: space-between;">
-            <span>🔥 Калории:</span>
-            <span id="previewKcal">1450 ккал</span>
-          </div>
-          <div class="flex" style="justify-content: space-between;">
-            <span>🥩 Белки:</span>
-            <span id="previewProtein">94 г</span>
-          </div>
-          <div class="flex" style="justify-content: space-between;">
-            <span>🧈 Жиры:</span>
-            <span id="previewFat">47 г</span>
-          </div>
-          <div class="flex" style="justify-content: space-between;">
-            <span>🍚 Углеводы:</span>
-            <span id="previewCarbs">160 г</span>
-          </div>
-          <div class="flex" style="justify-content: space-between;">
-            <span>💧 Вода:</span>
-            <span id="previewWater">1820 мл</span>
-          </div>
+          <div class="flex" style="justify-content: space-between;"><span>Калории:</span><span id="previewKcal">1450 ккал</span></div>
+          <div class="flex" style="justify-content: space-between;"><span>Белки:</span><span id="previewProtein">94 г</span></div>
+          <div class="flex" style="justify-content: space-between;"><span>Жиры:</span><span id="previewFat">47 г</span></div>
+          <div class="flex" style="justify-content: space-between;"><span>Углеводы:</span><span id="previewCarbs">160 г</span></div>
+          <div class="flex" style="justify-content: space-between;"><span>Вода:</span><span id="previewWater">1820 мл</span></div>
         </div>
-        <button class="btn-primary" onclick="applyDailyActivity()" style="margin-top: 20px;">✅ Применить на сегодня</button>
+        <button class="btn-primary" onclick="applyDailyActivity()" style="margin-top: 20px;">Применить на сегодня</button>
       </div>
     </div>
     
-    <!-- Вес -->
     <div id="weightPage" class="page">
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -587,7 +543,7 @@
   <div id="settingsPage" style="display: none;">
     <div class="card">
       <h2 data-i18n="settings">Настройки</h2>
-      <button class="btn-secondary" onclick="showProfile()">👤 Профиль</button>
+      <button class="btn-secondary" onclick="showProfile()">Профиль</button>
       <button class="btn-secondary" onclick="exportData()"><span data-i18n="export">Скачать данные</span></button>
       <button class="btn-secondary" onclick="importData()"><span data-i18n="import">Загрузить данные</span></button>
       <button class="btn-secondary" onclick="showProductsManager()"><span data-i18n="my_products">Мои продукты</span></button>
@@ -608,7 +564,7 @@
     <div class="card">
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
         <button class="btn-small" onclick="showPage('settingsPage')">← Назад</button>
-        <h2 style="margin: 0;">👤 Профиль</h2>
+        <h2 style="margin: 0;">Профиль</h2>
       </div>
       <div class="input-group"><label data-i18n="name">Имя</label><input type="text" id="profileName"></div>
       <div class="input-group"><label data-i18n="age">Возраст</label><input type="number" id="profileAge" min="10" max="100"></div>
@@ -623,7 +579,7 @@
       </div>
       <div class="input-group"><label data-i18n="height">Рост (см)</label><input type="number" id="profileHeight" min="100" max="250"></div>
       <div class="input-group"><label data-i18n="weight_label">Вес (кг)</label><input type="number" id="profileWeight" min="30" max="500" step="0.1"></div>
-      <button class="btn-primary" onclick="saveProfile()">💾 Сохранить изменения</button>
+      <button class="btn-primary" onclick="saveProfile()">Сохранить изменения</button>
     </div>
   </div>
   
@@ -645,7 +601,7 @@
     ru: {
       about: 'О себе', name: 'Имя', name_placeholder: 'Введите имя', age: 'Возраст', age_placeholder: 'Введите возраст',
       gender: 'Пол', female: 'Женский', male: 'Мужской', height: 'Рост (см)', height_placeholder: 'Введите рост',
-      weight_label: 'Вес (кг)', weight_placeholder: 'Введите вес', activity: 'Активность',
+      weight_label: 'Вес (кг)', weight_placeholder: 'Введите вес',
       calculate: 'Рассчитать нормы', data_local: 'Данные только в твоём телефоне',
       language: 'Язык', tab_today: 'Сегодня', tab_weight: 'Вес', progress: 'Прогресс', water_title: 'Вода',
       ml: 'мл', meals: 'Сегодня съедено', food_name: 'Название продукта', add_food: 'Добавить', weight_log: 'Журнал веса',
@@ -658,7 +614,7 @@
       product_not_found: 'Товар не найден', camera_error: 'Не удалось получить доступ к камере',
       scanner_title: 'Сканер штрихкода', close: 'Закрыть', manual_placeholder: 'Введите штрихкод',
       search: 'Найти', cancel: 'Отмена', scanner_hint: 'Наведите камеру на штрихкод', scanner_failed: 'Не удалось распознать. Введите вручную.',
-      scanner_btn: '📷', save_template: 'Сохранить шаблон', clear_day: 'Очистить',
+      save_template: 'Сохранить шаблон', clear_day: 'Очистить',
       template_name: 'Название шаблона:', no_templates: 'Нет сохранённых шаблонов',
       my_products: 'Мои продукты', my_products_title: 'Мои продукты',
       edit_product: 'Редактировать', delete_product: 'Удалить', save: 'Сохранить', per100g: 'На 100 грамм:',
@@ -667,7 +623,7 @@
     en: {
       about: 'About you', name: 'Name', name_placeholder: 'Enter name', age: 'Age', age_placeholder: 'Enter age',
       gender: 'Gender', female: 'Female', male: 'Male', height: 'Height (cm)', height_placeholder: 'Enter height',
-      weight_label: 'Weight (kg)', weight_placeholder: 'Enter weight', activity: 'Activity',
+      weight_label: 'Weight (kg)', weight_placeholder: 'Enter weight',
       calculate: 'Calculate', data_local: 'Data stored locally',
       language: 'Language', tab_today: 'Today', tab_weight: 'Weight', progress: 'Progress', water_title: 'Water',
       ml: 'ml', meals: 'Today\'s food', food_name: 'Food name', add_food: 'Add', weight_log: 'Weight Log',
@@ -680,7 +636,7 @@
       product_not_found: 'Product not found', camera_error: 'Could not access camera',
       scanner_title: 'Barcode Scanner', close: 'Close', manual_placeholder: 'Enter barcode',
       search: 'Search', cancel: 'Cancel', scanner_hint: 'Point camera at barcode', scanner_failed: 'Could not scan. Enter manually.',
-      scanner_btn: '📷', save_template: 'Save Template', clear_day: 'Clear Day',
+      save_template: 'Save Template', clear_day: 'Clear Day',
       template_name: 'Template name:', no_templates: 'No saved templates',
       my_products: 'My Products', my_products_title: 'My Products',
       edit_product: 'Edit', delete_product: 'Delete', save: 'Save', per100g: 'Per 100g:',
@@ -689,7 +645,7 @@
     cn: {
       about: '关于你', name: '名字', name_placeholder: '输入名字', age: '年龄', age_placeholder: '输入年龄',
       gender: '性别', female: '女', male: '男', height: '身高 (cm)', height_placeholder: '输入身高',
-      weight_label: '体重 (kg)', weight_placeholder: '输入体重', activity: '活动量',
+      weight_label: '体重 (kg)', weight_placeholder: '输入体重',
       calculate: '计算', data_local: '数据仅保存在本地',
       language: '语言', tab_today: '今天', tab_weight: '体重', progress: '进度', water_title: '水',
       ml: '毫升', meals: '今日饮食', food_name: '食物名称', add_food: '添加', weight_log: '体重记录',
@@ -702,7 +658,7 @@
       product_not_found: '未找到商品', camera_error: '无法访问相机',
       scanner_title: '条码扫描器', close: '关闭', manual_placeholder: '输入条码',
       search: '搜索', cancel: '取消', scanner_hint: '将相机对准条码', scanner_failed: '无法扫描。请手动输入。',
-      scanner_btn: '📷', save_template: '保存模板', clear_day: '清空',
+      save_template: '保存模板', clear_day: '清空',
       template_name: '模板名称:', no_templates: '无保存的模板',
       my_products: '我的产品', my_products_title: '我的产品',
       edit_product: '编辑', delete_product: '删除', save: '保存', per100g: '每100克:',
@@ -719,12 +675,11 @@
   let productsDB = [];
   let mealTemplates = [];
   let zxingReader = null, quaggaActive = false, scanningActive = false, scanTimeout = null;
-  
-  // Умная вода
-  let smartWaterEnabled = false;
-  let weatherData = { temp: null, condition: null, lastUpdate: null };
-  let dailyActivity = 1.375; // По умолчанию умеренная
-  let weatherInterval = null;
+  let dailyActivity = 1.375;
+  let trainingToday = false;
+  let manualStepsValue = 0;
+  let healthStepsValue = 0;
+  let currentTemp = 22;
 
   function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
   function getBarColor(pct) {
@@ -745,130 +700,129 @@
       if (translations[lang]?.[key]) el.placeholder = translations[lang][key];
     });
     if (currentProfile) {
-      updateGreeting();
-      renderProgressBars();
-      renderFoodList();
-      updateWaterDisplay();
-      updateWeightStatsAndList();
-      renderWeightChart();
-      renderTemplates();
-      updateActivityUI();
+      updateGreeting(); renderProgressBars(); renderFoodList(); updateWaterDisplay();
+      updateWeightStatsAndList(); renderWeightChart(); renderTemplates(); updateActivityUI();
     }
   }
 
   // ========== УМНАЯ ВОДА ==========
   function openSmartWater() {
     document.getElementById('smartWaterModal').style.display = 'flex';
-    updateSmartWaterUI();
+    document.getElementById('tempSlider').value = currentTemp;
+    document.getElementById('manualSteps').value = manualStepsValue || healthStepsValue;
+    updateTempDisplay();
+    updateTrainingUI();
+    updateWaterCalculation();
+    requestHealthSteps();
   }
   function closeSmartWater() { document.getElementById('smartWaterModal').style.display = 'none'; }
-  function toggleSmartWater() {
-    smartWaterEnabled = !smartWaterEnabled;
-    localStorage.setItem('smartWaterEnabled', smartWaterEnabled);
-    document.getElementById('smartWaterToggle').classList.toggle('active', smartWaterEnabled);
-    document.getElementById('smartWaterSettings').style.display = smartWaterEnabled ? 'block' : 'none';
-    
-    if (smartWaterEnabled) {
-      startWeatherUpdates();
-      updateSmartWaterCalculation();
-    } else {
-      stopWeatherUpdates();
-      dailyTargets.water = Math.round(currentProfile.weight * 35);
-      renderProgressBars();
-      updateWaterDisplay();
-    }
-    updateWaterHint();
+  function updateTempDisplay() {
+    const val = parseInt(document.getElementById('tempSlider').value);
+    currentTemp = val;
+    document.getElementById('tempDisplay').innerText = val + '°C';
+    updateWaterCalculation();
   }
-  function toggleSetting(setting) {
-    const key = `smart_${setting}`;
-    const val = localStorage.getItem(key) !== 'true';
-    localStorage.setItem(key, val);
-    document.getElementById(`${setting}Toggle`).classList.toggle('active', val);
-    updateSmartWaterCalculation();
+  function getTempBonus(temp) {
+    if (temp < 0) return 0; if (temp < 15) return 0; if (temp < 20) return 50;
+    if (temp < 25) return 150; if (temp < 30) return 300; return 500;
   }
-  async function updateWeather() {
-    const city = document.getElementById('cityInput').value || 'Moscow';
-    try {
-      const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=3f91d43d9e9f9b8c7b3b3b3b3b3b3b3b&units=metric`);
-      const data = await res.json();
-      weatherData = { temp: data.main.temp, condition: data.weather[0].main, lastUpdate: Date.now() };
-      localStorage.setItem('weatherData', JSON.stringify(weatherData));
-    } catch (e) { console.log('Weather fetch failed'); }
+  function getStepsBonus(steps) {
+    if (steps > 12000) return 300; if (steps > 8000) return 150; return 0;
   }
-  function startWeatherUpdates() {
-    if (weatherInterval) clearInterval(weatherInterval);
-    updateWeather();
-    weatherInterval = setInterval(() => { updateWeather(); updateSmartWaterCalculation(); }, 60 * 60 * 1000);
+  function toggleTraining() {
+    trainingToday = !trainingToday;
+    localStorage.setItem('hadTraining', trainingToday);
+    updateTrainingUI();
+    updateWaterCalculation();
   }
-  function stopWeatherUpdates() { if (weatherInterval) { clearInterval(weatherInterval); weatherInterval = null; } }
-  function calculateWaterBonus() {
-    let bonus = 0;
-    if (localStorage.getItem('smart_weather') === 'true' && weatherData.temp) {
-      if (weatherData.temp >= 30) bonus += 500;
-      else if (weatherData.temp >= 25) bonus += 300;
-      else if (weatherData.temp >= 20) bonus += 100;
-    }
-    if (localStorage.getItem('smart_steps') === 'true') {
-      const steps = parseInt(localStorage.getItem('todaySteps') || 0);
-      if (steps > 12000) bonus += 400;
-      else if (steps > 8000) bonus += 200;
-    }
-    if (localStorage.getItem('smart_training') === 'true' && localStorage.getItem('hadTraining') === 'true') {
-      bonus += 300;
-    }
-    return bonus;
+  function updateTrainingUI() {
+    const btn = document.getElementById('trainingToggle');
+    if (trainingToday) { btn.classList.add('checked'); } else { btn.classList.remove('checked'); }
   }
-  function updateSmartWaterCalculation() {
-    const base = Math.round(currentProfile?.weight * 35 || 1820);
-    const bonus = calculateWaterBonus();
-    const total = base + bonus;
+  function updateWaterCalculation() {
+    if (!currentProfile) return;
+    const base = Math.round(currentProfile.weight * 35);
+    const tempBonus = getTempBonus(currentTemp);
+    const steps = parseInt(document.getElementById('manualSteps').value) || healthStepsValue || 0;
+    const stepsBonus = getStepsBonus(steps);
+    const trainingBonus = trainingToday ? 300 : 0;
+    const total = base + tempBonus + stepsBonus + trainingBonus;
     
     document.getElementById('baseWaterNorm').innerText = base + ' мл';
-    document.getElementById('weatherBonus').innerText = (localStorage.getItem('smart_weather') === 'true' ? (bonus > 0 ? '+' + bonus : '0') : 'выкл') + ' мл';
-    document.getElementById('stepsBonus').innerText = (localStorage.getItem('smart_steps') === 'true' ? (bonus > 0 ? '+' + bonus : '0') : 'выкл') + ' мл';
+    document.getElementById('tempBonus').innerText = '+' + tempBonus + ' мл';
+    document.getElementById('stepsBonus').innerText = '+' + stepsBonus + ' мл';
+    document.getElementById('trainingBonus').innerText = '+' + trainingBonus + ' мл';
     document.getElementById('totalWaterNorm').innerText = total + ' мл';
-    
-    if (smartWaterEnabled) {
-      dailyTargets.water = total;
-      renderProgressBars();
-      updateWaterDisplay();
-    }
-  }
-  function updateSmartWaterUI() {
-    document.getElementById('smartWaterToggle').classList.toggle('active', smartWaterEnabled);
-    document.getElementById('smartWaterSettings').style.display = smartWaterEnabled ? 'block' : 'none';
-    document.getElementById('weatherToggle').classList.toggle('active', localStorage.getItem('smart_weather') === 'true');
-    document.getElementById('stepsToggle').classList.toggle('active', localStorage.getItem('smart_steps') === 'true');
-    document.getElementById('trainingToggle').classList.toggle('active', localStorage.getItem('smart_training') === 'true');
-    updateSmartWaterCalculation();
   }
   function applySmartWater() {
-    if (smartWaterEnabled) {
-      updateSmartWaterCalculation();
-      updateWaterHint();
-    }
+    manualStepsValue = parseInt(document.getElementById('manualSteps').value) || 0;
+    currentTemp = parseInt(document.getElementById('tempSlider').value);
+    localStorage.setItem('manualSteps', manualStepsValue);
+    localStorage.setItem('currentTemp', currentTemp);
+    
+    const base = Math.round(currentProfile.weight * 35);
+    const tempBonus = getTempBonus(currentTemp);
+    const stepsBonus = getStepsBonus(manualStepsValue || healthStepsValue);
+    const trainingBonus = trainingToday ? 300 : 0;
+    dailyTargets.water = base + tempBonus + stepsBonus + trainingBonus;
+    
+    renderProgressBars();
+    updateWaterDisplay();
+    updateWaterHint();
     closeSmartWater();
+    vibrate();
   }
   function updateWaterHint() {
     const hint = document.getElementById('smartWaterHint');
-    if (smartWaterEnabled) {
-      const bonus = calculateWaterBonus();
-      hint.innerText = `💧 Умная норма активна (+${bonus} мл)`;
-    } else {
-      hint.innerText = '';
-    }
+    const bonus = dailyTargets.water - Math.round(currentProfile.weight * 35);
+    if (bonus > 0) hint.innerText = `Умная норма: +${bonus} мл`; else hint.innerText = '';
   }
+  function requestHealthSteps() {
+    if (!window.webkit?.messageHandlers?.health) {
+      document.getElementById('stepsHint').innerText = 'Только в Safari на iOS';
+      return;
+    }
+    document.getElementById('stepsHint').innerText = 'Запрос шагов...';
+    
+    window.webkit.messageHandlers.health.postMessage({
+      action: 'requestAuthorization',
+      types: ['stepCount']
+    });
+    
+    window.healthCallback = (result) => {
+      if (result.error) {
+        document.getElementById('stepsHint').innerText = 'Нет доступа к шагам';
+        return;
+      }
+      healthStepsValue = result.value || 0;
+      document.getElementById('manualSteps').value = healthStepsValue;
+      document.getElementById('stepsHint').innerText = 'Шаги из Health';
+      updateWaterCalculation();
+    };
+    
+    const today = new Date(); today.setHours(0,0,0,0);
+    window.webkit.messageHandlers.health.postMessage({
+      action: 'query',
+      sampleType: 'stepCount',
+      startDate: today.toISOString(),
+      endDate: new Date().toISOString()
+    });
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('tempSlider');
+    if (slider) slider.addEventListener('input', updateTempDisplay);
+    const stepsInput = document.getElementById('manualSteps');
+    if (stepsInput) stepsInput.addEventListener('input', updateWaterCalculation);
+    
+    const ticks = document.getElementById('tempTicks');
+    if (ticks) { for (let i = 0; i < 51; i++) ticks.innerHTML += '<span class="tick"></span>'; }
+  });
 
   // ========== ЕЖЕДНЕВНАЯ АКТИВНОСТЬ ==========
-  function selectSetupActivity(el) {
-    document.querySelectorAll('.activity-daily-item').forEach(i => i.classList.remove('selected'));
-    el.classList.add('selected');
-  }
   function selectDailyActivity(el) {
     document.querySelectorAll('#activityPage .activity-daily-item').forEach(i => i.classList.remove('selected'));
     el.classList.add('selected');
-    const coef = parseFloat(el.dataset.activity);
-    updateActivityPreview(coef);
+    updateActivityPreview(parseFloat(el.dataset.activity));
   }
   function updateActivityPreview(coef) {
     if (!currentProfile) return;
@@ -879,13 +833,12 @@
     const protein = Math.round(p.weight * 1.8);
     const fat = Math.round(p.weight * 0.9);
     const carbs = Math.round((kcal - protein*4 - fat*9) / 4);
-    const water = smartWaterEnabled ? dailyTargets.water : Math.round(p.weight * 35);
     
     document.getElementById('previewKcal').innerText = kcal + ' ккал';
     document.getElementById('previewProtein').innerText = protein + ' г';
     document.getElementById('previewFat').innerText = fat + ' г';
     document.getElementById('previewCarbs').innerText = carbs + ' г';
-    document.getElementById('previewWater').innerText = water + ' мл';
+    document.getElementById('previewWater').innerText = dailyTargets.water + ' мл';
   }
   function applyDailyActivity() {
     const selected = document.querySelector('#activityPage .activity-daily-item.selected');
@@ -901,10 +854,10 @@
   function updateActivityUI() {
     const tabs = document.querySelectorAll('.tab');
     if (tabs.length >= 3) {
-      const activityNames = ['🪑', '🚶', '🏋️', '🔥'];
+      const names = ['Сидячий', 'Умеренный', 'Активный', 'Очень активный'];
       const coefs = [1.2, 1.375, 1.55, 1.725];
       const idx = coefs.indexOf(dailyActivity);
-      if (idx >= 0) tabs[1].innerHTML = `${activityNames[idx]} Активность`;
+      if (idx >= 0) tabs[1].innerHTML = names[idx];
     }
   }
 
@@ -926,17 +879,11 @@
     const weight = parseFloat(document.getElementById('profileWeight').value);
     
     if (!name || !age || age<10||age>100||!gender||!height||height<100||height>250||!weight||weight<30||weight>500) {
-      alert(translations[currentLang].error_fill);
-      return;
+      alert(translations[currentLang].error_fill); return;
     }
-    
     currentProfile = { ...currentProfile, name, age, gender, height, weight };
-    saveAllData();
-    calculateTargets();
-    renderDashboard();
-    updateGreeting();
-    showPage('settingsPage');
-    vibrate();
+    saveAllData(); calculateTargets(); renderDashboard(); updateGreeting();
+    showPage('settingsPage'); vibrate();
   }
 
   // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
@@ -953,7 +900,7 @@
       if (val.length < 2) { list.style.display = 'none'; return; }
       const matches = productsDB.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
       if (!matches.length) { list.style.display = 'none'; return; }
-      list.innerHTML = matches.map(p => `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')">${p.name} (${p.protein}/${p.fat}/${p.carbs} ${p.kcal})</div>`).join('');
+      list.innerHTML = matches.map(p => `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')">${p.name}</div>`).join('');
       list.style.display = 'block';
     });
     document.addEventListener('click', (e) => { if (!inp.contains(e.target) && !list.contains(e.target)) list.style.display = 'none'; });
@@ -1027,13 +974,11 @@
 
   window.onload = function() {
     const sl = localStorage.getItem('fitcat_lang') || 'ru'; setLanguage(sl);
-    loadData();
-    loadProductsDB();
-    loadTemplates();
-    setupAutocomplete();
-    
-    smartWaterEnabled = localStorage.getItem('smartWaterEnabled') === 'true';
+    loadData(); loadProductsDB(); loadTemplates(); setupAutocomplete();
     dailyActivity = parseFloat(localStorage.getItem('dailyActivity') || 1.375);
+    trainingToday = localStorage.getItem('hadTraining') === 'true';
+    manualStepsValue = parseInt(localStorage.getItem('manualSteps') || 0);
+    currentTemp = parseInt(localStorage.getItem('currentTemp') || 22);
     
     if (!currentProfile) {
       document.getElementById('setupPage').style.display = 'block';
@@ -1041,13 +986,7 @@
     } else {
       document.getElementById('setupPage').style.display = 'none';
       document.getElementById('mainPage').style.display = 'block';
-      calculateTargets();
-      renderDashboard();
-      renderTemplates();
-      checkDateReset();
-      updateGreeting();
-      updateActivityUI();
-      if (smartWaterEnabled) { startWeatherUpdates(); updateSmartWaterCalculation(); }
+      calculateTargets(); renderDashboard(); renderTemplates(); checkDateReset(); updateGreeting(); updateActivityUI();
       updateWaterHint();
     }
     setupWaterControls();
@@ -1066,11 +1005,8 @@
   function checkDateReset() {
     const ld = localStorage.getItem('lastDate'), td = new Date().toDateString();
     if (ld !== td) {
-      todayFoods = [];
-      localStorage.setItem('waterAmount', 0);
-      localStorage.setItem('hadTraining', false);
-      localStorage.setItem('lastDate', td);
-      saveAllData();
+      todayFoods = []; localStorage.setItem('waterAmount', 0); localStorage.setItem('hadTraining', false);
+      trainingToday = false; localStorage.setItem('lastDate', td); saveAllData();
     }
   }
   function updateGreeting() {
@@ -1084,39 +1020,24 @@
     const g = document.querySelector('input[name="setupGender"]:checked')?.value;
     const h = parseFloat(document.getElementById('setupHeight').value);
     const w = parseFloat(document.getElementById('setupWeight').value);
-    const act = document.querySelector('#setupPage .activity-daily-item.selected');
     
-    if (!n || !a || a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500||!act) {
-      alert(translations[currentLang].error_fill);
-      return;
+    if (!n || !a || a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500) {
+      alert(translations[currentLang].error_fill); return;
     }
-    
-    dailyActivity = parseFloat(act.dataset.activity);
-    localStorage.setItem('dailyActivity', dailyActivity);
-    
     currentProfile = { name: n, age: a, gender: g, height: h, weight: w, startWeight: w };
-    calculateTargets();
-    saveAllData();
-    localStorage.setItem('lastDate', new Date().toDateString());
-    document.getElementById('setupPage').style.display = 'none';
-    document.getElementById('mainPage').style.display = 'block';
-    updateGreeting();
-    renderDashboard();
-    renderTemplates();
-    updateActivityUI();
+    calculateTargets(); saveAllData(); localStorage.setItem('lastDate', new Date().toDateString());
+    document.getElementById('setupPage').style.display = 'none'; document.getElementById('mainPage').style.display = 'block';
+    updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI();
   }
   function calculateTargets() {
     if (!currentProfile) return; const p = currentProfile;
     let bmr = p.gender === 'female' ? 447.6 + 9.2*p.weight + 3.1*p.height - 4.3*p.age : 88.36 + 13.4*p.weight + 4.8*p.height - 5.7*p.age;
     let tdee = bmr * dailyActivity;
     dailyTargets = {
-      kcal: Math.round(tdee * 0.85),
-      protein: Math.round(p.weight * 1.8),
-      fat: Math.round(p.weight * 0.9),
+      kcal: Math.round(tdee * 0.85), protein: Math.round(p.weight * 1.8), fat: Math.round(p.weight * 0.9),
       carbs: Math.round((tdee * 0.85 - p.weight * 1.8 * 4 - p.weight * 0.9 * 9) / 4),
-      water: smartWaterEnabled ? dailyTargets.water : Math.round(p.weight * 35)
+      water: Math.round(p.weight * 35)
     };
-    if (!smartWaterEnabled) dailyTargets.water = Math.round(p.weight * 35);
   }
   function renderDashboard() { renderProgressBars(); renderFoodList(); updateWaterDisplay(); }
   function renderProgressBars() {
@@ -1151,8 +1072,7 @@
         const group = document.getElementById(`bar-group-${b.cls}`);
         if (group) {
           group.querySelector('.flex span:first-child').innerText = `${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}`;
-          const pr = group.querySelector('.bar-percent');
-          pr.innerText = Math.round(pct) + '%'; pr.style.color = col;
+          const pr = group.querySelector('.bar-percent'); pr.innerText = Math.round(pct) + '%'; pr.style.color = col;
           document.getElementById(`bar-${b.cls}`).style.width = pct + '%';
         }
       });
@@ -1230,13 +1150,17 @@
   }
 
   function switchTab(tab) {
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    event.target.classList.add('active');
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); event.target.classList.add('active');
     document.getElementById('todayPage').classList.toggle('active', tab==='today');
     document.getElementById('activityPage').classList.toggle('active', tab==='activity');
     document.getElementById('weightPage').classList.toggle('active', tab==='weight');
     if (tab==='weight') { updateWeightStatsAndList(); renderWeightChart(); }
-    if (tab==='activity' && currentProfile) { updateActivityPreview(dailyActivity); }
+    if (tab==='activity' && currentProfile) { 
+      document.querySelectorAll('#activityPage .activity-daily-item').forEach(el => {
+        el.classList.toggle('selected', parseFloat(el.dataset.activity) === dailyActivity);
+      });
+      updateActivityPreview(dailyActivity);
+    }
   }
   function showPage(pageId) {
     document.getElementById('mainPage').style.display = (pageId==='mainPage'||pageId==='activityPage') ? 'block' : 'none';
@@ -1250,16 +1174,14 @@
     }
   }
   function showProductsManager() {
-    document.getElementById('mainPage').style.display = 'none';
-    document.getElementById('settingsPage').style.display = 'none';
-    document.getElementById('productsPage').style.display = 'block';
-    renderProductsList();
+    document.getElementById('mainPage').style.display = 'none'; document.getElementById('settingsPage').style.display = 'none';
+    document.getElementById('productsPage').style.display = 'block'; renderProductsList();
   }
   function renderProductsList() {
     const t = translations[currentLang], c = document.getElementById('productsList');
     if (!productsDB.length) { c.innerHTML = `<div class="text-center text-small">${t.no_templates}</div>`; return; }
     c.innerHTML = productsDB.map((p,i)=>`<div class="product-edit-item">
-      <div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">${t.protein.slice(0,1)}:${p.protein} ${t.fat.slice(0,1)}:${p.fat} ${t.carbs.slice(0,1)}:${p.carbs} ${p.kcal}${currentLang==='en'?'kcal':'ккал'}</div></div>
+      <div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">${p.protein}/${p.fat}/${p.carbs} ${p.kcal}${currentLang==='en'?'kcal':'ккал'}</div></div>
       <div class="product-edit-actions"><button class="btn-small" onclick="editProduct(${i})">✏️</button><button class="btn-small" onclick="deleteProduct(${i})">🗑️</button></div>
     </div>`).join('');
   }
