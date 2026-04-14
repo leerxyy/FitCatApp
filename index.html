@@ -510,12 +510,14 @@
   <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-      <h1 style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-        <span>🐱</span>
-        <span id="greetingPrefix">Добрый вечер,</span>
-        <span id="greetingName">Анна</span>
+      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+        <h1 style="display: flex; align-items: center; gap: 6px;">
+          <span>🐱</span>
+          <span id="greetingPrefix">Добрый вечер,</span>
+          <span id="greetingName">Анна</span>
+        </h1>
         <span id="streakEmoji" class="streak-emoji none">🕯️</span>
-      </h1>
+      </div>
       <div class="header-photo" id="headerPhoto" onclick="showProfile()" style="flex-shrink: 0;">
         <span id="headerInitials" class="header-initials">🐱</span>
       </div>
