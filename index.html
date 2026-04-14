@@ -544,7 +544,10 @@
   <!-- Главный экран -->
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <h1 style="margin: 0;" id="greetingText" class="greeting-fade">🐱 FitCat</h1>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <h1 style="margin: 0;" id="greetingText" class="greeting-fade">🐱 FitCat</h1>
+        <span id="streakEmoji" class="streak-emoji none">🕯️</span>
+      </div>
       <div class="header-photo" id="headerPhoto" onclick="showProfile()">
         <span id="headerInitials" class="header-initials">🐱</span>
       </div>
@@ -1280,13 +1283,7 @@
     greetingTimeout = setTimeout(() => {
       greetingEl.classList.add('fade-out');
       setTimeout(() => {
-        const streak = localStorage.getItem('fitcat_streak') || '1';
-        let emojiClass = 'none', emojiChar = '🕯️';
-        if (streak == 2) { emojiClass = 'red'; emojiChar = '🔥'; }
-        else if (streak == 3) { emojiClass = 'yellow'; emojiChar = '🔥'; }
-        else if (streak == 4) { emojiClass = 'purple'; emojiChar = '🔥'; }
-        else if (streak >= 5) { emojiClass = 'rainbow'; emojiChar = '🔥'; }
-        greetingEl.innerHTML = `🐱 FitCat <span id="streakEmoji" class="streak-emoji ${emojiClass}">${emojiChar}</span>`;
+        greetingEl.innerHTML = `🐱 FitCat`;
         greetingEl.classList.remove('fade-out');
         updateStreak();
       }, 400);
