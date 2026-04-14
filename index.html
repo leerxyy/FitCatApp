@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, shrink-to-fit=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-healthkit" content="yes">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230D1117'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='%234FACFE'%3E🐱%3C/text%3E%3C/svg%3E">
   <title>🐱 FitCat</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
@@ -291,15 +290,16 @@
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 24px;
     }
-    .temp-slider-container { padding: 20px 0; }
-    .temp-labels { display: flex; justify-content: space-between; margin-bottom: 8px; color: #9CA3AF; font-size: 12px; }
-    .temp-slider-wrapper { position: relative; height: 40px; }
-    .temp-gradient {
+    .slider-container { padding: 20px 0; }
+    .slider-labels { display: flex; justify-content: space-between; margin-bottom: 8px; color: #9CA3AF; font-size: 12px; }
+    .slider-wrapper { position: relative; height: 40px; }
+    .slider-gradient {
       position: absolute; top: 50%; left: 0; right: 0; height: 8px;
-      background: linear-gradient(to right, #4FACFE, #6BCB77, #FFD93D, #FF8E53, #F85149);
       border-radius: 4px; transform: translateY(-50%);
     }
-    .temp-ticks {
+    .temp-gradient { background: linear-gradient(to right, #4FACFE, #6BCB77, #FFD93D, #FF8E53, #F85149); }
+    .steps-gradient { background: linear-gradient(to right, #6BCB77, #4D96FF, #9B59B6); }
+    .slider-ticks {
       position: absolute; top: 50%; left: 0; right: 0;
       display: flex; justify-content: space-between;
       transform: translateY(-50%); pointer-events: none;
@@ -315,7 +315,7 @@
       background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       border: 2px solid #4FACFE; cursor: pointer;
     }
-    .temp-value { text-align: center; margin-top: 16px; font-size: 18px; font-weight: 600; }
+    .slider-value { text-align: center; margin-top: 16px; font-size: 18px; font-weight: 600; }
     
     .weight-stats .flex > div { flex: 1; }
     #weightChangeStat.positive { color: #6BCB77; }
@@ -361,35 +361,45 @@
       <button class="btn-small" onclick="closeSmartWater()">Закрыть</button>
     </div>
     <div class="card">
-      <div class="temp-slider-container">
-        <div class="temp-labels">
+      <!-- Температура -->
+      <div class="slider-container">
+        <div class="slider-labels">
           <span>🥶 -10°</span><span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>🔥 40°+</span>
         </div>
-        <div class="temp-slider-wrapper">
-          <div class="temp-gradient"></div>
+        <div class="slider-wrapper">
+          <div class="slider-gradient temp-gradient"></div>
           <input type="range" id="tempSlider" min="-10" max="40" value="22" step="1">
-          <div class="temp-ticks" id="tempTicks"></div>
+          <div class="slider-ticks" id="tempTicks"></div>
         </div>
-        <div class="temp-value">Сейчас: <span id="tempDisplay">22°C</span></div>
+        <div class="slider-value">Сейчас: <span id="tempDisplay">22°C</span></div>
       </div>
       
-      <div class="input-group">
-        <label>Шаги сегодня</label>
-        <input type="number" id="manualSteps" placeholder="Введи шаги" step="100" min="0">
-        <div class="text-small" style="margin-top: 4px;" id="stepsHint"></div>
+      <!-- Шаги -->
+      <div class="slider-container">
+        <div class="slider-labels">
+          <span>0</span><span>5к</span><span>10к</span><span>15к</span><span>20к+</span>
+        </div>
+        <div class="slider-wrapper">
+          <div class="slider-gradient steps-gradient"></div>
+          <input type="range" id="stepsSlider" min="0" max="20000" value="8000" step="100">
+          <div class="slider-ticks" id="stepsTicks"></div>
+        </div>
+        <div class="slider-value">Шаги: <span id="stepsDisplay">8 000</span></div>
       </div>
       
+      <!-- Тренировка -->
       <div class="flex" style="justify-content: space-between; align-items: center; margin: 16px 0;">
         <span>Тренировка сегодня</span>
         <label class="food-toggle" id="trainingToggle" onclick="toggleTraining()" style="width: 28px; height: 28px;"></label>
       </div>
       
+      <!-- Итоги -->
       <div style="padding: 16px; background: rgba(1,4,9,0.4); border-radius: 16px;">
         <div class="flex" style="justify-content: space-between;"><span>Базовая норма:</span><span id="baseWaterNorm">1820 мл</span></div>
         <div class="flex" style="justify-content: space-between;"><span>Температура:</span><span id="tempBonus">+150 мл</span></div>
-        <div class="flex" style="justify-content: space-between;"><span>Шаги:</span><span id="stepsBonus">0 мл</span></div>
+        <div class="flex" style="justify-content: space-between;"><span>Шаги:</span><span id="stepsBonus">+150 мл</span></div>
         <div class="flex" style="justify-content: space-between;"><span>Тренировка:</span><span id="trainingBonus">0 мл</span></div>
-        <div class="flex" style="justify-content: space-between; font-weight: 700; margin-top: 8px;"><span>ИТОГО СЕГОДНЯ:</span><span id="totalWaterNorm">1820 мл</span></div>
+        <div class="flex" style="justify-content: space-between; font-weight: 700; margin-top: 8px;"><span>ИТОГО СЕГОДНЯ:</span><span id="totalWaterNorm">2120 мл</span></div>
       </div>
       
       <button class="btn-primary" onclick="applySmartWater()" style="margin-top: 20px;">Применить</button>
@@ -677,8 +687,7 @@
   let zxingReader = null, quaggaActive = false, scanningActive = false, scanTimeout = null;
   let dailyActivity = 1.375;
   let trainingToday = false;
-  let manualStepsValue = 0;
-  let healthStepsValue = 0;
+  let currentSteps = 8000;
   let currentTemp = 22;
 
   function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
@@ -709,11 +718,11 @@
   function openSmartWater() {
     document.getElementById('smartWaterModal').style.display = 'flex';
     document.getElementById('tempSlider').value = currentTemp;
-    document.getElementById('manualSteps').value = manualStepsValue || healthStepsValue;
+    document.getElementById('stepsSlider').value = currentSteps;
     updateTempDisplay();
+    updateStepsDisplay();
     updateTrainingUI();
     updateWaterCalculation();
-    requestHealthSteps();
   }
   function closeSmartWater() { document.getElementById('smartWaterModal').style.display = 'none'; }
   function updateTempDisplay() {
@@ -722,12 +731,20 @@
     document.getElementById('tempDisplay').innerText = val + '°C';
     updateWaterCalculation();
   }
+  function updateStepsDisplay() {
+    const val = parseInt(document.getElementById('stepsSlider').value);
+    currentSteps = val;
+    document.getElementById('stepsDisplay').innerText = val.toLocaleString();
+    updateWaterCalculation();
+  }
   function getTempBonus(temp) {
     if (temp < 0) return 0; if (temp < 15) return 0; if (temp < 20) return 50;
     if (temp < 25) return 150; if (temp < 30) return 300; return 500;
   }
   function getStepsBonus(steps) {
-    if (steps > 12000) return 300; if (steps > 8000) return 150; return 0;
+    if (steps < 2500) return 0; if (steps < 5000) return 50; if (steps < 7500) return 100;
+    if (steps < 10000) return 150; if (steps < 12500) return 200; if (steps < 15000) return 250;
+    return 300;
   }
   function toggleTraining() {
     trainingToday = !trainingToday;
@@ -743,8 +760,7 @@
     if (!currentProfile) return;
     const base = Math.round(currentProfile.weight * 35);
     const tempBonus = getTempBonus(currentTemp);
-    const steps = parseInt(document.getElementById('manualSteps').value) || healthStepsValue || 0;
-    const stepsBonus = getStepsBonus(steps);
+    const stepsBonus = getStepsBonus(currentSteps);
     const trainingBonus = trainingToday ? 300 : 0;
     const total = base + tempBonus + stepsBonus + trainingBonus;
     
@@ -755,14 +771,14 @@
     document.getElementById('totalWaterNorm').innerText = total + ' мл';
   }
   function applySmartWater() {
-    manualStepsValue = parseInt(document.getElementById('manualSteps').value) || 0;
+    currentSteps = parseInt(document.getElementById('stepsSlider').value);
     currentTemp = parseInt(document.getElementById('tempSlider').value);
-    localStorage.setItem('manualSteps', manualStepsValue);
+    localStorage.setItem('currentSteps', currentSteps);
     localStorage.setItem('currentTemp', currentTemp);
     
     const base = Math.round(currentProfile.weight * 35);
     const tempBonus = getTempBonus(currentTemp);
-    const stepsBonus = getStepsBonus(manualStepsValue || healthStepsValue);
+    const stepsBonus = getStepsBonus(currentSteps);
     const trainingBonus = trainingToday ? 300 : 0;
     dailyTargets.water = base + tempBonus + stepsBonus + trainingBonus;
     
@@ -777,45 +793,17 @@
     const bonus = dailyTargets.water - Math.round(currentProfile.weight * 35);
     if (bonus > 0) hint.innerText = `Умная норма: +${bonus} мл`; else hint.innerText = '';
   }
-  function requestHealthSteps() {
-    if (!window.webkit?.messageHandlers?.health) {
-      document.getElementById('stepsHint').innerText = 'Только в Safari на iOS';
-      return;
-    }
-    document.getElementById('stepsHint').innerText = 'Запрос шагов...';
-    
-    window.webkit.messageHandlers.health.postMessage({
-      action: 'requestAuthorization',
-      types: ['stepCount']
-    });
-    
-    window.healthCallback = (result) => {
-      if (result.error) {
-        document.getElementById('stepsHint').innerText = 'Нет доступа к шагам';
-        return;
-      }
-      healthStepsValue = result.value || 0;
-      document.getElementById('manualSteps').value = healthStepsValue;
-      document.getElementById('stepsHint').innerText = 'Шаги из Health';
-      updateWaterCalculation();
-    };
-    
-    const today = new Date(); today.setHours(0,0,0,0);
-    window.webkit.messageHandlers.health.postMessage({
-      action: 'query',
-      sampleType: 'stepCount',
-      startDate: today.toISOString(),
-      endDate: new Date().toISOString()
-    });
-  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    const slider = document.getElementById('tempSlider');
-    if (slider) slider.addEventListener('input', updateTempDisplay);
-    const stepsInput = document.getElementById('manualSteps');
-    if (stepsInput) stepsInput.addEventListener('input', updateWaterCalculation);
+    const tempSlider = document.getElementById('tempSlider');
+    const stepsSlider = document.getElementById('stepsSlider');
+    if (tempSlider) tempSlider.addEventListener('input', updateTempDisplay);
+    if (stepsSlider) stepsSlider.addEventListener('input', updateStepsDisplay);
     
-    const ticks = document.getElementById('tempTicks');
-    if (ticks) { for (let i = 0; i < 51; i++) ticks.innerHTML += '<span class="tick"></span>'; }
+    const tempTicks = document.getElementById('tempTicks');
+    const stepsTicks = document.getElementById('stepsTicks');
+    if (tempTicks) { for (let i = 0; i < 51; i++) tempTicks.innerHTML += '<span class="tick"></span>'; }
+    if (stepsTicks) { for (let i = 0; i < 21; i++) stepsTicks.innerHTML += '<span class="tick"></span>'; }
   });
 
   // ========== ЕЖЕДНЕВНАЯ АКТИВНОСТЬ ==========
@@ -977,7 +965,7 @@
     loadData(); loadProductsDB(); loadTemplates(); setupAutocomplete();
     dailyActivity = parseFloat(localStorage.getItem('dailyActivity') || 1.375);
     trainingToday = localStorage.getItem('hadTraining') === 'true';
-    manualStepsValue = parseInt(localStorage.getItem('manualSteps') || 0);
+    currentSteps = parseInt(localStorage.getItem('currentSteps') || 8000);
     currentTemp = parseInt(localStorage.getItem('currentTemp') || 22);
     
     if (!currentProfile) {
