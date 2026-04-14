@@ -73,6 +73,16 @@
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px; cursor: pointer;
+    }
+    .card-header h2 { margin: 0; }
+    .collapse-icon { font-size: 18px; color: #9CA3AF; transition: transform 0.2s; }
+    .collapse-icon.collapsed { transform: rotate(-90deg); }
+    .card-content { transition: all 0.3s; overflow: hidden; }
+    .card-content.collapsed { display: none; }
+    
     .input-group { margin-bottom: 18px; position: relative; }
     label {
       display: block; font-size: 13px; font-weight: 500;
@@ -180,6 +190,10 @@
       backdrop-filter: blur(5px);
     }
     .btn-small:hover { border-color: #4FACFE; background: rgba(79,172,254,0.1); transform: translateY(-2px); }
+    .btn-danger {
+      background: transparent; border: 1px solid #F85149; color: #F85149;
+    }
+    .btn-danger:hover { background: rgba(248, 81, 73, 0.1); }
     
     .water-buttons { display: flex; gap: 8px; margin: 12px 0; }
     .water-btn {
@@ -325,6 +339,22 @@
     }
     .slider-value { text-align: center; margin-top: 16px; font-size: 18px; font-weight: 600; }
     
+    .profile-photo {
+      width: 80px; height: 80px; border-radius: 50%; background: #1A2027;
+      border: 2px solid #4FACFE; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; overflow: hidden;
+    }
+    .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-initials { font-size: 32px; font-weight: 600; color: #E6EDF3; }
+    .header-photo {
+      width: 40px; height: 40px; border-radius: 50%; background: #1A2027;
+      border: 2px solid #4FACFE; cursor: pointer; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .header-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .header-initials { font-size: 16px; font-weight: 600; color: #E6EDF3; }
+    
     .weight-stats .flex > div { flex: 1; }
     #weightChangeStat.positive { color: #6BCB77; }
     #weightChangeStat.negative { color: #F85149; }
@@ -445,7 +475,9 @@
   <div id="mainPage" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h1 style="margin: 0;" id="greetingText">🐱 FitCat</h1>
-      <button class="btn-small" onclick="showPage('settingsPage')">⚙️</button>
+      <div class="header-photo" id="headerPhoto" onclick="showProfile()">
+        <span id="headerInitials" class="header-initials">🐱</span>
+      </div>
     </div>
     <div class="tabs">
       <div class="tab active" onclick="switchTab('today')"><span data-i18n="tab_today">Сегодня</span></div>
@@ -461,59 +493,69 @@
       
       <!-- ВОДА С КНОПКАМИ -->
       <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div class="card-header" onclick="toggleCard(this)">
           <h2 data-i18n="water_title" style="margin: 0;">Вода</h2>
-          <button class="btn-small" onclick="openSmartWater()" style="width: auto; padding: 8px 12px;">⚙️</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-small" onclick="event.stopPropagation(); openSmartWater()" style="width: auto; padding: 8px 12px;">⚙️</button>
+            <span class="collapse-icon">▼</span>
+          </div>
         </div>
-        
-        <div style="text-align: center; margin: 12px 0;">
-          <span style="font-size: 28px; font-weight: 700;" id="waterCurrent">0</span>
-          <span style="color: #9CA3AF;"> / </span>
-          <span style="font-size: 20px; color: #9CA3AF;" id="waterGoal">1820 мл</span>
+        <div class="card-content">
+          <div style="text-align: center; margin: 12px 0;">
+            <span style="font-size: 28px; font-weight: 700;" id="waterCurrent">0</span>
+            <span style="color: #9CA3AF;"> / </span>
+            <span style="font-size: 20px; color: #9CA3AF;" id="waterGoal">1820 мл</span>
+          </div>
+          
+          <div class="water-buttons">
+            <div class="water-btn" onclick="addWater(-50)">−50</div>
+            <div class="water-btn" onclick="addWater(50)">+50</div>
+            <div class="water-btn" onclick="addWater(100)">+100</div>
+            <div class="water-btn" onclick="addWater(200)">+200</div>
+          </div>
+          
+          <div class="water-manual">
+            <input type="number" id="manualWaterInput" placeholder="Введи мл" min="0" step="10">
+            <button class="btn-small" onclick="setManualWater()">✓</button>
+          </div>
+          
+          <div id="smartWaterHint" class="text-small" style="margin-top: 12px; text-align: center;"></div>
         </div>
-        
-        <div class="water-buttons">
-          <div class="water-btn" onclick="addWater(-50)">−50</div>
-          <div class="water-btn" onclick="addWater(50)">+50</div>
-          <div class="water-btn" onclick="addWater(100)">+100</div>
-          <div class="water-btn" onclick="addWater(200)">+200</div>
-        </div>
-        
-        <div class="water-manual">
-          <input type="number" id="manualWaterInput" placeholder="Введи мл" min="0" step="10">
-          <button class="btn-small" onclick="setManualWater()">✓</button>
-        </div>
-        
-        <div id="smartWaterHint" class="text-small" style="margin-top: 12px; text-align: center;"></div>
       </div>
       
+      <!-- ЕДА -->
       <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div class="card-header" onclick="toggleCard(this)">
           <h2 data-i18n="meals" style="margin: 0;">Сегодня съедено</h2>
-          <button class="btn-small" onclick="openScanner()" style="width: auto; padding: 8px 12px;">📷</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-small" onclick="event.stopPropagation(); openScanner()" style="width: auto; padding: 8px 12px;">📷</button>
+            <span class="collapse-icon">▼</span>
+          </div>
         </div>
-        <div class="templates-bar" id="templatesBar"></div>
-        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <button class="btn-small" onclick="saveTemplate()" style="flex: 1;" data-i18n="save_template">Сохранить шаблон</button>
-          <button class="btn-small" onclick="clearTodayFoods()" style="flex: 1;" data-i18n="clear_day">Очистить</button>
-        </div>
-        <div class="food-list" id="foodListContainer"></div>
-        <div class="add-food-form">
-          <div class="input-group" style="position: relative;">
-            <input type="text" id="foodName" data-i18n-placeholder="food_name" placeholder="Название продукта" autocomplete="off">
-            <div id="autocompleteList" class="autocomplete-list"></div>
+        <div class="card-content">
+          <div class="templates-bar" id="templatesBar"></div>
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button class="btn-small" onclick="saveTemplate()" style="flex: 1;" data-i18n="save_template">Сохранить шаблон</button>
+            <button class="btn-small" onclick="clearTodayFoods()" style="flex: 1;" data-i18n="clear_day">Очистить</button>
           </div>
-          <div style="font-size: 13px; color: #9CA3AF; margin: 4px 0;" data-i18n="per100g">На 100 грамм:</div>
-          <div class="add-food-row">
-            <input type="number" id="foodProt100" placeholder="Б" step="0.1">
-            <input type="number" id="foodFat100" placeholder="Ж" step="0.1">
-            <input type="number" id="foodCarb100" placeholder="У" step="0.1">
-            <input type="number" id="foodKcal100" placeholder="Ккал">
+          <div class="food-list" id="foodListContainer"></div>
+          <div class="add-food-form">
+            <div class="input-group" style="position: relative;">
+              <input type="text" id="foodName" data-i18n-placeholder="food_name" placeholder="Название продукта" autocomplete="off">
+              <div id="autocompleteList" class="autocomplete-list"></div>
+            </div>
+            <div style="font-size: 13px; color: #9CA3AF; margin: 4px 0;" data-i18n="per100g">На 100 грамм:</div>
+            <div class="add-food-row">
+              <input type="number" id="foodProt100" placeholder="Б" step="0.1">
+              <input type="number" id="foodFat100" placeholder="Ж" step="0.1">
+              <input type="number" id="foodCarb100" placeholder="У" step="0.1">
+              <input type="number" id="foodKcal100" placeholder="Ккал">
+            </div>
+            <div class="add-food-row">
+              <input type="number" id="foodWeight" data-i18n-placeholder="weight_grams" placeholder="Вес (грамм)" step="1" min="1" style="flex: 1;">
+            </div>
+            <button class="btn-primary" onclick="addFood()" style="margin-top: 8px;"><span data-i18n="add_food">Добавить</span></button>
           </div>
-          <div class="add-food-row">
-            <input type="number" id="foodWeight" data-i18n-placeholder="weight_grams" placeholder="Вес (грамм)" step="1" min="1" style="flex: 1;">
-          </div>
-          <button class="btn-primary" onclick="addFood()" style="margin-top: 8px;"><span data-i18n="add_food">Добавить</span></button>
         </div>
       </div>
     </div>
@@ -570,11 +612,9 @@
   <div id="settingsPage" style="display: none;">
     <div class="card">
       <h2 data-i18n="settings">Настройки</h2>
-      <button class="btn-secondary" onclick="showProfile()">Профиль</button>
       <button class="btn-secondary" onclick="exportData()"><span data-i18n="export">Скачать данные</span></button>
       <button class="btn-secondary" onclick="importData()"><span data-i18n="import">Загрузить данные</span></button>
       <button class="btn-secondary" onclick="showProductsManager()"><span data-i18n="my_products">Мои продукты</span></button>
-      <button class="btn-secondary" onclick="resetAllData()"><span data-i18n="reset">Сбросить всё</span></button>
       
       <h2 style="margin-top: 24px;" data-i18n="language">Язык</h2>
       <div class="flex">
@@ -590,9 +630,15 @@
   <div id="profilePage" style="display: none;">
     <div class="card">
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <button class="btn-small" onclick="showPage('settingsPage')">← Назад</button>
+        <button class="btn-small" onclick="showPage('mainPage')">← Назад</button>
         <h2 style="margin: 0;">Профиль</h2>
       </div>
+      
+      <div class="profile-photo" id="profilePhoto" onclick="uploadPhoto()">
+        <span id="profileInitials" class="profile-initials">🐱</span>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+      
       <div class="input-group"><label data-i18n="name">Имя</label><input type="text" id="profileName"></div>
       <div class="input-group"><label data-i18n="age">Возраст</label><input type="number" id="profileAge" min="10" max="100"></div>
       <div class="input-group">
@@ -606,7 +652,10 @@
       </div>
       <div class="input-group"><label data-i18n="height">Рост (см)</label><input type="number" id="profileHeight" min="100" max="250"></div>
       <div class="input-group"><label data-i18n="weight_label">Вес (кг)</label><input type="number" id="profileWeight" min="30" max="500" step="0.1"></div>
-      <button class="btn-primary" onclick="saveProfile()">Сохранить изменения</button>
+      
+      <button class="btn-primary" onclick="saveProfile()">💾 Сохранить изменения</button>
+      <button class="btn-secondary" onclick="showPage('settingsPage')">⚙️ Настройки</button>
+      <button class="btn-secondary btn-danger" onclick="deleteAccount()">🗑️ Удалить аккаунт</button>
     </div>
   </div>
   
@@ -635,7 +684,7 @@
       ml: 'мл', meals: 'Сегодня съедено', food_name: 'Название продукта', add_food: 'Добавить', weight_log: 'Журнал веса',
       weight_input: 'Вес', add: '+', set_goal: 'Задать цель', start_weight: 'Старт', current_weight: 'Сейчас', lost: 'Изменение',
       to_goal: 'До цели', history: 'История', settings: 'Настройки', export: 'Скачать данные', import: 'Загрузить данные',
-      reset: 'Сбросить всё', back: 'Назад', morning: 'Доброе утро', day: 'Добрый день', evening: 'Добрый вечер', night: 'Доброй ночи',
+      back: 'Назад', morning: 'Доброе утро', day: 'Добрый день', evening: 'Добрый вечер', night: 'Доброй ночи',
       kcal: 'Калории', protein: 'Белки', fat: 'Жиры', carbs: 'Углеводы', water: 'Вода', empty_food: 'Добавьте первый продукт',
       error_fill: 'Пожалуйста, заполните все поля', overwrite_weight: 'Запись на эту дату уже есть. Заменить?',
       enter_goal: 'Введите целевой вес (кг):', error_goal: 'Цель должна быть от 30 до 500 кг',
@@ -646,7 +695,7 @@
       template_name: 'Название шаблона:', no_templates: 'Нет сохранённых шаблонов',
       my_products: 'Мои продукты', my_products_title: 'Мои продукты',
       edit_product: 'Редактировать', delete_product: 'Удалить', save: 'Сохранить', per100g: 'На 100 грамм:',
-      weight_grams: 'Вес (грамм)'
+      weight_grams: 'Вес (грамм)', delete_account: 'Удалить аккаунт', confirm_delete: 'Точно удалить все данные? Это нельзя отменить.'
     },
     en: {
       about: 'About you', name: 'Name', name_placeholder: 'Enter name', age: 'Age', age_placeholder: 'Enter age',
@@ -657,7 +706,7 @@
       ml: 'ml', meals: 'Today\'s food', food_name: 'Food name', add_food: 'Add', weight_log: 'Weight Log',
       weight_input: 'Weight', add: '+', set_goal: 'Set Goal', start_weight: 'Start', current_weight: 'Now', lost: 'Change',
       to_goal: 'To goal', history: 'History', settings: 'Settings', export: 'Export Data', import: 'Import Data',
-      reset: 'Reset All', back: 'Back', morning: 'Good morning', day: 'Good afternoon', evening: 'Good evening', night: 'Good night',
+      back: 'Back', morning: 'Good morning', day: 'Good afternoon', evening: 'Good evening', night: 'Good night',
       kcal: 'Calories', protein: 'Protein', fat: 'Fat', carbs: 'Carbs', water: 'Water', empty_food: 'Add your first food',
       error_fill: 'Please fill in all fields', overwrite_weight: 'Entry for this date already exists. Replace?',
       enter_goal: 'Enter target weight (kg):', error_goal: 'Goal must be between 30 and 500 kg',
@@ -668,7 +717,7 @@
       template_name: 'Template name:', no_templates: 'No saved templates',
       my_products: 'My Products', my_products_title: 'My Products',
       edit_product: 'Edit', delete_product: 'Delete', save: 'Save', per100g: 'Per 100g:',
-      weight_grams: 'Weight (grams)'
+      weight_grams: 'Weight (grams)', delete_account: 'Delete Account', confirm_delete: 'Delete all data? This cannot be undone.'
     },
     cn: {
       about: '关于你', name: '名字', name_placeholder: '输入名字', age: '年龄', age_placeholder: '输入年龄',
@@ -679,7 +728,7 @@
       ml: '毫升', meals: '今日饮食', food_name: '食物名称', add_food: '添加', weight_log: '体重记录',
       weight_input: '体重', add: '+', set_goal: '设定目标', start_weight: '起始', current_weight: '当前', lost: '变化',
       to_goal: '距目标', history: '记录', settings: '设置', export: '导出数据', import: '导入数据',
-      reset: '全部重置', back: '返回', morning: '早上好', day: '下午好', evening: '晚上好', night: '晚安',
+      back: '返回', morning: '早上好', day: '下午好', evening: '晚上好', night: '晚安',
       kcal: '卡路里', protein: '蛋白质', fat: '脂肪', carbs: '碳水', water: '水', empty_food: '添加第一个食物',
       error_fill: '请填写所有字段', overwrite_weight: '该日期已有记录。替换？',
       enter_goal: '输入目标体重 (kg):', error_goal: '目标需在30至500 kg之间',
@@ -690,7 +739,7 @@
       template_name: '模板名称:', no_templates: '无保存的模板',
       my_products: '我的产品', my_products_title: '我的产品',
       edit_product: '编辑', delete_product: '删除', save: '保存', per100g: '每100克:',
-      weight_grams: '重量 (克)'
+      weight_grams: '重量 (克)', delete_account: '删除账户', confirm_delete: '确定删除所有数据？此操作无法撤销。'
     }
   };
 
@@ -708,6 +757,7 @@
   let currentSteps = 8000;
   let currentTemp = 22;
   let waterAmount = 0;
+  let profilePhotoBase64 = '';
 
   function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
   function getBarColor(pct) {
@@ -730,6 +780,68 @@
     if (currentProfile) {
       updateGreeting(); renderProgressBars(); renderFoodList(); updateWaterDisplay();
       updateWeightStatsAndList(); renderWeightChart(); renderTemplates(); updateActivityUI();
+      updateHeaderPhoto();
+    }
+  }
+
+  // ========== ФОТО ПРОФИЛЯ ==========
+  function getInitials(name) {
+    if (!name) return '🐱';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  function updateHeaderPhoto() {
+    const headerPhoto = document.getElementById('headerPhoto');
+    const headerInitials = document.getElementById('headerInitials');
+    const savedPhoto = localStorage.getItem('profilePhoto');
+    
+    if (savedPhoto) {
+      headerPhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
+    } else {
+      const initials = currentProfile ? getInitials(currentProfile.name) : '🐱';
+      headerPhoto.innerHTML = `<span id="headerInitials" class="header-initials">${initials}</span>`;
+    }
+  }
+
+  function uploadPhoto() {
+    document.getElementById('photoInput').click();
+  }
+
+  function handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 3 * 1024 * 1024) {
+      alert('Фото слишком большое. Максимум 3 МБ.');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      profilePhotoBase64 = e.target.result;
+      localStorage.setItem('profilePhoto', profilePhotoBase64);
+      
+      const profilePhoto = document.getElementById('profilePhoto');
+      profilePhoto.innerHTML = `<img src="${profilePhotoBase64}" alt="Profile">`;
+      
+      updateHeaderPhoto();
+      vibrate();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ========== СВОРАЧИВАНИЕ КАРТОЧЕК ==========
+  function toggleCard(header) {
+    const card = header.closest('.card');
+    const content = card.querySelector('.card-content');
+    const icon = header.querySelector('.collapse-icon');
+    
+    if (content) {
+      content.classList.toggle('collapsed');
+      icon.classList.toggle('collapsed');
+      localStorage.setItem(content.classList.contains('collapsed') ? 'card_collapsed_' + card.id : '', 'true');
     }
   }
 
@@ -796,6 +908,7 @@
     localStorage.setItem('hadTraining', trainingToday);
     updateTrainingUI();
     updateWaterCalculation();
+    vibrate();
   }
   function updateTrainingUI() {
     const btn = document.getElementById('trainingToggle');
@@ -905,6 +1018,16 @@
     document.querySelector(`input[name="profileGender"][value="${currentProfile.gender}"]`).checked = true;
     document.getElementById('profileHeight').value = currentProfile.height || '';
     document.getElementById('profileWeight').value = currentProfile.weight || '';
+    
+    const savedPhoto = localStorage.getItem('profilePhoto');
+    const profilePhoto = document.getElementById('profilePhoto');
+    if (savedPhoto) {
+      profilePhoto.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
+    } else {
+      const initials = getInitials(currentProfile.name);
+      profilePhoto.innerHTML = `<span id="profileInitials" class="profile-initials">${initials}</span>`;
+    }
+    
     showPage('profilePage');
   }
   function saveProfile() {
@@ -919,7 +1042,14 @@
     }
     currentProfile = { ...currentProfile, name, age, gender, height, weight };
     saveAllData(); calculateTargets(); renderDashboard(); updateGreeting();
-    showPage('settingsPage'); vibrate();
+    updateHeaderPhoto();
+    showPage('mainPage'); vibrate();
+  }
+  function deleteAccount() {
+    if (confirm(translations[currentLang].confirm_delete)) {
+      localStorage.clear();
+      location.reload();
+    }
   }
 
   // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ==========
@@ -1016,6 +1146,7 @@
     currentSteps = parseInt(localStorage.getItem('currentSteps') || 8000);
     currentTemp = parseInt(localStorage.getItem('currentTemp') || 22);
     waterAmount = parseInt(localStorage.getItem('waterAmount') || 0);
+    profilePhotoBase64 = localStorage.getItem('profilePhoto') || '';
     
     if (!currentProfile) {
       document.getElementById('setupPage').style.display = 'block';
@@ -1024,7 +1155,7 @@
       document.getElementById('setupPage').style.display = 'none';
       document.getElementById('mainPage').style.display = 'block';
       calculateTargets(); renderDashboard(); renderTemplates(); checkDateReset(); updateGreeting(); updateActivityUI();
-      updateWaterHint();
+      updateWaterHint(); updateHeaderPhoto();
     }
   };
   
@@ -1063,7 +1194,7 @@
     currentProfile = { name: n, age: a, gender: g, height: h, weight: w, startWeight: w };
     calculateTargets(); saveAllData(); localStorage.setItem('lastDate', new Date().toDateString());
     document.getElementById('setupPage').style.display = 'none'; document.getElementById('mainPage').style.display = 'block';
-    updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI();
+    updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI(); updateHeaderPhoto();
   }
   function calculateTargets() {
     if (!currentProfile) return; const p = currentProfile;
@@ -1235,7 +1366,6 @@
       }; r.readAsText(f);
     }; i.click();
   }
-  function resetAllData() { if (confirm(translations[currentLang].reset+'?')) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
