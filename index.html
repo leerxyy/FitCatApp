@@ -2,12 +2,11 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <!-- Запрет поворота экрана (ориентация) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, shrink-to-fit=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230D1117'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='%234FACFE'%3E🐱%3C/text%3E%3C/svg%3E">
-  <title>🐱 FitCat · фикс багов</title>
+  <title>🐱 FitCat</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <style>
@@ -45,21 +44,8 @@
     }
     .app { max-width: 480px; margin: 0 auto; animation: fadeIn 0.5s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* ПОВОРОТ ЭКРАНА – ТЕРПИМЫЙ */
-    @media (orientation: landscape) {
-      .app { max-width: 100%; padding: 16px; }
-      body { padding: 16px; }
-    }
     
-    /* ===== ХЕДЕР (ИСПРАВЛЕНИЕ ОТСТУПОВ И ВЫРАВНИВАНИЯ) ===== */
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center !important; /* ВЫРАВНИВАНИЕ ПО ЦЕНТРУ */
-      margin-bottom: 28px;            /* УВЕЛИЧЕН ОТСТУП ДО ТАБОВ */
-      width: 100%;
-    }
+    /* ПЛАВНАЯ СМЕНА ПРИВЕТСТВИЯ */
     .greeting-wrapper {
       position: relative;
       height: 48px;
@@ -77,8 +63,7 @@
       transform: translateY(0);
     }
     .greeting-slide h1 {
-      font-size: 26px; font-weight: 700; margin: 0;
-      line-height: 1.2;
+      font-size: 28px; font-weight: 700; margin: 0;
       white-space: normal; word-break: break-word;
       background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #A855F7 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -103,15 +88,7 @@
       transform: translateY(0);
       opacity: 1;
     }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-      margin-left: 8px;
-    }
-
+    
     h2 { font-size: 18px; font-weight: 600; color: #9CA3AF; margin-bottom: 16px; letter-spacing: -0.3px; }
     .card {
       background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(12px);
@@ -139,40 +116,30 @@
     input::placeholder { color: #6B7280; opacity: 0.7; }
     input[type="date"] { color-scheme: dark; min-width: 0; }
     
-    /* РАДИО-ГРУППА (ИСПРАВЛЕНО ВЫРАВНИВАНИЕ) */
     .radio-group {
       display: flex; gap: 24px; background: rgba(1, 4, 9, 0.6);
       padding: 8px 16px; border-radius: 20px; border: 1px solid #30363D;
-      align-items: center;
-      justify-content: center;
     }
     .radio-group input[type="radio"] { display: none; }
     .radio-group label {
-      position: relative; padding-left: 28px; cursor: pointer;
-      font-size: 16px; color: #E6EDF3; display: flex; align-items: center;
-      line-height: 24px; margin: 0;
+      position: relative; padding-left: 32px; cursor: pointer;
+      font-size: 16px; color: #E6EDF3; display: inline-block; line-height: 24px;
     }
     .radio-group label::before {
       content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-      width: 20px; height: 20px; border: 2px solid #30363D; border-radius: 50%;
+      width: 22px; height: 22px; border: 2px solid #30363D; border-radius: 50%;
       background: #010409; transition: all 0.2s ease;
     }
     .radio-group input[type="radio"]:checked + label::before {
       border-color: #4FACFE; background: #4FACFE; box-shadow: inset 0 0 0 5px #010409;
     }
     
-    /* КНОПКИ (ФИКС ЗАЛИПАНИЯ) */
-    .btn-primary, .btn-secondary, .btn-small, .water-btn {
-      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn-primary:active, .btn-secondary:active, .btn-small:active, .water-btn:active {
-      transform: scale(0.98);  /* opacity убран */
-    }
-    .btn-primary {
+    .btn-primary, .btn-secondary {
       width: 100%; border: none; border-radius: 40px; padding: 16px 24px;
       font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
       -webkit-appearance: none; text-align: center;
+    }
+    .btn-primary {
       background: #1A2027; color: #E6EDF3; position: relative; z-index: 1;
       border: 2px solid transparent; background-clip: padding-box;
     }
@@ -183,12 +150,9 @@
       animation: borderShimmer 4s linear infinite;
     }
     @keyframes borderShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
-    .btn-primary:hover { transform: scale(1.01); box-shadow: 0 0 25px rgba(79,172,254,0.3); }
-    .btn-secondary {
-      width: 100%; border: none; border-radius: 40px; padding: 16px 24px;
-      font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
-      background: transparent; border: 1px solid #30363D; color: #E6EDF3;
-    }
+    .btn-primary:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(79,172,254,0.3); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-secondary { background: transparent; border: 1px solid #30363D; color: #E6EDF3; }
     .btn-small {
       background: rgba(26, 32, 39, 0.8); border: 1px solid #30363D;
       border-radius: 30px; padding: 10px 16px; font-size: 14px;
@@ -222,7 +186,6 @@
     .tab {
       flex: 1; text-align: center; padding: 12px; background: rgba(33, 38, 45, 0.6);
       border-radius: 20px; cursor: pointer; font-weight: 600; color: #9CA3AF;
-      transition: all 0.2s ease;
     }
     .tab.active { background: #4FACFE; color: #0D1117; }
     .page { display: none; }
@@ -244,15 +207,6 @@
     .food-macros { font-size: 12px; color: #9CA3AF; }
     .food-delete { color: #F85149; cursor: pointer; padding: 8px; font-size: 18px; }
     
-    /* ШАБЛОНЫ (УВЕЛИЧЕН ОТСТУП) */
-    .templates-bar {
-      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
-      min-height: 40px;
-    }
-    .template-actions {
-      margin-top: 8px;
-    }
-    
     .profile-photo {
       width: 100px; height: 100px; border-radius: 50%; background: #1A2027;
       border: 3px solid #4FACFE; margin: 0 auto 8px; cursor: pointer; overflow: hidden;
@@ -261,6 +215,7 @@
     .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
     .profile-initials { font-size: 40px; font-weight: 600; color: #E6EDF3; line-height: 1; }
     
+    /* АВАТАРКА В ХЕДЕРЕ */
     .header-photo {
       width: 48px; height: 48px; border-radius: 50%; background: #1A2027;
       border: 2px solid #4FACFE; cursor: pointer; overflow: hidden;
@@ -274,18 +229,29 @@
       width: 100%; height: 100%;
     }
     
+    .weight-stats .flex > div { flex: 1; }
+    #weightChangeStat.positive { color: #6BCB77; }
+    #weightChangeStat.negative { color: #F85149; }
+    .weight-history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; background: rgba(1, 4, 9, 0.4); border-radius: 12px; margin-bottom: 6px;
+    }
+    .weight-history-delete { color: #F85149; cursor: pointer; padding: 4px 8px; }
+    
     /* СТРИК ЭМОДЗИ */
     .streak-emoji {
       font-size: 28px; line-height: 1; display: inline-block; cursor: pointer;
-      transition: transform 0.2s ease, filter 0.3s ease, opacity 0.5s ease, scale 0.4s ease;
+      transition: transform 0.2s ease, filter 0.3s ease, opacity 0.6s ease, scale 0.4s ease;
       flex-shrink: 0;
       opacity: 1;
       scale: 1;
     }
+    /* плавное появление */
     .streak-emoji.fade-in {
       opacity: 0;
       scale: 0.6;
     }
+    .streak-emoji.bounce { transform: translateY(-6px); }
     .streak-emoji.none { filter: drop-shadow(0 0 8px #6B7280) drop-shadow(0 0 15px #4B5563); }
     .streak-emoji.red { filter: drop-shadow(0 0 15px #FF4500) drop-shadow(0 0 30px #FF4500); animation: glowPulse 2s ease-in-out infinite; }
     .streak-emoji.yellow { filter: drop-shadow(0 0 20px #FFD700) drop-shadow(0 0 40px #FFD700); animation: glowPulse 1.6s ease-in-out infinite; }
@@ -299,7 +265,14 @@
       75%{filter:drop-shadow(0 0 20px #80F) drop-shadow(0 0 40px #F0F)}
       100%{filter:drop-shadow(0 0 20px #F00) drop-shadow(0 0 40px #F80)}
     }
-    
+    .streak-tooltip {
+      position: fixed; background: #1A2027; border: 1px solid #4FACFE; border-radius: 16px;
+      padding: 10px 18px; font-size: 16px; font-weight: 600; color: #E6EDF3;
+      white-space: nowrap; z-index: 9999; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .streak-tooltip.show { opacity: 1; }
+
     /* ШКАЛА ИМТ */
     .bmi-container { margin: 16px 0 8px; }
     .bmi-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
@@ -325,7 +298,7 @@
     }
     .bmi-scale:hover .bmi-tooltip { opacity: 1; }
 
-    /* АКТИВНОСТЬ */
+    /* ОБВОДКА ДЛЯ АКТИВНОСТИ */
     .activity-daily-options { display: flex; flex-direction: column; gap: 12px; }
     .activity-daily-item {
       background: rgba(1, 4, 9, 0.6); border: 1px solid #30363D; border-radius: 18px;
@@ -338,23 +311,6 @@
       box-shadow: 0 0 20px rgba(79,172,254,0.15);
     }
 
-    /* ПРОФИЛЬ — ЗАГОЛОВОК ПО ЦЕНТРУ */
-    .profile-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      margin-bottom: 16px;
-    }
-    .profile-header .btn-small {
-      position: absolute;
-      left: 0;
-    }
-    .profile-header h2 {
-      margin: 0;
-      text-align: center;
-    }
-
     .flex { display: flex; gap: 8px; align-items: center; }
     .text-center { text-align: center; }
     .text-small { font-size: 13px; color: #9CA3AF; }
@@ -363,71 +319,233 @@
 </head>
 <body>
 <div class="app">
-  <!-- СКАНЕР -->
+  <!-- Сканер -->
   <div id="scannerModal" class="scanner-container" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#0D1117;z-index:1000;display:none;flex-direction:column;">
-    <div class="scanner-header" style="padding:16px;display:flex;justify-content:space-between;background:#1A2027;"><h2>Сканер</h2><button class="btn-small" onclick="closeScanner()">Закрыть</button></div>
+    <div class="scanner-header" style="padding:16px;display:flex;justify-content:space-between;background:#1A2027;">
+      <h2 style="margin:0;">Сканер штрихкода</h2>
+      <button class="btn-small" onclick="closeScanner()">Закрыть</button>
+    </div>
     <video id="scannerVideo" style="flex:1;width:100%;object-fit:cover;" playsinline></video>
-    <div class="scanner-footer" style="padding:20px;text-align:center;"><div class="barcode-manual" style="display:flex;gap:8px;"><input type="text" id="manualBarcode" placeholder="Штрихкод" style="flex:2;"><button class="btn-small" onclick="lookupBarcode(document.getElementById('manualBarcode').value)" style="flex:1;">Найти</button></div><div class="scanner-hint" style="margin-top:12px;color:#9CA3AF;">Наведите камеру</div><button class="btn-secondary" onclick="closeScanner()" style="margin-top:12px;">Отмена</button></div>
+    <div class="scanner-footer" style="padding:20px;text-align:center;">
+      <div class="barcode-manual" style="display:flex;gap:8px;">
+        <input type="text" id="manualBarcode" placeholder="Введите штрихкод" style="flex:2;">
+        <button class="btn-small" onclick="lookupBarcode(document.getElementById('manualBarcode').value)" style="flex:1;">Найти</button>
+      </div>
+      <div class="scanner-hint" style="margin-top:12px;color:#9CA3AF;">Наведите камеру на штрихкод</div>
+      <button class="btn-secondary" onclick="closeScanner()" style="margin-top:12px;">Отмена</button>
+    </div>
   </div>
 
-  <!-- УМНАЯ ВОДА -->
+  <!-- Умная вода -->
   <div id="smartWaterModal" class="smart-water-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(13,17,23,0.95);z-index:1000;display:none;flex-direction:column;padding:20px;overflow-y:auto;">
-    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>💧 Умная вода</h2><button class="btn-small" onclick="closeSmartWater()">Закрыть</button></div>
-    <div class="card"><div class="slider-container" style="padding:20px 0;"><div class="slider-labels" style="display:flex;justify-content:space-between;color:#9CA3AF;font-size:12px;"><span>🥶 -10°</span><span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>🔥 40°+</span></div><div class="slider-wrapper" style="position:relative;height:40px;"><div class="slider-gradient temp-gradient" style="position:absolute;top:50%;left:0;right:0;height:8px;background:linear-gradient(to right,#4FACFE,#6BCB77,#FFD93D,#FF8E53,#F85149);border-radius:4px;transform:translateY(-50%);"></div><input type="range" id="tempSlider" min="-10" max="40" value="22" step="1" style="position:absolute;top:50%;left:0;right:0;width:100%;transform:translateY(-50%);background:transparent;z-index:2;-webkit-appearance:none;"></div><div class="slider-value" style="text-align:center;margin-top:16px;">Сейчас: <span id="tempDisplay">22°C</span></div></div>
-    <div class="slider-container" style="padding:20px 0;"><div class="slider-labels" style="display:flex;justify-content:space-between;color:#9CA3AF;font-size:12px;"><span>0</span><span>5к</span><span>10к</span><span>15к</span><span>20к+</span></div><div class="slider-wrapper" style="position:relative;height:40px;"><div class="slider-gradient steps-gradient" style="position:absolute;top:50%;left:0;right:0;height:8px;background:linear-gradient(to right,#6BCB77,#4D96FF,#9B59B6);border-radius:4px;transform:translateY(-50%);"></div><input type="range" id="stepsSlider" min="0" max="20000" value="8000" step="100" style="position:absolute;top:50%;left:0;right:0;width:100%;transform:translateY(-50%);background:transparent;z-index:2;-webkit-appearance:none;"></div><div class="slider-value" style="text-align:center;margin-top:16px;">Шаги: <span id="stepsDisplay">8 000</span></div></div>
-    <div class="flex" style="justify-content:space-between;margin:16px 0;"><span>Тренировка сегодня</span><label class="food-toggle" id="trainingToggle" onclick="toggleTraining()" style="width:28px;height:28px;"></label></div>
-    <div style="padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;"><div class="flex" style="justify-content:space-between;"><span>Базовая норма:</span><span id="baseWaterNorm">1820 мл</span></div><div class="flex" style="justify-content:space-between;"><span>Температура:</span><span id="tempBonus">+150 мл</span></div><div class="flex" style="justify-content:space-between;"><span>Шаги:</span><span id="stepsBonus">+150 мл</span></div><div class="flex" style="justify-content:space-between;"><span>Тренировка:</span><span id="trainingBonus">0 мл</span></div><div class="flex" style="justify-content:space-between;font-weight:700;margin-top:8px;"><span>ИТОГО:</span><span id="totalWaterNorm">2120 мл</span></div></div>
-    <button class="btn-primary" onclick="applySmartWater()" style="margin-top:20px;">Применить</button></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px;">
+      <h2 style="margin:0;">💧 Умная вода</h2>
+      <button class="btn-small" onclick="closeSmartWater()">Закрыть</button>
+    </div>
+    <div class="card">
+      <div class="slider-container" style="padding:20px 0;">
+        <div class="slider-labels" style="display:flex;justify-content:space-between;color:#9CA3AF;font-size:12px;">
+          <span>🥶 -10°</span><span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>🔥 40°+</span>
+        </div>
+        <div class="slider-wrapper" style="position:relative;height:40px;">
+          <div class="slider-gradient temp-gradient" style="position:absolute;top:50%;left:0;right:0;height:8px;background:linear-gradient(to right,#4FACFE,#6BCB77,#FFD93D,#FF8E53,#F85149);border-radius:4px;transform:translateY(-50%);"></div>
+          <input type="range" id="tempSlider" min="-10" max="40" value="22" step="1" style="position:absolute;top:50%;left:0;right:0;width:100%;transform:translateY(-50%);background:transparent;z-index:2;-webkit-appearance:none;">
+          <div class="slider-ticks" id="tempTicks" style="position:absolute;top:50%;left:0;right:0;display:flex;justify-content:space-between;transform:translateY(-50%);"></div>
+        </div>
+        <div class="slider-value" style="text-align:center;margin-top:16px;font-size:18px;">Сейчас: <span id="tempDisplay">22°C</span></div>
+      </div>
+      <div class="slider-container" style="padding:20px 0;">
+        <div class="slider-labels" style="display:flex;justify-content:space-between;color:#9CA3AF;font-size:12px;">
+          <span>0</span><span>5к</span><span>10к</span><span>15к</span><span>20к+</span>
+        </div>
+        <div class="slider-wrapper" style="position:relative;height:40px;">
+          <div class="slider-gradient steps-gradient" style="position:absolute;top:50%;left:0;right:0;height:8px;background:linear-gradient(to right,#6BCB77,#4D96FF,#9B59B6);border-radius:4px;transform:translateY(-50%);"></div>
+          <input type="range" id="stepsSlider" min="0" max="20000" value="8000" step="100" style="position:absolute;top:50%;left:0;right:0;width:100%;transform:translateY(-50%);background:transparent;z-index:2;-webkit-appearance:none;">
+          <div class="slider-ticks" id="stepsTicks" style="position:absolute;top:50%;left:0;right:0;display:flex;justify-content:space-between;transform:translateY(-50%);"></div>
+        </div>
+        <div class="slider-value" style="text-align:center;margin-top:16px;font-size:18px;">Шаги: <span id="stepsDisplay">8 000</span></div>
+      </div>
+      <div class="flex" style="justify-content:space-between;margin:16px 0;">
+        <span>Тренировка сегодня</span>
+        <label class="food-toggle" id="trainingToggle" onclick="toggleTraining()" style="width:28px;height:28px;"></label>
+      </div>
+      <div style="padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;">
+        <div class="flex" style="justify-content:space-between;"><span>Базовая норма:</span><span id="baseWaterNorm">1820 мл</span></div>
+        <div class="flex" style="justify-content:space-between;"><span>Температура:</span><span id="tempBonus">+150 мл</span></div>
+        <div class="flex" style="justify-content:space-between;"><span>Шаги:</span><span id="stepsBonus">+150 мл</span></div>
+        <div class="flex" style="justify-content:space-between;"><span>Тренировка:</span><span id="trainingBonus">0 мл</span></div>
+        <div class="flex" style="justify-content:space-between;font-weight:700;margin-top:8px;"><span>ИТОГО:</span><span id="totalWaterNorm">2120 мл</span></div>
+      </div>
+      <button class="btn-primary" onclick="applySmartWater()" style="margin-top:20px;">Применить</button>
+    </div>
   </div>
 
-  <!-- РЕГИСТРАЦИЯ -->
-  <div id="setupPage"><h1>🐱 FitCat</h1><div class="card"><h2>О себе</h2><div class="input-group"><label>Имя</label><input type="text" id="setupName" placeholder="Введите имя"></div><div class="input-group"><label>Возраст</label><input type="number" id="setupAge" placeholder="Введите возраст" min="10" max="100"></div><div class="input-group"><label>Пол</label><div class="radio-group"><input type="radio" name="setupGender" value="female" id="genderFemale" checked><label for="genderFemale">Женский</label><input type="radio" name="setupGender" value="male" id="genderMale"><label for="genderMale">Мужской</label></div></div><div class="input-group"><label>Рост (см)</label><input type="number" id="setupHeight" placeholder="Введите рост" min="100" max="250"></div><div class="input-group"><label>Вес (кг)</label><input type="number" id="setupWeight" placeholder="Введите вес" min="30" max="500" step="0.1"></div></div><button class="btn-primary" onclick="completeSetup()">Рассчитать нормы</button><div class="text-center text-small" style="margin-top:16px;">Данные только в твоём телефоне</div><div class="card" style="margin-top:20px;"><h2>Язык</h2><div class="flex"><button class="btn-small" style="flex:1;" onclick="setLanguage('ru')">🇷🇺</button><button class="btn-small" style="flex:1;" onclick="setLanguage('en')">🇬🇧</button><button class="btn-small" style="flex:1;" onclick="setLanguage('cn')">🇨🇳</button></div></div></div>
+  <!-- Регистрация -->
+  <div id="setupPage">
+    <h1>🐱 FitCat</h1>
+    <div class="card">
+      <h2 data-i18n="about">О себе</h2>
+      <div class="input-group"><label data-i18n="name">Имя</label><input type="text" id="setupName" placeholder="Введите имя"></div>
+      <div class="input-group"><label data-i18n="age">Возраст</label><input type="number" id="setupAge" placeholder="Введите возраст" min="10" max="100"></div>
+      <div class="input-group">
+        <label data-i18n="gender">Пол</label>
+        <div class="radio-group">
+          <input type="radio" name="setupGender" value="female" id="genderFemale" checked><label for="genderFemale">Женский</label>
+          <input type="radio" name="setupGender" value="male" id="genderMale"><label for="genderMale">Мужской</label>
+        </div>
+      </div>
+      <div class="input-group"><label data-i18n="height">Рост (см)</label><input type="number" id="setupHeight" placeholder="Введите рост" min="100" max="250"></div>
+      <div class="input-group"><label data-i18n="weight_label">Вес (кг)</label><input type="number" id="setupWeight" placeholder="Введите вес" min="30" max="500" step="0.1"></div>
+    </div>
+    <button class="btn-primary" onclick="completeSetup()">Рассчитать нормы</button>
+    <div class="text-center text-small" style="margin-top:16px;">Данные только в твоём телефоне</div>
+    <div class="card" style="margin-top:20px;">
+      <h2>Язык</h2>
+      <div class="flex">
+        <button class="btn-small" style="flex:1;" onclick="setLanguage('ru')">🇷🇺</button>
+        <button class="btn-small" style="flex:1;" onclick="setLanguage('en')">🇬🇧</button>
+        <button class="btn-small" style="flex:1;" onclick="setLanguage('cn')">🇨🇳</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- ГЛАВНЫЙ ЭКРАН -->
+  <!-- Главный экран -->
   <div id="mainPage" style="display:none;">
-    <div class="header-row">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;width:100%;">
       <div style="flex:1; min-width:0; max-width:calc(100% - 100px);">
         <div class="greeting-wrapper">
           <div class="greeting-slide" id="greetingSlide1"><h1>🐱 FitCat</h1></div>
           <div class="greeting-slide next" id="greetingSlide2"><h1>🐱 FitCat</h1></div>
         </div>
       </div>
-      <div class="header-actions">
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:8px;">
         <span id="streakEmoji" class="streak-emoji none fade-in">🕯️</span>
-        <div class="header-photo" id="headerPhoto" onclick="showProfile()"><span id="headerInitials" class="header-initials">🐱</span></div>
+        <div class="header-photo" id="headerPhoto" onclick="showProfile()">
+          <span id="headerInitials" class="header-initials">🐱</span>
+        </div>
       </div>
     </div>
-    <div class="tabs"><div class="tab active" onclick="switchTab('today')">Сегодня</div><div class="tab" onclick="switchTab('activity')">Активность</div><div class="tab" onclick="switchTab('weight')">Вес</div></div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('today')">Сегодня</div>
+      <div class="tab" onclick="switchTab('activity')">Активность</div>
+      <div class="tab" onclick="switchTab('weight')">Вес</div>
+    </div>
     
     <div id="todayPage" class="page active">
       <div class="card"><h2>Прогресс</h2><div id="progressBars"></div></div>
-      <div class="card" id="waterCard"><div class="card-header" onclick="toggleCard('waterCard')"><h2>Вода</h2><button class="btn-small" onclick="event.stopPropagation();openSmartWater()">⚙️</button></div><div class="card-content" id="waterContent"><div style="text-align:center;margin:12px 0;"><span style="font-size:28px;font-weight:700;" id="waterCurrent">0</span><span style="color:#9CA3AF;"> / </span><span style="font-size:20px;" id="waterGoal">1820 мл</span></div><div class="water-buttons"><div class="water-btn" onclick="addWater(-50)">−50</div><div class="water-btn" onclick="addWater(50)">+50</div><div class="water-btn" onclick="addWater(100)">+100</div><div class="water-btn" onclick="addWater(200)">+200</div></div><div class="water-manual"><input type="number" id="manualWaterInput" placeholder="Введи мл" min="0" step="10"><button class="btn-small" onclick="setManualWater()">✓</button></div><div id="smartWaterHint" class="text-small" style="margin-top:12px;"></div></div></div>
-      <div class="card" id="mealsCard"><div class="card-header" onclick="toggleCard('mealsCard')"><h2>Сегодня съедено</h2><button class="btn-small" onclick="event.stopPropagation();openScanner()">📷</button></div><div class="card-content" id="mealsContent">
-        <div class="templates-bar" id="templatesBar"></div>
-        <div class="template-actions" style="display:flex;gap:8px;margin-bottom:12px;"><button class="btn-small" onclick="saveTemplate()" style="flex:1;">Сохранить шаблон</button><button class="btn-small" onclick="clearTodayFoods()" style="flex:1;">Очистить</button></div>
-        <div class="food-list" id="foodListContainer"></div>
-        <div class="add-food-form" style="display:flex;flex-direction:column;gap:8px;"><div class="input-group"><input type="text" id="foodName" placeholder="Название продукта" autocomplete="off"><div id="autocompleteList" class="autocomplete-list" style="position:absolute;top:100%;left:0;right:0;background:#1A2027;border-radius:16px;max-height:200px;overflow-y:auto;z-index:100;display:none;"></div></div><div style="font-size:13px;color:#9CA3AF;">На 100 грамм:</div><div style="display:flex;gap:8px;"><input type="number" id="foodProt100" placeholder="Б" step="0.1"><input type="number" id="foodFat100" placeholder="Ж" step="0.1"><input type="number" id="foodCarb100" placeholder="У" step="0.1"><input type="number" id="foodKcal100" placeholder="Ккал"></div><div style="display:flex;gap:8px;"><input type="number" id="foodWeight" placeholder="Вес (грамм)" step="1" min="1" style="flex:1;"></div><button class="btn-primary" onclick="addFood()">Добавить</button></div>
-      </div></div>
+      <div class="card" id="waterCard">
+        <div class="card-header" onclick="toggleCard('waterCard')"><h2>Вода</h2><button class="btn-small" onclick="event.stopPropagation();openSmartWater()">⚙️</button></div>
+        <div class="card-content" id="waterContent">
+          <div style="text-align:center;margin:12px 0;"><span style="font-size:28px;font-weight:700;" id="waterCurrent">0</span><span style="color:#9CA3AF;"> / </span><span style="font-size:20px;" id="waterGoal">1820 мл</span></div>
+          <div class="water-buttons"><div class="water-btn" onclick="addWater(-50)">−50</div><div class="water-btn" onclick="addWater(50)">+50</div><div class="water-btn" onclick="addWater(100)">+100</div><div class="water-btn" onclick="addWater(200)">+200</div></div>
+          <div class="water-manual"><input type="number" id="manualWaterInput" placeholder="Введи мл" min="0" step="10"><button class="btn-small" onclick="setManualWater()">✓</button></div>
+          <div id="smartWaterHint" class="text-small" style="margin-top:12px;"></div>
+        </div>
+      </div>
+      <div class="card" id="mealsCard">
+        <div class="card-header" onclick="toggleCard('mealsCard')"><h2>Сегодня съедено</h2><button class="btn-small" onclick="event.stopPropagation();openScanner()">📷</button></div>
+        <div class="card-content" id="mealsContent">
+          <div class="templates-bar" id="templatesBar"></div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;"><button class="btn-small" onclick="saveTemplate()" style="flex:1;">Сохранить шаблон</button><button class="btn-small" onclick="clearTodayFoods()" style="flex:1;">Очистить</button></div>
+          <div class="food-list" id="foodListContainer"></div>
+          <div class="add-food-form" style="display:flex;flex-direction:column;gap:8px;">
+            <div class="input-group"><input type="text" id="foodName" placeholder="Название продукта" autocomplete="off"><div id="autocompleteList" class="autocomplete-list" style="position:absolute;top:100%;left:0;right:0;background:#1A2027;border-radius:16px;max-height:200px;overflow-y:auto;z-index:100;display:none;"></div></div>
+            <div style="font-size:13px;color:#9CA3AF;">На 100 грамм:</div>
+            <div style="display:flex;gap:8px;"><input type="number" id="foodProt100" placeholder="Б" step="0.1"><input type="number" id="foodFat100" placeholder="Ж" step="0.1"><input type="number" id="foodCarb100" placeholder="У" step="0.1"><input type="number" id="foodKcal100" placeholder="Ккал"></div>
+            <div style="display:flex;gap:8px;"><input type="number" id="foodWeight" placeholder="Вес (грамм)" step="1" min="1" style="flex:1;"></div>
+            <button class="btn-primary" onclick="addFood()">Добавить</button>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <div id="activityPage" class="page"><div class="card"><h2>Активность на сегодня</h2><div class="activity-daily-options"><div class="activity-daily-item" data-activity="1.2" onclick="selectDailyActivity(this)">Сидячий</div><div class="activity-daily-item" data-activity="1.375" onclick="selectDailyActivity(this)">Умеренный</div><div class="activity-daily-item" data-activity="1.55" onclick="selectDailyActivity(this)">Активный</div><div class="activity-daily-item" data-activity="1.725" onclick="selectDailyActivity(this)">Очень активный</div></div><div id="activityPreview" style="margin-top:20px;padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;"><div class="flex" style="justify-content:space-between;"><span>Калории:</span><span id="previewKcal">1450 ккал</span></div><div class="flex" style="justify-content:space-between;"><span>Белки:</span><span id="previewProtein">94 г</span></div><div class="flex" style="justify-content:space-between;"><span>Жиры:</span><span id="previewFat">47 г</span></div><div class="flex" style="justify-content:space-between;"><span>Углеводы:</span><span id="previewCarbs">160 г</span></div><div class="flex" style="justify-content:space-between;"><span>Вода:</span><span id="previewWater">1820 мл</span></div></div><button class="btn-primary" onclick="applyDailyActivity()" style="margin-top:20px;">Применить на сегодня</button></div></div>
+    <div id="activityPage" class="page">
+      <div class="card"><h2>Активность на сегодня</h2>
+        <div class="activity-daily-options">
+          <div class="activity-daily-item" data-activity="1.2" onclick="selectDailyActivity(this)">Сидячий</div>
+          <div class="activity-daily-item" data-activity="1.375" onclick="selectDailyActivity(this)">Умеренный</div>
+          <div class="activity-daily-item" data-activity="1.55" onclick="selectDailyActivity(this)">Активный</div>
+          <div class="activity-daily-item" data-activity="1.725" onclick="selectDailyActivity(this)">Очень активный</div>
+        </div>
+        <div id="activityPreview" style="margin-top:20px;padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;">
+          <div class="flex" style="justify-content:space-between;"><span>Калории:</span><span id="previewKcal">1450 ккал</span></div>
+          <div class="flex" style="justify-content:space-between;"><span>Белки:</span><span id="previewProtein">94 г</span></div>
+          <div class="flex" style="justify-content:space-between;"><span>Жиры:</span><span id="previewFat">47 г</span></div>
+          <div class="flex" style="justify-content:space-between;"><span>Углеводы:</span><span id="previewCarbs">160 г</span></div>
+          <div class="flex" style="justify-content:space-between;"><span>Вода:</span><span id="previewWater">1820 мл</span></div>
+        </div>
+        <button class="btn-primary" onclick="applyDailyActivity()" style="margin-top:20px;">Применить на сегодня</button>
+      </div>
+    </div>
     
-    <div id="weightPage" class="page"><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h2 style="margin:0;">Журнал веса</h2><button class="btn-small" onclick="setWeightGoal()">Задать цель</button></div><div id="weightStats" class="weight-stats" style="margin-bottom:12px;padding:12px;background:rgba(1,4,9,0.4);border-radius:16px;"><div class="flex" style="justify-content:space-around;text-align:center;"><div><div class="text-small">Старт</div><div style="font-size:20px;font-weight:700;" id="startWeightStat">—</div></div><div><div class="text-small">Сейчас</div><div style="font-size:20px;font-weight:700;" id="currentWeightStat">—</div></div><div><div class="text-small">Изменение</div><div style="font-size:20px;font-weight:700;" id="weightChangeStat">—</div></div><div><div class="text-small">До цели</div><div style="font-size:20px;font-weight:700;" id="toGoalStat">—</div></div></div></div><div class="bmi-container"><div class="bmi-header"><span class="bmi-value" id="bmiValue">—</span><span class="bmi-category" id="bmiCategory">—</span></div><div class="bmi-scale" id="bmiScale" onclick="showBMITooltip()"><div class="bmi-gradient"></div><div class="bmi-marker" id="bmiMarker" style="left:0%;"></div><div class="bmi-tooltip" id="bmiTooltip">Норма</div></div><div class="bmi-labels"><span>16</span><span>18.5</span><span>25</span><span>30</span><span>35</span><span>40</span></div></div><div class="flex mb-2"><input type="number" id="newWeight" placeholder="Вес" step="0.1" min="30" max="500" style="flex:2;"><input type="date" id="weightDate" style="flex:2;padding:14px 16px;background:rgba(1,4,9,0.6);border:1px solid #30363D;border-radius:16px;color:#E6EDF3;"><button class="btn-small" onclick="addWeightEntry()" style="flex:1;">+</button></div><canvas id="weightChart" style="width:100%;height:200px;"></canvas><div style="margin-top:16px;"><h3>История</h3><div id="weightHistoryList"></div></div></div></div>
+    <div id="weightPage" class="page">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><h2 style="margin:0;">Журнал веса</h2><button class="btn-small" onclick="setWeightGoal()">Задать цель</button></div>
+        <div id="weightStats" class="weight-stats" style="margin-bottom:12px;padding:12px;background:rgba(1,4,9,0.4);border-radius:16px;">
+          <div class="flex" style="justify-content:space-around;text-align:center;">
+            <div><div class="text-small">Старт</div><div style="font-size:20px;font-weight:700;" id="startWeightStat">—</div></div>
+            <div><div class="text-small">Сейчас</div><div style="font-size:20px;font-weight:700;" id="currentWeightStat">—</div></div>
+            <div><div class="text-small">Изменение</div><div style="font-size:20px;font-weight:700;" id="weightChangeStat">—</div></div>
+            <div><div class="text-small">До цели</div><div style="font-size:20px;font-weight:700;" id="toGoalStat">—</div></div>
+          </div>
+        </div>
+        
+        <!-- ШКАЛА ИМТ -->
+        <div class="bmi-container">
+          <div class="bmi-header"><span class="bmi-value" id="bmiValue">—</span><span class="bmi-category" id="bmiCategory">—</span></div>
+          <div class="bmi-scale" id="bmiScale" onclick="showBMITooltip()">
+            <div class="bmi-gradient"></div>
+            <div class="bmi-marker" id="bmiMarker" style="left:0%;"></div>
+            <div class="bmi-tooltip" id="bmiTooltip">Норма</div>
+          </div>
+          <div class="bmi-labels"><span>16</span><span>18.5</span><span>25</span><span>30</span><span>35</span><span>40</span></div>
+        </div>
+        
+        <div class="flex mb-2">
+          <input type="number" id="newWeight" placeholder="Вес" step="0.1" min="30" max="500" style="flex:2;">
+          <input type="date" id="weightDate" style="flex:2;padding:14px 16px;background:rgba(1,4,9,0.6);border:1px solid #30363D;border-radius:16px;color:#E6EDF3;">
+          <button class="btn-small" onclick="addWeightEntry()" style="flex:1;">+</button>
+        </div>
+        <canvas id="weightChart" style="width:100%;height:200px;"></canvas>
+        <div style="margin-top:16px;"><h3 style="margin-bottom:8px;">История</h3><div id="weightHistoryList"></div></div>
+      </div>
+    </div>
   </div>
 
-  <!-- НАСТРОЙКИ -->
-  <div id="settingsPage" style="display:none;"><div class="card"><h2>Настройки</h2><button class="btn-secondary" onclick="exportData()">Скачать данные</button><button class="btn-secondary" onclick="importData()">Загрузить данные</button><button class="btn-secondary" onclick="showProductsManager()">Мои продукты</button><h2 style="margin-top:24px;">Язык</h2><div class="flex"><button class="btn-small" style="flex:1;" onclick="setLanguage('ru')">🇷🇺</button><button class="btn-small" style="flex:1;" onclick="setLanguage('en')">🇬🇧</button><button class="btn-small" style="flex:1;" onclick="setLanguage('cn')">🇨🇳</button></div><button class="btn-primary" onclick="showPage('mainPage')" style="margin-top:24px;">Назад</button></div></div>
+  <!-- Настройки -->
+  <div id="settingsPage" style="display:none;">
+    <div class="card"><h2>Настройки</h2>
+      <button class="btn-secondary" onclick="exportData()">Скачать данные</button>
+      <button class="btn-secondary" onclick="importData()">Загрузить данные</button>
+      <button class="btn-secondary" onclick="showProductsManager()">Мои продукты</button>
+      <h2 style="margin-top:24px;">Язык</h2>
+      <div class="flex"><button class="btn-small" style="flex:1;" onclick="setLanguage('ru')">🇷🇺</button><button class="btn-small" style="flex:1;" onclick="setLanguage('en')">🇬🇧</button><button class="btn-small" style="flex:1;" onclick="setLanguage('cn')">🇨🇳</button></div>
+      <button class="btn-primary" onclick="showPage('mainPage')" style="margin-top:24px;">Назад</button>
+    </div>
+  </div>
   
-  <!-- ПРОФИЛЬ (ЗАГОЛОВОК ПО ЦЕНТРУ) -->
-  <div id="profilePage" style="display:none;"><div class="card">
-    <div class="profile-header"><button class="btn-small" onclick="showPage('mainPage')">← Назад</button><h2>Профиль</h2><div style="width:60px;"></div></div>
-    <div class="profile-photo" id="profilePhoto" onclick="uploadPhoto()"><span id="profileInitials" class="profile-initials">🐱</span></div><input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)"><div style="text-align:center;margin-bottom:16px;"><button class="btn-small" onclick="deletePhoto()">Удалить фото</button></div>
-    <div class="input-group"><label>Имя</label><input type="text" id="profileName"></div><div class="input-group"><label>Возраст</label><input type="number" id="profileAge" min="10" max="100"></div><div class="input-group"><label>Пол</label><div class="radio-group"><input type="radio" name="profileGender" value="female" id="profileGenderFemale"><label for="profileGenderFemale">Женский</label><input type="radio" name="profileGender" value="male" id="profileGenderMale"><label for="profileGenderMale">Мужской</label></div></div><div class="input-group"><label>Рост (см)</label><input type="number" id="profileHeight" min="100" max="250"></div><div class="input-group"><label>Вес (кг)</label><input type="number" id="profileWeight" min="30" max="500" step="0.1"></div>
-    <button class="btn-primary" onclick="saveProfile()">Сохранить изменения</button><button class="btn-secondary" onclick="showPage('settingsPage')">Настройки</button><button class="btn-secondary btn-danger" onclick="deleteAccount()">Удалить аккаунт</button>
-  </div></div>
+  <!-- Профиль -->
+  <div id="profilePage" style="display:none;">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><button class="btn-small" onclick="showPage('mainPage')">← Назад</button><h2>Профиль</h2></div>
+      <div class="profile-photo" id="profilePhoto" onclick="uploadPhoto()"><span id="profileInitials" class="profile-initials">🐱</span></div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+      <div style="text-align:center;margin-bottom:16px;"><button class="btn-small" onclick="deletePhoto()">Удалить фото</button></div>
+      <div class="input-group"><label>Имя</label><input type="text" id="profileName"></div>
+      <div class="input-group"><label>Возраст</label><input type="number" id="profileAge" min="10" max="100"></div>
+      <div class="input-group"><label>Пол</label><div class="radio-group"><input type="radio" name="profileGender" value="female" id="profileGenderFemale"><label for="profileGenderFemale">Женский</label><input type="radio" name="profileGender" value="male" id="profileGenderMale"><label for="profileGenderMale">Мужской</label></div></div>
+      <div class="input-group"><label>Рост (см)</label><input type="number" id="profileHeight" min="100" max="250"></div>
+      <div class="input-group"><label>Вес (кг)</label><input type="number" id="profileWeight" min="30" max="500" step="0.1"></div>
+      <button class="btn-primary" onclick="saveProfile()">Сохранить изменения</button>
+      <button class="btn-secondary" onclick="showPage('settingsPage')">Настройки</button>
+      <button class="btn-secondary btn-danger" onclick="deleteAccount()">Удалить аккаунт</button>
+    </div>
+  </div>
   
-  <!-- МОИ ПРОДУКТЫ -->
-  <div id="productsPage" style="display:none;"><div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><button class="btn-small" onclick="showPage('settingsPage')">← Назад</button><h2>Мои продукты</h2></div><div id="productsList"></div></div></div>
+  <!-- Мои продукты -->
+  <div id="productsPage" style="display:none;">
+    <div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><button class="btn-small" onclick="showPage('settingsPage')">← Назад</button><h2>Мои продукты</h2></div><div id="productsList"></div></div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -477,13 +595,15 @@
   function getBarColor(p){if(p>=90&&p<=110)return'#6BCB77';if((p>=70&&p<90)||(p>110&&p<=130))return'#FFD93D';return'#F85149'}
   function setLanguage(l){currentLang=l;localStorage.setItem('fitcat_lang',l);document.querySelectorAll('[data-i18n]').forEach(e=>{let k=e.dataset.i18n;if(translations[l]?.[k])e.innerText=translations[l][k]});document.querySelectorAll('[data-i18n-placeholder]').forEach(e=>{let k=e.dataset.i18nPlaceholder;if(translations[l]?.[k])e.placeholder=translations[l][k]});if(currentProfile){updateGreeting();renderProgressBars();renderFoodList();updateWaterDisplay();updateWeightStatsAndList();renderWeightChart();renderTemplates();updateActivityUI();updateHeaderPhoto()}}
 
-  // ========== СТРИК (ЗАДЕРЖКА 3.5С) ==========
+  // ========== СТРИК (ПЛАВНОЕ ПОЯВЛЕНИЕ) ==========
   function updateStreak(){
     let s=parseInt(localStorage.getItem('fitcat_streak')||0);let lo=localStorage.getItem('fitcat_lastOpen');let t=new Date().toDateString();let y=new Date(Date.now()-86400000).toDateString();
     if(!lo)s=1;else if(lo===t){}else if(lo===y)s=Math.min(s+1,5);else s=1;
     localStorage.setItem('fitcat_streak',s);localStorage.setItem('fitcat_lastOpen',t);
     let e=document.getElementById('streakEmoji');if(e){let c,ch;if(s===1){c='none';ch='🕯️'}else if(s===2){c='red';ch='🔥'}else if(s===3){c='yellow';ch='🔥'}else if(s===4){c='purple';ch='🔥'}else{c='rainbow';ch='🔥'}
-    e.className='streak-emoji '+c+' fade-in';e.textContent=ch;e.title=s+' дн.';setupStreakInteractions(e);requestAnimationFrame(()=>{e.classList.remove('fade-in');});}
+    e.className='streak-emoji '+c+' fade-in';e.textContent=ch;e.title=s+' дн.';setupStreakInteractions(e);
+    // плавное появление
+    requestAnimationFrame(()=>{e.classList.remove('fade-in');});}
   }
   function setupStreakInteractions(e){if(!e||e.dataset.hasListeners)return;e.dataset.hasListeners='true';e.addEventListener('click',(ev)=>{ev.stopPropagation();e.classList.add('bounce');setTimeout(()=>e.classList.remove('bounce'),200)});e.addEventListener('dblclick',(ev)=>{ev.stopPropagation();showStreakTooltip(e)})}
   function showStreakTooltip(e){let s=localStorage.getItem('fitcat_streak')||'1';let old=document.querySelector('.streak-tooltip');if(old)old.remove();let t=document.createElement('div');t.className='streak-tooltip';t.innerHTML=s+' дн.';document.body.appendChild(t);let r=e.getBoundingClientRect();t.style.left=(r.left+r.width/2)+'px';t.style.top=(r.bottom+8)+'px';t.style.transform='translateX(-50%)';setTimeout(()=>t.classList.add('show'),10);setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},2000)}
@@ -516,7 +636,7 @@
   function applySmartWater(){currentSteps=parseInt(document.getElementById('stepsSlider').value);currentTemp=parseInt(document.getElementById('tempSlider').value);localStorage.setItem('currentSteps',currentSteps);localStorage.setItem('currentTemp',currentTemp);dailyTargets.water=Math.round(currentProfile.weight*35)+getTempBonus(currentTemp)+getStepsBonus(currentSteps)+(trainingToday?300:0);if(waterAmount>dailyTargets.water)waterAmount=dailyTargets.water;localStorage.setItem('waterAmount',waterAmount);renderProgressBars();updateWaterDisplay();updateWaterHint();closeSmartWater();vibrate()}
   function updateWaterHint(){let h=document.getElementById('smartWaterHint');let b=dailyTargets.water-Math.round(currentProfile.weight*35);h.innerText=b>0?`Умная норма: +${b} мл`:''}
 
-  // ========== АКТИВНОСТЬ ==========
+  // ========== АКТИВНОСТЬ (ВОЗВРАЩЕНА ОБВОДКА) ==========
   function selectDailyActivity(el){document.querySelectorAll('#activityPage .activity-daily-item').forEach(i=>i.classList.remove('selected'));el.classList.add('selected');updateActivityPreview(parseFloat(el.dataset.activity))}
   function updateActivityPreview(coef){if(!currentProfile)return;let p=currentProfile;let bmr=p.gender==='female'?447.6+9.2*p.weight+3.1*p.height-4.3*p.age:88.36+13.4*p.weight+4.8*p.height-5.7*p.age;let kcal=Math.round(bmr*coef*0.85);document.getElementById('previewKcal').innerText=kcal+' ккал';document.getElementById('previewProtein').innerText=Math.round(p.weight*1.8)+' г';document.getElementById('previewFat').innerText=Math.round(p.weight*0.9)+' г';document.getElementById('previewCarbs').innerText=Math.round((kcal-p.weight*1.8*4-p.weight*0.9*9)/4)+' г';document.getElementById('previewWater').innerText=dailyTargets.water+' мл'}
   function applyDailyActivity(){let s=document.querySelector('#activityPage .activity-daily-item.selected');if(!s)return;dailyActivity=parseFloat(s.dataset.activity);localStorage.setItem('dailyActivity',dailyActivity);calculateTargets();renderDashboard();updateActivityUI();showPage('mainPage');vibrate()}
@@ -541,7 +661,7 @@
   function fillFromProduct(n){let p=productsDB.find(x=>x.name===n);if(p){document.getElementById('foodName').value=p.name;document.getElementById('foodProt100').value=p.protein;document.getElementById('foodFat100').value=p.fat;document.getElementById('foodCarb100').value=p.carbs;document.getElementById('foodKcal100').value=p.kcal}document.getElementById('autocompleteList').style.display='none'}
   function loadTemplates(){let s=localStorage.getItem('fitcat_templates');if(s)mealTemplates=JSON.parse(s)}
   function saveTemplates(){localStorage.setItem('fitcat_templates',JSON.stringify(mealTemplates))}
-  function renderTemplates(){let c=document.getElementById('templatesBar'),t=translations[currentLang];c.innerHTML=mealTemplates.length?mealTemplates.map((tm,i)=>`<div class="template-btn" onclick="loadTemplate(${i})">${tm.name}</div><div class="template-btn" onclick="deleteTemplate(${i})" style="padding:8px;">✕</div>`).join(''):`<div class="text-small" style="width:100%;text-align:center;margin-bottom:16px;">${t.no_templates}</div>`}
+  function renderTemplates(){let c=document.getElementById('templatesBar'),t=translations[currentLang];c.innerHTML=mealTemplates.length?mealTemplates.map((tm,i)=>`<div class="template-btn" onclick="loadTemplate(${i})">${tm.name}</div><div class="template-btn" onclick="deleteTemplate(${i})" style="padding:8px;">✕</div>`).join(''):`<div class="text-small" style="width:100%;text-align:center;">${t.no_templates}</div>`}
   function saveTemplate(){if(!todayFoods.length){alert('Нет блюд');return}let n=prompt(translations[currentLang].template_name,'Шаблон '+(mealTemplates.length+1));if(!n)return;mealTemplates.push({name:n,foods:JSON.parse(JSON.stringify(todayFoods))});saveTemplates();renderTemplates();vibrate()}
   function loadTemplate(i){todayFoods=JSON.parse(JSON.stringify(mealTemplates[i].foods));saveAllData();renderDashboard();vibrate()}
   function deleteTemplate(i){mealTemplates.splice(i,1);saveTemplates();renderTemplates()}
@@ -570,7 +690,7 @@
   function loadData(){currentProfile=JSON.parse(localStorage.getItem('fitnessProfile')||'null');todayFoods=JSON.parse(localStorage.getItem('todayFoods')||'[]');weightHistory=JSON.parse(localStorage.getItem('weightHistory')||'[]')}
   function saveAllData(){if(currentProfile)localStorage.setItem('fitnessProfile',JSON.stringify(currentProfile));localStorage.setItem('todayFoods',JSON.stringify(todayFoods));localStorage.setItem('weightHistory',JSON.stringify(weightHistory))}
   function checkDateReset(){let ld=localStorage.getItem('lastDate'),td=new Date().toDateString();if(ld!==td){todayFoods=[];localStorage.setItem('waterAmount',0);localStorage.setItem('hadTraining',false);trainingToday=false;waterAmount=0;localStorage.setItem('lastDate',td);saveAllData()}}
-  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout);let h=new Date().getHours(),k='day';if(h>=5&&h<12)k='morning';else if(h>=12&&h<18)k='day';else if(h>=18&&h<23)k='evening';else k='night';let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||'';if(streak){streak.style.opacity='0';streak.classList.add('fade-in');}s1.innerHTML=`<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`;s2.innerHTML='<h1>🐱 FitCat</h1>';s1.classList.remove('hidden');s2.classList.remove('visible');greetingTimeout=setTimeout(()=>{s1.classList.add('hidden');s2.classList.add('visible');if(streak){streak.style.display='inline-block';requestAnimationFrame(()=>{streak.style.opacity='1';streak.classList.remove('fade-in');});}updateStreak()},3500)}
+  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout);let h=new Date().getHours(),k='day';if(h>=5&&h<12)k='morning';else if(h>=12&&h<18)k='day';else if(h>=18&&h<23)k='evening';else k='night';let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||'';if(streak){streak.style.opacity='0';streak.classList.add('fade-in');}s1.innerHTML=`<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`;s2.innerHTML='<h1>🐱 FitCat</h1>';s1.classList.remove('hidden');s2.classList.remove('visible');greetingTimeout=setTimeout(()=>{s1.classList.add('hidden');s2.classList.add('visible');if(streak){streak.style.display='inline-block';requestAnimationFrame(()=>{streak.style.opacity='1';streak.classList.remove('fade-in');});}updateStreak()},2000)}
   function completeSetup(){let n=document.getElementById('setupName').value.trim(),a=parseInt(document.getElementById('setupAge').value),g=document.querySelector('input[name="setupGender"]:checked')?.value,h=parseFloat(document.getElementById('setupHeight').value),w=parseFloat(document.getElementById('setupWeight').value);if(!n||!a||a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500){alert(translations[currentLang].error_fill);return}currentProfile={name:n,age:a,gender:g,height:h,weight:w,startWeight:w};calculateTargets();saveAllData();localStorage.setItem('lastDate',new Date().toDateString());document.getElementById('setupPage').style.display='none';document.getElementById('mainPage').style.display='block';updateGreeting();renderDashboard();renderTemplates();updateActivityUI();updateHeaderPhoto();updateBMI();updateStreak()}
   function calculateTargets(){if(!currentProfile)return;let p=currentProfile;let bmr=p.gender==='female'?447.6+9.2*p.weight+3.1*p.height-4.3*p.age:88.36+13.4*p.weight+4.8*p.height-5.7*p.age;let tdee=bmr*dailyActivity;dailyTargets={kcal:Math.round(tdee*0.85),protein:Math.round(p.weight*1.8),fat:Math.round(p.weight*0.9),carbs:Math.round((tdee*0.85-p.weight*1.8*4-p.weight*0.9*9)/4),water:Math.round(p.weight*35)};if(waterAmount>dailyTargets.water)waterAmount=dailyTargets.water}
   function renderDashboard(){renderProgressBars();renderFoodList();updateWaterDisplay()}
