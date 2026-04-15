@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230D1117'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='%234FACFE'%3E🐱%3C/text%3E%3C/svg%3E">
-  <title>🐱 FitCat · умный поиск</title>
+  <title>🐱 FitCat · финальный поиск</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <style>
@@ -272,6 +272,7 @@
     }
     .temp-gradient { background: linear-gradient(to right, #4FACFE, #6BCB77, #FFD93D, #FF8E53, #F85149); }
     .steps-gradient { background: linear-gradient(to right, #6BCB77, #4D96FF, #9B59B6); }
+    .search-gradient { background: linear-gradient(to right, #4FACFE, #A855F7); }
     .slider-ticks {
       position: absolute; top: 50%; left: 0; right: 0; display: flex; justify-content: space-between;
       transform: translateY(-50%); pointer-events: none; padding: 0 1px;
@@ -350,6 +351,30 @@
     </div>
   </div>
 
+  <!-- УМНЫЙ ПОИСК (МОДАЛКА) -->
+  <div id="smartSearchModal" class="smart-water-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(13,17,23,0.95);z-index:1000;display:none;flex-direction:column;padding:20px;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>🧠 Умный поиск (beta)</h2><button class="btn-small" onclick="closeSmartSearch()">Закрыть</button></div>
+    <div class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <span style="font-size:16px;">🔍 Включить умный поиск</span>
+        <label class="apple-switch"><input type="checkbox" id="smartSearchToggle"><span class="slider"></span></label>
+      </div>
+      <div class="slider-container">
+        <div class="slider-labels"><span>5</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span></div>
+        <div class="slider-wrapper"><div class="slider-gradient search-gradient"></div><input type="range" id="resultsSlider" min="5" max="50" value="10" step="1"><div class="slider-ticks" id="resultsTicks"></div></div>
+        <div class="slider-value">Результатов: <span id="resultsDisplay">10</span></div>
+      </div>
+      <div style="margin: 20px 0;">
+        <span style="font-size:16px;">🌍 Язык поиска</span>
+        <div class="radio-group" style="margin-top:12px;">
+          <input type="radio" name="searchLang" value="ru" id="langRu" checked><label for="langRu">Русский</label>
+          <input type="radio" name="searchLang" value="en" id="langEn"><label for="langEn">English</label>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="applySmartSearch()" style="margin-top:20px;">Сохранить</button>
+    </div>
+  </div>
+
   <!-- РЕГИСТРАЦИЯ -->
   <div id="setupPage"><h1>🐱 FitCat</h1><div class="card"><h2>О себе</h2><div class="input-group"><label>Имя</label><input type="text" id="setupName" placeholder="Введите имя"></div><div class="input-group"><label>Возраст</label><input type="number" id="setupAge" placeholder="Введите возраст" min="10" max="100"></div><div class="input-group"><label>Пол</label><div class="radio-group"><input type="radio" name="setupGender" value="female" id="genderFemale" checked><label for="genderFemale">Женский</label><input type="radio" name="setupGender" value="male" id="genderMale"><label for="genderMale">Мужской</label></div></div><div class="input-group"><label>Рост (см)</label><input type="number" id="setupHeight" placeholder="Введите рост" min="100" max="250"></div><div class="input-group"><label>Вес (кг)</label><input type="number" id="setupWeight" placeholder="Введите вес" min="30" max="500" step="0.1"></div></div><button class="btn-primary" onclick="completeSetup()">Рассчитать нормы</button><div class="text-center text-small" style="margin-top:16px;">Данные только в твоём телефоне</div><div class="card" style="margin-top:20px;"><h2>Язык</h2><div class="flex"><button class="btn-small" style="flex:1;" onclick="setLanguage('ru')">🇷🇺</button><button class="btn-small" style="flex:1;" onclick="setLanguage('en')">🇬🇧</button><button class="btn-small" style="flex:1;" onclick="setLanguage('cn')">🇨🇳</button></div></div></div>
 
@@ -364,22 +389,11 @@
     <div id="todayPage" class="page active">
       <div class="card"><h2>Прогресс</h2><div id="progressBars"></div></div>
       <div class="card" id="waterCard"><div class="card-header" onclick="toggleCard('waterCard')"><h2>Вода</h2><button class="btn-small" onclick="event.stopPropagation();openSmartWater()">⚙️</button></div><div class="card-content" id="waterContent"><div style="text-align:center;margin:12px 0;"><span style="font-size:28px;font-weight:700;" id="waterCurrent">0</span><span style="color:#9CA3AF;"> / </span><span style="font-size:20px;" id="waterGoal">1820 мл</span></div><div class="water-buttons"><div class="water-btn" onclick="addWater(-50)">−50</div><div class="water-btn" onclick="addWater(50)">+50</div><div class="water-btn" onclick="addWater(100)">+100</div><div class="water-btn" onclick="addWater(200)">+200</div></div><div class="water-manual"><input type="number" id="manualWaterInput" placeholder="Введи мл" min="0" step="10"><button class="btn-small" onclick="setManualWater()">✓</button></div><div id="smartWaterHint" class="text-small" style="margin-top:12px;"></div></div></div>
-      <div class="card" id="mealsCard"><div class="card-header" onclick="toggleCard('mealsCard')"><h2>Сегодня съедено</h2><button class="btn-small" onclick="event.stopPropagation();openScanner()">📷</button></div><div class="card-content" id="mealsContent">
+      <div class="card" id="mealsCard"><div class="card-header" onclick="toggleCard('mealsCard')"><h2>Продукты</h2><button class="btn-small" onclick="event.stopPropagation();openSmartSearch()">🧠⚙️</button></div><div class="card-content" id="mealsContent">
         <div class="templates-bar" id="templatesBar"></div>
         <div style="display:flex;gap:8px;margin-bottom:12px;"><button class="btn-small" onclick="saveTemplate()" style="flex:1;">Сохранить шаблон</button><button class="btn-small" onclick="clearTodayFoods()" style="flex:1;">Очистить</button></div>
         <div class="food-list" id="foodListContainer"></div>
         <div class="add-food-form" style="display:flex;flex-direction:column;gap:8px;">
-          <!-- УМНЫЙ ПЕРЕКЛЮЧАТЕЛЬ -->
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 15px; font-weight: 500; color: #E6EDF3;">🧠 Умный поиск</span>
-              <span style="font-size: 12px; color: #4FACFE; background: rgba(79,172,254,0.15); padding: 2px 8px; border-radius: 20px;">beta</span>
-            </div>
-            <label class="apple-switch">
-              <input type="checkbox" id="smartSearchToggle" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
           <div class="input-group" style="position: relative;">
             <input type="text" id="foodName" placeholder="Название продукта" autocomplete="off">
             <div id="autocompleteList" class="autocomplete-list"></div>
@@ -450,6 +464,7 @@
   let productsDB=[], mealTemplates=[], zxingReader=null, quaggaActive=false, scanningActive=false, scanTimeout=null;
   let dailyActivity=1.375, trainingToday=false, currentSteps=8000, currentTemp=22, waterAmount=0, greetingTimeout=null;
   let searchDebounce=null, originalPlaceholder='Название продукта';
+  let smartSearchEnabled=false, smartSearchResults=10, smartSearchLang='ru';
 
   function vibrate(d=10){if(navigator.vibrate)navigator.vibrate(d)}
   function getBarColor(p){if(p>=90&&p<=110)return'#6BCB77';if((p>=70&&p<90)||(p>110&&p<=130))return'#FFD93D';return'#F85149'}
@@ -507,26 +522,48 @@
   function saveProductsDB(){localStorage.setItem('fitcat_products',JSON.stringify(productsDB))}
   function addToProductsDB(n,p,f,c,k){if(!productsDB.find(x=>x.name.toLowerCase()===n.toLowerCase())){productsDB.push({name:n,protein:p,fat:f,carbs:c,kcal:k});saveProductsDB()}}
   
+  // УМНЫЙ ПОИСК
+  function openSmartSearch(){
+    document.getElementById('smartSearchModal').style.display='flex';
+    document.getElementById('smartSearchToggle').checked = smartSearchEnabled;
+    document.getElementById('resultsSlider').value = smartSearchResults;
+    document.getElementById('resultsDisplay').innerText = smartSearchResults;
+    document.getElementById('langRu').checked = smartSearchLang==='ru';
+    document.getElementById('langEn').checked = smartSearchLang==='en';
+  }
+  function closeSmartSearch(){ document.getElementById('smartSearchModal').style.display='none'; }
+  function applySmartSearch(){
+    smartSearchEnabled = document.getElementById('smartSearchToggle').checked;
+    smartSearchResults = parseInt(document.getElementById('resultsSlider').value);
+    smartSearchLang = document.querySelector('input[name="searchLang"]:checked').value;
+    localStorage.setItem('smartSearchEnabled', smartSearchEnabled);
+    localStorage.setItem('smartSearchResults', smartSearchResults);
+    localStorage.setItem('smartSearchLang', smartSearchLang);
+    closeSmartSearch(); vibrate();
+  }
+
   function setupAutocomplete(){
     let inp=document.getElementById('foodName'), list=document.getElementById('autocompleteList');
-    let toggle=document.getElementById('smartSearchToggle');
+    let enabled = ()=>(localStorage.getItem('smartSearchEnabled')==='true');
+    let resultsCount = ()=>parseInt(localStorage.getItem('smartSearchResults')||'10');
+    let lang = ()=>localStorage.getItem('smartSearchLang')||'ru';
+    
     inp.addEventListener('input', function(){
-      if(!toggle.checked) { list.style.display='none'; return; }
+      if(!enabled()) { list.style.display='none'; return; }
       let val=this.value.trim(); if(val.length<2){list.style.display='none'; return}
       inp.placeholder='🔍 Поиск...'; inp.style.borderColor='#4FACFE';
       if(searchDebounce) clearTimeout(searchDebounce);
       searchDebounce = setTimeout(() => {
         let localMatches = productsDB.filter(p=>p.name.toLowerCase().includes(val.toLowerCase())).slice(0,3);
-        fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(val)}&json=1&page_size=5&search_simple=1&search_fields=product_name&lc=ru`)
-          .then(r=>r.json()).then(d=>{
-            let items = []; if(d.products) items = d.products.filter(p=>p.product_name).map(p=>({name:p.product_name,brand:p.brands,kcal:p.nutriments?.['energy-kcal_100g']||0,prot:p.nutriments?.proteins_100g||0,fat:p.nutriments?.fat_100g||0,carbs:p.nutriments?.carbohydrates_100g||0})).slice(0,5);
-            let all=[...localMatches.map(p=>({name:p.name,isLocal:true,...p})), ...items];
-            if(!all.length){ inp.value=''; inp.placeholder='❌ Ничего не найдено'; inp.style.borderColor='#F85149'; list.style.display='none'; setTimeout(()=>{inp.placeholder=originalPlaceholder; inp.style.borderColor='#30363D';},1500); }
-            else { inp.placeholder=originalPlaceholder; inp.style.borderColor='#30363D'; list.innerHTML = all.map(p=> p.isLocal? `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')"><span class="off-name">📦 ${p.name}</span></div>` : `<div class="autocomplete-item" onclick="fillFromOFF('${p.name.replace(/'/g,"\\'")}',${p.kcal},${p.prot},${p.fat},${p.carbs})"><span class="off-name">🌍 ${p.name}</span><span class="off-brand">${p.brand||''}</span></div>` ).join(''); list.style.display='block'; }
-          }).catch(()=>{ if(!localMatches.length){ inp.value=''; inp.placeholder='❌ Ничего не найдено'; inp.style.borderColor='#F85149'; list.style.display='none'; setTimeout(()=>{inp.placeholder=originalPlaceholder; inp.style.borderColor='#30363D';},1500); } else { list.innerHTML = localMatches.map(p=>`<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')"><span class="off-name">📦 ${p.name}</span></div>`).join(''); list.style.display='block'; } });
+        let url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(val)}&json=1&page_size=${resultsCount()}&search_simple=1&search_fields=product_name&lc=${lang()}`;
+        fetch(url).then(r=>r.json()).then(d=>{
+          let items = []; if(d.products) items = d.products.filter(p=>p.product_name).map(p=>({name:p.product_name,brand:p.brands,kcal:p.nutriments?.['energy-kcal_100g']||0,prot:p.nutriments?.proteins_100g||0,fat:p.nutriments?.fat_100g||0,carbs:p.nutriments?.carbohydrates_100g||0})).slice(0, resultsCount());
+          let all=[...localMatches.map(p=>({name:p.name,isLocal:true,...p})), ...items];
+          if(!all.length){ inp.value=''; inp.placeholder='❌ Ничего не найдено'; inp.style.borderColor='#F85149'; list.style.display='none'; setTimeout(()=>{inp.placeholder=originalPlaceholder; inp.style.borderColor='#30363D';},1500); }
+          else { inp.placeholder=originalPlaceholder; inp.style.borderColor='#30363D'; list.innerHTML = all.map(p=> p.isLocal? `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')"><span class="off-name">📦 ${p.name}</span></div>` : `<div class="autocomplete-item" onclick="fillFromOFF('${p.name.replace(/'/g,"\\'")}',${p.kcal},${p.prot},${p.fat},${p.carbs})"><span class="off-name">🌍 ${p.name}</span><span class="off-brand">${p.brand||''}</span></div>` ).join(''); list.style.display='block'; }
+        }).catch(()=>{ if(!localMatches.length){ inp.value=''; inp.placeholder='❌ Ничего не найдено'; inp.style.borderColor='#F85149'; list.style.display='none'; setTimeout(()=>{inp.placeholder=originalPlaceholder; inp.style.borderColor='#30363D';},1500); } else { list.innerHTML = localMatches.map(p=>`<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')"><span class="off-name">📦 ${p.name}</span></div>`).join(''); list.style.display='block'; } });
       }, 400);
     });
-    toggle.addEventListener('change', function(){ if(!this.checked) { list.style.display='none'; inp.style.borderColor='#30363D'; inp.placeholder=originalPlaceholder; } });
     document.addEventListener('click', e=>{ if(!inp.contains(e.target) && !list.contains(e.target)) list.style.display='none'; });
   }
   function fillFromProduct(name){ let p=productsDB.find(x=>x.name===name); if(p){ document.getElementById('foodName').value=p.name; document.getElementById('foodProt100').value=p.protein; document.getElementById('foodFat100').value=p.fat; document.getElementById('foodCarb100').value=p.carbs; document.getElementById('foodKcal100').value=p.kcal; } document.getElementById('autocompleteList').style.display='none'; }
@@ -556,24 +593,43 @@
   function addWeightEntry(){let w=parseFloat(document.getElementById('newWeight').value),d=document.getElementById('weightDate').value||new Date().toISOString().split('T')[0];if(!w||w<30||w>500)return;let ex=weightHistory.findIndex(e=>e.date===d);if(ex>=0&&!confirm(translations[currentLang].overwrite_weight))return;if(ex>=0)weightHistory.splice(ex,1);weightHistory.push({date:d,weight:w});saveAllData();updateWeightStatsAndList();renderWeightChart();document.getElementById('newWeight').value='';vibrate()}
   function renderWeightChart(){let canvas=document.getElementById('weightChart'),ctx=canvas.getContext('2d');if(chartInstance)chartInstance.destroy();if(!weightHistory.length)return;let s=[...weightHistory].sort((a,b)=>new Date(a.date)-new Date(b.date)),goal=currentProfile?.targetWeight||currentProfile?.startWeight*0.9||55;let col='#4FACFE';if(s.length>1){let f=s[0].weight,l=s[s.length-1].weight;if(l<f)col='#6BCB77';else if(l>f)col='#F85149'}let w=s.map(e=>e.weight),min=Math.min(...w,goal)-1,max=Math.max(...w,goal)+1;let grad=ctx.createLinearGradient(0,0,0,canvas.height);grad.addColorStop(0,col+'B3');grad.addColorStop(0.4,col+'60');grad.addColorStop(0.7,col+'20');grad.addColorStop(1,col+'00');chartInstance=new Chart(ctx,{type:'line',data:{labels:s.map(e=>e.date),datasets:[{label:'Вес (кг)',data:s.map(e=>e.weight),borderColor:col,backgroundColor:grad,tension:0.3,fill:true,pointBackgroundColor:col,pointBorderColor:'#0D1117',pointRadius:5},{label:'Цель',data:s.map(()=>goal),borderColor:'#FFD93D',borderDash:[5,5],borderWidth:2,pointRadius:0,fill:false}]},options:{responsive:true,plugins:{legend:{labels:{color:'#E6EDF3'}},tooltip:{callbacks:{label:(c)=>`${c.raw} кг`}}},scales:{x:{ticks:{color:'#9CA3AF'}},y:{min,max,ticks:{color:'#9CA3AF',stepSize:0.5}}}}})}
 
-  window.onload=function(){let sl=localStorage.getItem('fitcat_lang')||'ru';setLanguage(sl);loadData();loadProductsDB();loadTemplates();setupAutocomplete();dailyActivity=parseFloat(localStorage.getItem('dailyActivity')||1.375);trainingToday=localStorage.getItem('hadTraining')==='true';currentSteps=parseInt(localStorage.getItem('currentSteps')||8000);currentTemp=parseInt(localStorage.getItem('currentTemp')||22);waterAmount=parseInt(localStorage.getItem('waterAmount')||0);if(!currentProfile){document.getElementById('setupPage').style.display='block';document.getElementById('mainPage').style.display='none'}else{document.getElementById('setupPage').style.display='none';document.getElementById('mainPage').style.display='block';calculateTargets();renderDashboard();renderTemplates();checkDateReset();updateGreeting();updateActivityUI();updateWaterHint();updateHeaderPhoto();updateBMI();updateWaterDisplay()}updateStreak();let ts=document.getElementById('tempSlider'),ss=document.getElementById('stepsSlider');if(ts)ts.addEventListener('input',updateTempDisplay);if(ss)ss.addEventListener('input',updateStepsDisplay);['tempTicks','stepsTicks'].forEach(id=>{let el=document.getElementById(id);if(el)for(let i=0;i<51;i++)el.innerHTML+='<span class="tick" style="width:2px;height:12px;background:rgba(255,255,255,0.3);"></span>'});if(localStorage.getItem('card_waterCard_collapsed')==='true')document.getElementById('waterContent').classList.add('collapsed');if(localStorage.getItem('card_mealsCard_collapsed')==='true')document.getElementById('mealsContent').classList.add('collapsed')}
-  function loadData(){currentProfile=JSON.parse(localStorage.getItem('fitnessProfile')||'null');todayFoods=JSON.parse(localStorage.getItem('todayFoods')||'[]');weightHistory=JSON.parse(localStorage.getItem('weightHistory')||'[]')}
-  function saveAllData(){if(currentProfile)localStorage.setItem('fitnessProfile',JSON.stringify(currentProfile));localStorage.setItem('todayFoods',JSON.stringify(todayFoods));localStorage.setItem('weightHistory',JSON.stringify(weightHistory))}
-  function checkDateReset(){let ld=localStorage.getItem('lastDate'),td=new Date().toDateString();if(ld!==td){todayFoods=[];localStorage.setItem('waterAmount',0);localStorage.setItem('hadTraining',false);trainingToday=false;waterAmount=0;localStorage.setItem('lastDate',td);saveAllData()}}
-  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout);let h=new Date().getHours(),k='day';if(h>=5&&h<12)k='morning';else if(h>=12&&h<18)k='day';else if(h>=18&&h<23)k='evening';else k='night';let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||'';if(streak){streak.style.opacity='0';streak.classList.add('fade-in');}s1.innerHTML=`<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`;s2.innerHTML='<h1>🐱 FitCat</h1>';s1.classList.remove('hidden');s2.classList.remove('visible');greetingTimeout=setTimeout(()=>{s1.classList.add('hidden');s2.classList.add('visible');if(streak){streak.style.display='inline-block';requestAnimationFrame(()=>{streak.style.opacity='1';streak.classList.remove('fade-in');});}updateStreak()},3500)}
-  function completeSetup(){let n=document.getElementById('setupName').value.trim(),a=parseInt(document.getElementById('setupAge').value),g=document.querySelector('input[name="setupGender"]:checked')?.value,h=parseFloat(document.getElementById('setupHeight').value),w=parseFloat(document.getElementById('setupWeight').value);if(!n||!a||a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500){alert(translations[currentLang].error_fill);return}currentProfile={name:n,age:a,gender:g,height:h,weight:w,startWeight:w};calculateTargets();saveAllData();localStorage.setItem('lastDate',new Date().toDateString());document.getElementById('setupPage').style.display='none';document.getElementById('mainPage').style.display='block';updateGreeting();renderDashboard();renderTemplates();updateActivityUI();updateHeaderPhoto();updateBMI();updateStreak()}
-  function calculateTargets(){if(!currentProfile)return;let p=currentProfile;let bmr=p.gender==='female'?447.6+9.2*p.weight+3.1*p.height-4.3*p.age:88.36+13.4*p.weight+4.8*p.height-5.7*p.age;let tdee=bmr*dailyActivity;dailyTargets={kcal:Math.round(tdee*0.85),protein:Math.round(p.weight*1.8),fat:Math.round(p.weight*0.9),carbs:Math.round((tdee*0.85-p.weight*1.8*4-p.weight*0.9*9)/4),water:Math.round(p.weight*35)};if(waterAmount>dailyTargets.water)waterAmount=dailyTargets.water}
-  function renderDashboard(){renderProgressBars();renderFoodList();updateWaterDisplay()}
-  function renderProgressBars(){let c={kcal:0,protein:0,fat:0,carbs:0};todayFoods.forEach(f=>{if(f.checked){c.kcal+=f.kcal||0;c.protein+=f.protein||0;c.fat+=f.fat||0;c.carbs+=f.carbs||0}});let t=translations[currentLang];let bars=[{l:t.kcal,cur:c.kcal,tar:dailyTargets.kcal,u:'ккал',cls:'bar-kcal'},{l:t.protein,cur:c.protein,tar:dailyTargets.protein,u:'г',cls:'bar-protein'},{l:t.fat,cur:c.fat,tar:dailyTargets.fat,u:'г',cls:'bar-fat'},{l:t.carbs,cur:c.carbs,tar:dailyTargets.carbs,u:'г',cls:'bar-carbs'},{l:t.water,cur:waterAmount,tar:dailyTargets.water,u:'мл',cls:'bar-water'}];let cont=document.getElementById('progressBars');if(!cont.querySelector('.progress-bar')){let h='';bars.forEach(b=>{let pct=(b.cur/b.tar)*100,col=getBarColor(pct);h+=`<div class="bar-group" id="bar-group-${b.cls}"><div class="flex" style="justify-content:space-between;"><span>${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}</span><span class="bar-percent" style="color:${col}">${Math.round(pct)}%</span></div><div class="progress-bar-container"><div class="progress-bar ${b.cls}" id="bar-${b.cls}" style="width:0;"></div></div></div>`});cont.innerHTML=h;requestAnimationFrame(()=>bars.forEach(b=>{let bar=document.getElementById(`bar-${b.cls}`);if(bar)bar.style.width=Math.min((b.cur/b.tar)*100,100)+'%'}))}else{bars.forEach(b=>{let pct=Math.min((b.cur/b.tar)*100,100),col=getBarColor(pct);let g=document.getElementById(`bar-group-${b.cls}`);if(g){g.querySelector('.flex span:first-child').innerText=`${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}`;let pr=g.querySelector('.bar-percent');pr.innerText=Math.round(pct)+'%';pr.style.color=col;document.getElementById(`bar-${b.cls}`).style.width=pct+'%'}})}}
-
-  function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event.target.classList.add('active');document.getElementById('todayPage').classList.toggle('active',tab==='today');document.getElementById('activityPage').classList.toggle('active',tab==='activity');document.getElementById('weightPage').classList.toggle('active',tab==='weight');if(tab==='weight'){updateWeightStatsAndList();renderWeightChart();updateBMI()}if(tab==='activity'&&currentProfile){document.querySelectorAll('#activityPage .activity-daily-item').forEach(el=>el.classList.toggle('selected',parseFloat(el.dataset.activity)===dailyActivity));updateActivityPreview(dailyActivity)}}
-  function showPage(pageId){document.getElementById('mainPage').style.display=(pageId==='mainPage'||pageId==='activityPage')?'block':'none';document.getElementById('settingsPage').style.display=pageId==='settingsPage'?'block':'none';document.getElementById('profilePage').style.display=pageId==='profilePage'?'block':'none';document.getElementById('productsPage').style.display='none';if(pageId==='mainPage'){document.getElementById('todayPage').classList.add('active');document.getElementById('activityPage').classList.remove('active');document.getElementById('weightPage').classList.remove('active')}}
-  function showProductsManager(){document.getElementById('mainPage').style.display='none';document.getElementById('settingsPage').style.display='none';document.getElementById('productsPage').style.display='block';renderProductsList()}
-  function renderProductsList(){let t=translations[currentLang],c=document.getElementById('productsList');if(!productsDB.length){c.innerHTML=`<div class="text-center text-small">${t.no_templates}</div>`;return}c.innerHTML=productsDB.map((p,i)=>`<div class="product-edit-item"><div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">${p.protein}/${p.fat}/${p.carbs} ${p.kcal}${currentLang==='en'?'kcal':'ккал'}</div></div><div class="product-edit-actions"><button class="btn-small" onclick="editProduct(${i})">✏️</button><button class="btn-small" onclick="deleteProduct(${i})">🗑️</button></div></div>`).join('')}
-  function editProduct(i){let p=productsDB[i],t=translations[currentLang];let n=prompt(t.name,p.name);if(n)p.name=n;let prot=prompt(t.protein,p.protein);if(prot)p.protein=parseFloat(prot);let fat=prompt(t.fat,p.fat);if(fat)p.fat=parseFloat(fat);let carbs=prompt(t.carbs,p.carbs);if(carbs)p.carbs=parseFloat(carbs);let kcal=prompt(t.kcal,p.kcal);if(kcal)p.kcal=parseFloat(kcal);saveProductsDB();renderProductsList()}
-  function deleteProduct(i){if(confirm(translations[currentLang].delete_product+'?')){productsDB.splice(i,1);saveProductsDB();renderProductsList()}}
-  function exportData(){let data={profile:currentProfile,foods:todayFoods,weight:weightHistory,products:productsDB,templates:mealTemplates};let b=new Blob([JSON.stringify(data)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fitcat_backup.json';a.click()}
-  function importData(){let i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=e=>{let f=e.target.files[0],r=new FileReader();r.onload=ev=>{let d=JSON.parse(ev.target.result);currentProfile=d.profile;todayFoods=d.foods;weightHistory=d.weight;productsDB=d.products||[];mealTemplates=d.templates||[];saveAllData();saveProductsDB();saveTemplates();location.reload()};r.readAsText(f)};i.click()}
+  window.onload=function(){
+    let sl=localStorage.getItem('fitcat_lang')||'ru'; setLanguage(sl);
+    smartSearchEnabled = localStorage.getItem('smartSearchEnabled')==='true';
+    smartSearchResults = parseInt(localStorage.getItem('smartSearchResults')||'10');
+    smartSearchLang = localStorage.getItem('smartSearchLang')||'ru';
+    loadData(); loadProductsDB(); loadTemplates(); setupAutocomplete();
+    dailyActivity=parseFloat(localStorage.getItem('dailyActivity')||1.375); trainingToday=localStorage.getItem('hadTraining')==='true';
+    currentSteps=parseInt(localStorage.getItem('currentSteps')||8000); currentTemp=parseInt(localStorage.getItem('currentTemp')||22);
+    waterAmount=parseInt(localStorage.getItem('waterAmount')||0);
+    if(!currentProfile){document.getElementById('setupPage').style.display='block';document.getElementById('mainPage').style.display='none'}
+    else {document.getElementById('setupPage').style.display='none';document.getElementById('mainPage').style.display='block'; calculateTargets(); renderDashboard(); renderTemplates(); checkDateReset(); updateGreeting(); updateActivityUI(); updateWaterHint(); updateHeaderPhoto(); updateBMI(); updateWaterDisplay()}
+    updateStreak();
+    let ts=document.getElementById('tempSlider'), ss=document.getElementById('stepsSlider'), rs=document.getElementById('resultsSlider');
+    if(ts)ts.addEventListener('input', updateTempDisplay);
+    if(ss)ss.addEventListener('input', updateStepsDisplay);
+    if(rs){ rs.addEventListener('input', function(){ document.getElementById('resultsDisplay').innerText = this.value; }); }
+    ['tempTicks','stepsTicks'].forEach(id=>{let el=document.getElementById(id); if(el)for(let i=0;i<51;i++)el.innerHTML+='<span class="tick" style="width:2px;height:12px;background:rgba(255,255,255,0.3);"></span>';});
+    let rt=document.getElementById('resultsTicks'); if(rt)for(let i=0;i<46;i++)rt.innerHTML+='<span class="tick"></span>';
+    if(localStorage.getItem('card_waterCard_collapsed')==='true')document.getElementById('waterContent').classList.add('collapsed');
+    if(localStorage.getItem('card_mealsCard_collapsed')==='true')document.getElementById('mealsContent').classList.add('collapsed');
+  }
+  function loadData(){currentProfile=JSON.parse(localStorage.getItem('fitnessProfile')||'null'); todayFoods=JSON.parse(localStorage.getItem('todayFoods')||'[]'); weightHistory=JSON.parse(localStorage.getItem('weightHistory')||'[]')}
+  function saveAllData(){if(currentProfile)localStorage.setItem('fitnessProfile',JSON.stringify(currentProfile)); localStorage.setItem('todayFoods',JSON.stringify(todayFoods)); localStorage.setItem('weightHistory',JSON.stringify(weightHistory))}
+  function checkDateReset(){let ld=localStorage.getItem('lastDate'),td=new Date().toDateString(); if(ld!==td){todayFoods=[]; localStorage.setItem('waterAmount',0); localStorage.setItem('hadTraining',false); trainingToday=false; waterAmount=0; localStorage.setItem('lastDate',td); saveAllData()}}
+  function updateGreeting(){if(greetingTimeout)clearTimeout(greetingTimeout); let h=new Date().getHours(),k='day'; if(h>=5&&h<12)k='morning'; else if(h>=12&&h<18)k='day'; else if(h>=18&&h<23)k='evening'; else k='night'; let s1=document.getElementById('greetingSlide1'),s2=document.getElementById('greetingSlide2'),streak=document.getElementById('streakEmoji'),name=currentProfile?.name||''; if(streak){streak.style.opacity='0';streak.classList.add('fade-in');} s1.innerHTML=`<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`; s2.innerHTML='<h1>🐱 FitCat</h1>'; s1.classList.remove('hidden'); s2.classList.remove('visible'); greetingTimeout=setTimeout(()=>{s1.classList.add('hidden'); s2.classList.add('visible'); if(streak){streak.style.display='inline-block'; requestAnimationFrame(()=>{streak.style.opacity='1';streak.classList.remove('fade-in');});} updateStreak()},3500)}
+  function completeSetup(){let n=document.getElementById('setupName').value.trim(),a=parseInt(document.getElementById('setupAge').value),g=document.querySelector('input[name="setupGender"]:checked')?.value,h=parseFloat(document.getElementById('setupHeight').value),w=parseFloat(document.getElementById('setupWeight').value); if(!n||!a||a<10||a>100||!g||!h||h<100||h>250||!w||w<30||w>500){alert(translations[currentLang].error_fill);return} currentProfile={name:n,age:a,gender:g,height:h,weight:w,startWeight:w}; calculateTargets(); saveAllData(); localStorage.setItem('lastDate',new Date().toDateString()); document.getElementById('setupPage').style.display='none'; document.getElementById('mainPage').style.display='block'; updateGreeting(); renderDashboard(); renderTemplates(); updateActivityUI(); updateHeaderPhoto(); updateBMI(); updateStreak()}
+  function calculateTargets(){if(!currentProfile)return; let p=currentProfile; let bmr=p.gender==='female'?447.6+9.2*p.weight+3.1*p.height-4.3*p.age:88.36+13.4*p.weight+4.8*p.height-5.7*p.age; let tdee=bmr*dailyActivity; dailyTargets={kcal:Math.round(tdee*0.85),protein:Math.round(p.weight*1.8),fat:Math.round(p.weight*0.9),carbs:Math.round((tdee*0.85-p.weight*1.8*4-p.weight*0.9*9)/4),water:Math.round(p.weight*35)}; if(waterAmount>dailyTargets.water)waterAmount=dailyTargets.water}
+  function renderDashboard(){renderProgressBars(); renderFoodList(); updateWaterDisplay()}
+  function renderProgressBars(){let c={kcal:0,protein:0,fat:0,carbs:0}; todayFoods.forEach(f=>{if(f.checked){c.kcal+=f.kcal||0; c.protein+=f.protein||0; c.fat+=f.fat||0; c.carbs+=f.carbs||0}}); let t=translations[currentLang]; let bars=[{l:t.kcal,cur:c.kcal,tar:dailyTargets.kcal,u:'ккал',cls:'bar-kcal'},{l:t.protein,cur:c.protein,tar:dailyTargets.protein,u:'г',cls:'bar-protein'},{l:t.fat,cur:c.fat,tar:dailyTargets.fat,u:'г',cls:'bar-fat'},{l:t.carbs,cur:c.carbs,tar:dailyTargets.carbs,u:'г',cls:'bar-carbs'},{l:t.water,cur:waterAmount,tar:dailyTargets.water,u:'мл',cls:'bar-water'}]; let cont=document.getElementById('progressBars'); if(!cont.querySelector('.progress-bar')){let h=''; bars.forEach(b=>{let pct=(b.cur/b.tar)*100,col=getBarColor(pct); h+=`<div class="bar-group" id="bar-group-${b.cls}"><div class="flex" style="justify-content:space-between;"><span>${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}</span><span class="bar-percent" style="color:${col}">${Math.round(pct)}%</span></div><div class="progress-bar-container"><div class="progress-bar ${b.cls}" id="bar-${b.cls}" style="width:0;"></div></div></div>`;}); cont.innerHTML=h; requestAnimationFrame(()=>bars.forEach(b=>{let bar=document.getElementById(`bar-${b.cls}`); if(bar)bar.style.width=Math.min((b.cur/b.tar)*100,100)+'%';}))}else{bars.forEach(b=>{let pct=Math.min((b.cur/b.tar)*100,100),col=getBarColor(pct); let g=document.getElementById(`bar-group-${b.cls}`); if(g){g.querySelector('.flex span:first-child').innerText=`${b.l} ${Math.round(b.cur)}/${b.tar} ${b.u}`; let pr=g.querySelector('.bar-percent'); pr.innerText=Math.round(pct)+'%'; pr.style.color=col; document.getElementById(`bar-${b.cls}`).style.width=pct+'%';}})}}}
+  function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); event.target.classList.add('active'); document.getElementById('todayPage').classList.toggle('active',tab==='today'); document.getElementById('activityPage').classList.toggle('active',tab==='activity'); document.getElementById('weightPage').classList.toggle('active',tab==='weight'); if(tab==='weight'){updateWeightStatsAndList(); renderWeightChart(); updateBMI()} if(tab==='activity'&&currentProfile){document.querySelectorAll('#activityPage .activity-daily-item').forEach(el=>el.classList.toggle('selected',parseFloat(el.dataset.activity)===dailyActivity)); updateActivityPreview(dailyActivity)}}
+  function showPage(pageId){document.getElementById('mainPage').style.display=(pageId==='mainPage'||pageId==='activityPage')?'block':'none'; document.getElementById('settingsPage').style.display=pageId==='settingsPage'?'block':'none'; document.getElementById('profilePage').style.display=pageId==='profilePage'?'block':'none'; document.getElementById('productsPage').style.display='none'; if(pageId==='mainPage'){document.getElementById('todayPage').classList.add('active'); document.getElementById('activityPage').classList.remove('active'); document.getElementById('weightPage').classList.remove('active')}}
+  function showProductsManager(){document.getElementById('mainPage').style.display='none'; document.getElementById('settingsPage').style.display='none'; document.getElementById('productsPage').style.display='block'; renderProductsList()}
+  function renderProductsList(){let t=translations[currentLang],c=document.getElementById('productsList'); if(!productsDB.length){c.innerHTML=`<div class="text-center text-small">${t.no_templates}</div>`; return} c.innerHTML=productsDB.map((p,i)=>`<div class="product-edit-item"><div class="product-edit-info"><div class="product-edit-name">${p.name}</div><div class="product-edit-macros">${p.protein}/${p.fat}/${p.carbs} ${p.kcal}${currentLang==='en'?'kcal':'ккал'}</div></div><div class="product-edit-actions"><button class="btn-small" onclick="editProduct(${i})">✏️</button><button class="btn-small" onclick="deleteProduct(${i})">🗑️</button></div></div>`).join('')}
+  function editProduct(i){let p=productsDB[i],t=translations[currentLang]; let n=prompt(t.name,p.name); if(n)p.name=n; let prot=prompt(t.protein,p.protein); if(prot)p.protein=parseFloat(prot); let fat=prompt(t.fat,p.fat); if(fat)p.fat=parseFloat(fat); let carbs=prompt(t.carbs,p.carbs); if(carbs)p.carbs=parseFloat(carbs); let kcal=prompt(t.kcal,p.kcal); if(kcal)p.kcal=parseFloat(kcal); saveProductsDB(); renderProductsList()}
+  function deleteProduct(i){if(confirm(translations[currentLang].delete_product+'?')){productsDB.splice(i,1); saveProductsDB(); renderProductsList()}}
+  function exportData(){let data={profile:currentProfile,foods:todayFoods,weight:weightHistory,products:productsDB,templates:mealTemplates}; let b=new Blob([JSON.stringify(data)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='fitcat_backup.json'; a.click()}
+  function importData(){let i=document.createElement('input'); i.type='file'; i.accept='.json'; i.onchange=e=>{let f=e.target.files[0],r=new FileReader(); r.onload=ev=>{let d=JSON.parse(ev.target.result); currentProfile=d.profile; todayFoods=d.foods; weightHistory=d.weight; productsDB=d.products||[]; mealTemplates=d.templates||[]; saveAllData(); saveProductsDB(); saveTemplates(); location.reload()}; r.readAsText(f)}; i.click()}
 </script>
 </body>
 </html>
