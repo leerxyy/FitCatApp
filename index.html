@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, shrink-to-fit=no, viewport-fit=cover">
-  <title>🐱 FitCat · финальная</title>
+  <title>FitCat · финальная</title>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
   <style>
@@ -73,21 +73,17 @@
     input::placeholder { color: #6B7280; opacity: 0.7; }
     input[type="date"] { color-scheme: dark; }
 
-    .radio-group {
-      display: flex; gap: 24px; background: rgba(1, 4, 9, 0.6); padding: 8px 16px;
-      border-radius: 20px; border: 1px solid #30363D; align-items: center; justify-content: center;
+    .segmented-control {
+      display: flex; background: rgba(1, 4, 9, 0.6); border: 1px solid #30363D;
+      border-radius: 16px; padding: 4px;
     }
-    .radio-group input[type="radio"] { display: none; }
-    .radio-group label {
-      position: relative; padding-left: 28px; cursor: pointer; font-size: 16px; color: #E6EDF3;
-      display: flex; align-items: center; line-height: 24px; margin: 0;
+    .segmented-option {
+      flex: 1; text-align: center; padding: 12px; border-radius: 12px;
+      font-size: 16px; font-weight: 500; color: #9CA3AF; cursor: pointer;
+      transition: all 0.2s ease;
     }
-    .radio-group label::before {
-      content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-      width: 20px; height: 20px; border: 2px solid #30363D; border-radius: 50%; background: #010409;
-    }
-    .radio-group input[type="radio"]:checked + label::before {
-      border-color: #4FACFE; background: #4FACFE; box-shadow: inset 0 0 0 5px #010409;
+    .segmented-option.active {
+      background: #4FACFE; color: #0D1117;
     }
 
     .btn-primary, .btn-secondary, .btn-small, .water-btn {
@@ -294,6 +290,8 @@
     .apple-switch input:checked + .slider { background-color: #4FACFE; border-color: #4FACFE; }
     .apple-switch input:checked + .slider:before { transform: translateX(20px); }
 
+    .toggle-label { margin-left: 12px; font-size: 14px; color: #9CA3AF; }
+
     .flex { display: flex; gap: 8px; align-items: center; }
     .text-center { text-align: center; }
     .text-small { font-size: 13px; color: #9CA3AF; }
@@ -325,64 +323,85 @@
   <div id="smartWaterModal" class="smart-water-modal">
     <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>💧 Умная вода</h2><button class="btn-small" onclick="closeSmartWater()">Закрыть</button></div>
     <div class="card">
-      <div class="slider-container">
-        <div class="slider-labels"><span>🥶 -10°</span><span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>🔥 40°+</span></div>
-        <div class="slider-wrapper"><div class="slider-gradient temp-gradient"></div><input type="range" id="tempSlider" min="-10" max="40" value="22" step="1"></div>
-        <div class="slider-value">Сейчас: <span id="tempDisplay">22°C</span></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <span>🔍 Включить</span>
+        <div style="display:flex; align-items:center;">
+          <label class="apple-switch"><input type="checkbox" id="smartWaterToggle"><span class="slider"></span></label>
+          <span class="toggle-label" id="smartWaterToggleLabel">Выкл</span>
+        </div>
       </div>
-      <div class="slider-container">
-        <div class="slider-labels"><span>0</span><span>5к</span><span>10к</span><span>15к</span><span>20к+</span></div>
-        <div class="slider-wrapper"><div class="slider-gradient steps-gradient"></div><input type="range" id="stepsSlider" min="0" max="20000" value="8000" step="100"></div>
-        <div class="slider-value">Шаги: <span id="stepsDisplay">8 000</span></div>
+      <div id="smartWaterSettings" style="display:none;">
+        <div class="slider-container">
+          <div class="slider-labels"><span>🥶 -10°</span><span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>🔥 40°+</span></div>
+          <div class="slider-wrapper"><div class="slider-gradient temp-gradient"></div><input type="range" id="tempSlider" min="-10" max="40" value="22" step="1"></div>
+          <div class="slider-value">Сейчас: <span id="tempDisplay">22°C</span></div>
+        </div>
+        <div class="slider-container">
+          <div class="slider-labels"><span>0</span><span>5к</span><span>10к</span><span>15к</span><span>20к+</span></div>
+          <div class="slider-wrapper"><div class="slider-gradient steps-gradient"></div><input type="range" id="stepsSlider" min="0" max="20000" value="8000" step="100"></div>
+          <div class="slider-value">Шаги: <span id="stepsDisplay">8 000</span></div>
+        </div>
+        <div class="flex" style="justify-content:space-between;margin:16px 0;"><span>Тренировка сегодня</span><label class="food-toggle" id="trainingToggle" onclick="toggleTraining()" style="width:28px;height:28px;"></label></div>
+        <div style="padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;">
+          <div class="flex" style="justify-content:space-between;"><span>Базовая норма:</span><span id="baseWaterNorm">1820 мл</span></div>
+          <div class="flex" style="justify-content:space-between;"><span>Температура:</span><span id="tempBonus">+150 мл</span></div>
+          <div class="flex" style="justify-content:space-between;"><span>Шаги:</span><span id="stepsBonus">+150 мл</span></div>
+          <div class="flex" style="justify-content:space-between;"><span>Тренировка:</span><span id="trainingBonus">0 мл</span></div>
+          <div class="flex" style="justify-content:space-between;font-weight:700;margin-top:8px;"><span>ИТОГО:</span><span id="totalWaterNorm">2120 мл</span></div>
+        </div>
       </div>
-      <div class="flex" style="justify-content:space-between;margin:16px 0;"><span>Тренировка сегодня</span><label class="food-toggle" id="trainingToggle" onclick="toggleTraining()" style="width:28px;height:28px;"></label></div>
-      <div style="padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;">
-        <div class="flex" style="justify-content:space-between;"><span>Базовая норма:</span><span id="baseWaterNorm">1820 мл</span></div>
-        <div class="flex" style="justify-content:space-between;"><span>Температура:</span><span id="tempBonus">+150 мл</span></div>
-        <div class="flex" style="justify-content:space-between;"><span>Шаги:</span><span id="stepsBonus">+150 мл</span></div>
-        <div class="flex" style="justify-content:space-between;"><span>Тренировка:</span><span id="trainingBonus">0 мл</span></div>
-        <div class="flex" style="justify-content:space-between;font-weight:700;margin-top:8px;"><span>ИТОГО:</span><span id="totalWaterNorm">2120 мл</span></div>
+      <div style="padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;margin-top:20px;" id="waterBaseOnly" style="display:none;">
+        <div class="flex" style="justify-content:space-between;"><span>Норма воды:</span><span id="baseOnlyWater">1820 мл</span></div>
       </div>
-      <button class="btn-primary" onclick="applySmartWater()" style="margin-top:20px;">Применить</button>
+      <button class="btn-primary" onclick="closeSmartWater()" style="margin-top:20px;">Закрыть</button>
     </div>
   </div>
 
   <div id="smartSearchModal" class="smart-water-modal">
-    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>🧠 Умный поиск</h2><button class="btn-small" onclick="closeSmartSearch()">Закрыть</button></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>⚙️ Умный поиск</h2><button class="btn-small" onclick="closeSmartSearch()">Закрыть</button></div>
     <div class="card">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;"><span>🔍 Включить</span><label class="apple-switch"><input type="checkbox" id="smartSearchToggle"><span class="slider"></span></label></div>
-      <div class="slider-container">
-        <div class="slider-labels"><span>5</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span></div>
-        <div class="slider-wrapper"><div class="slider-gradient search-gradient"></div><input type="range" id="resultsSlider" min="5" max="50" value="10" step="1"></div>
-        <div class="slider-value">Результатов: <span id="resultsDisplay">10</span></div>
-      </div>
-      <div style="margin: 20px 0;"><span>🌍 Язык</span>
-        <div class="radio-group" style="margin-top:12px;">
-          <input type="radio" name="searchLang" value="ru" id="langRu" checked><label for="langRu">Русский</label>
-          <input type="radio" name="searchLang" value="en" id="langEn"><label for="langEn">English</label>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <span>🔍 Включить</span>
+        <div style="display:flex; align-items:center;">
+          <label class="apple-switch"><input type="checkbox" id="smartSearchToggle"><span class="slider"></span></label>
+          <span class="toggle-label" id="smartSearchToggleLabel">Выкл</span>
         </div>
       </div>
-      <button class="btn-primary" onclick="applySmartSearch()" style="margin-top:20px;">Сохранить</button>
+      <div id="smartSearchSettings" style="display:none;">
+        <div class="slider-container">
+          <div class="slider-labels"><span>5</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span></div>
+          <div class="slider-wrapper"><div class="slider-gradient search-gradient"></div><input type="range" id="resultsSlider" min="5" max="50" value="10" step="1"></div>
+          <div class="slider-value">Результатов: <span id="resultsDisplay">10</span></div>
+        </div>
+        <div style="margin: 20px 0;"><span>🌍 Язык</span>
+          <div class="segmented-control" style="margin-top:12px;">
+            <div class="segmented-option active" data-lang="ru" onclick="setSearchLang('ru')">Русский</div>
+            <div class="segmented-option" data-lang="en" onclick="setSearchLang('en')">English</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="closeSmartSearch()" style="margin-top:20px;">Закрыть</button>
     </div>
   </div>
 
   <!-- РЕГИСТРАЦИЯ -->
   <div id="setupPage">
-    <h1>🐱 FitCat</h1>
+    <h1>FitCat</h1>
     <div class="card">
       <h2>О себе</h2>
       <div class="input-group"><label>Имя</label><input type="text" id="setupName" placeholder="Введите имя"></div>
       <div class="input-group"><label>Возраст</label><input type="number" id="setupAge" placeholder="Введите возраст" min="10" max="100"></div>
       <div class="input-group"><label>Пол</label>
-        <div class="radio-group">
-          <input type="radio" name="setupGender" value="female" id="genderFemale" checked><label for="genderFemale">Женский</label>
-          <input type="radio" name="setupGender" value="male" id="genderMale"><label for="genderMale">Мужской</label>
+        <div class="segmented-control" id="setupGenderControl">
+          <div class="segmented-option active" data-gender="female" onclick="selectSetupGender('female')">Женский</div>
+          <div class="segmented-option" data-gender="male" onclick="selectSetupGender('male')">Мужской</div>
         </div>
+        <input type="hidden" id="setupGender" value="female">
       </div>
       <div class="input-group"><label>Рост (см)</label><input type="number" id="setupHeight" placeholder="Введите рост" min="100" max="250"></div>
       <div class="input-group"><label>Вес (кг)</label><input type="number" id="setupWeight" placeholder="Введите вес" min="30" max="500" step="0.1"></div>
     </div>
-    <button class="btn-primary" onclick="completeSetup()">🚀 Начать</button>
+    <button class="btn-primary" onclick="completeSetup()">Начать</button>
     <div class="text-center text-small" style="margin-top:16px;">Данные только в твоём телефоне</div>
     <div class="card" style="margin-top:20px;">
       <h2>Язык</h2>
@@ -399,8 +418,8 @@
     <div class="header-row">
       <div style="flex:1; min-width:0;">
         <div class="greeting-wrapper">
-          <div class="greeting-slide" id="greetingSlide1"><h1>🐱 FitCat</h1></div>
-          <div class="greeting-slide next" id="greetingSlide2"><h1>🐱 FitCat</h1></div>
+          <div class="greeting-slide" id="greetingSlide1"><h1>FitCat</h1></div>
+          <div class="greeting-slide next" id="greetingSlide2"><h1>FitCat</h1></div>
         </div>
       </div>
       <div class="header-actions">
@@ -437,7 +456,7 @@
         </div>
       </div>
       <div class="card" id="mealsCard">
-        <div class="card-header" onclick="toggleCard('mealsCard')"><h2>Продукты</h2><button class="btn-small" onclick="event.stopPropagation();openSmartSearch()">🧠⚙️</button></div>
+        <div class="card-header" onclick="toggleCard('mealsCard')"><h2>Продукты</h2><button class="btn-small" onclick="event.stopPropagation();openSmartSearch()">⚙️</button></div>
         <div class="card-content" id="mealsContent">
           <div class="templates-bar" id="templatesBar"></div>
           <div style="display:flex;gap:8px;margin-bottom:12px;">
@@ -458,7 +477,7 @@
               <input type="number" id="foodCarb100" placeholder="У" step="0.1">
               <input type="number" id="foodKcal100" placeholder="Ккал">
             </div>
-            <div style="display:flex;gap:8px;"><input type="number" id="foodWeight" placeholder="Вес (грамм)" step="1" min="1" style="flex:1;" value="100"></div>
+            <div style="display:flex;gap:8px;"><input type="number" id="foodWeight" placeholder="Вес (грамм)" step="1" min="1" style="flex:1;"></div>
             <button class="btn-primary" onclick="addFood()">Добавить</button>
           </div>
         </div>
@@ -537,10 +556,11 @@
       <div class="input-group"><label>Имя</label><input type="text" id="profileName"></div>
       <div class="input-group"><label>Возраст</label><input type="number" id="profileAge" min="10" max="100"></div>
       <div class="input-group"><label>Пол</label>
-        <div class="radio-group">
-          <input type="radio" name="profileGender" value="female" id="profileGenderFemale"><label for="profileGenderFemale">Женский</label>
-          <input type="radio" name="profileGender" value="male" id="profileGenderMale"><label for="profileGenderMale">Мужской</label>
+        <div class="segmented-control" id="profileGenderControl">
+          <div class="segmented-option" data-gender="female" onclick="selectProfileGender('female')">Женский</div>
+          <div class="segmented-option" data-gender="male" onclick="selectProfileGender('male')">Мужской</div>
         </div>
+        <input type="hidden" id="profileGender" value="female">
       </div>
       <div class="input-group"><label>Рост (см)</label><input type="number" id="profileHeight" min="100" max="250"></div>
       <div class="input-group"><label>Вес (кг)</label><input type="number" id="profileWeight" min="30" max="500" step="0.1"></div>
@@ -657,6 +677,7 @@
     let smartSearchEnabled = false;
     let smartSearchResults = 10;
     let smartSearchLang = 'ru';
+    let smartWaterEnabled = false;
 
     function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
     
@@ -676,6 +697,26 @@
         renderTemplates();
         updateHeaderPhoto();
       }
+    }
+
+    function selectSetupGender(gender) {
+      document.querySelectorAll('#setupGenderControl .segmented-option').forEach(el => el.classList.remove('active'));
+      document.querySelector(`#setupGenderControl .segmented-option[data-gender="${gender}"]`).classList.add('active');
+      document.getElementById('setupGender').value = gender;
+    }
+
+    function selectProfileGender(gender) {
+      document.querySelectorAll('#profileGenderControl .segmented-option').forEach(el => el.classList.remove('active'));
+      document.querySelector(`#profileGenderControl .segmented-option[data-gender="${gender}"]`).classList.add('active');
+      document.getElementById('profileGender').value = gender;
+    }
+
+    function setSearchLang(lang) {
+      smartSearchLang = lang;
+      document.querySelectorAll('#smartSearchSettings .segmented-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.lang === lang);
+      });
+      localStorage.setItem('smartSearchLang', lang);
     }
 
     function updateStreak() {
@@ -774,6 +815,14 @@
 
     function openSmartWater() {
       document.getElementById('smartWaterModal').style.display = 'flex';
+      document.getElementById('smartWaterToggle').checked = smartWaterEnabled;
+      document.getElementById('smartWaterToggleLabel').innerText = smartWaterEnabled ? 'Вкл' : 'Выкл';
+      document.getElementById('smartWaterSettings').style.display = smartWaterEnabled ? 'block' : 'none';
+      document.getElementById('waterBaseOnly').style.display = smartWaterEnabled ? 'none' : 'block';
+      
+      let baseWater = Math.round(currentProfile.weight * 35);
+      document.getElementById('baseOnlyWater').innerText = baseWater + ' мл';
+      
       document.getElementById('tempSlider').value = currentTemp;
       document.getElementById('stepsSlider').value = currentSteps;
       updateTempDisplay();
@@ -782,18 +831,25 @@
       updateWaterCalculation();
     }
 
-    function closeSmartWater() { document.getElementById('smartWaterModal').style.display = 'none'; }
+    function closeSmartWater() { 
+      document.getElementById('smartWaterModal').style.display = 'none';
+      calculateTargets();
+      updateWaterDisplay();
+      renderProgressBars();
+    }
 
     function updateTempDisplay() {
       currentTemp = parseInt(document.getElementById('tempSlider').value);
       document.getElementById('tempDisplay').innerText = currentTemp + '°C';
       updateWaterCalculation();
+      if (smartWaterEnabled) applySmartWaterSettings();
     }
 
     function updateStepsDisplay() {
       currentSteps = parseInt(document.getElementById('stepsSlider').value);
       document.getElementById('stepsDisplay').innerText = currentSteps.toLocaleString();
       updateWaterCalculation();
+      if (smartWaterEnabled) applySmartWaterSettings();
     }
 
     function getTempBonus(t) {
@@ -820,6 +876,7 @@
       localStorage.setItem('hadTraining', trainingToday);
       updateTrainingUI();
       updateWaterCalculation();
+      if (smartWaterEnabled) applySmartWaterSettings();
       vibrate();
     }
 
@@ -839,25 +896,23 @@
       document.getElementById('totalWaterNorm').innerText = total + ' мл';
     }
 
-    function applySmartWater() {
+    function applySmartWaterSettings() {
+      if (!smartWaterEnabled) return;
       currentSteps = parseInt(document.getElementById('stepsSlider').value);
       currentTemp = parseInt(document.getElementById('tempSlider').value);
       localStorage.setItem('currentSteps', currentSteps);
       localStorage.setItem('currentTemp', currentTemp);
-      dailyTargets.water = Math.round(currentProfile.weight * 35) + getTempBonus(currentTemp) + getStepsBonus(currentSteps) + (trainingToday ? 300 : 0);
-      if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
-      localStorage.setItem('waterAmount', waterAmount);
-      renderProgressBars();
-      updateWaterDisplay();
-      updateWaterHint();
-      closeSmartWater();
-      vibrate();
+      calculateTargets();
     }
 
     function updateWaterHint() {
       let h = document.getElementById('smartWaterHint');
-      let b = dailyTargets.water - Math.round(currentProfile.weight * 35);
-      h.innerText = b > 0 ? `Умная норма: +${b} мл` : '';
+      if (smartWaterEnabled) {
+        let b = dailyTargets.water - Math.round(currentProfile.weight * 35);
+        h.innerText = b > 0 ? `Умная норма: +${b} мл` : '';
+      } else {
+        h.innerText = '';
+      }
     }
 
     function selectDailyActivity(el) {
@@ -903,7 +958,8 @@
       if (!currentProfile) return;
       document.getElementById('profileName').value = currentProfile.name || '';
       document.getElementById('profileAge').value = currentProfile.age || '';
-      document.querySelector(`input[name="profileGender"][value="${currentProfile.gender}"]`).checked = true;
+      document.getElementById('profileGender').value = currentProfile.gender || 'female';
+      selectProfileGender(currentProfile.gender || 'female');
       document.getElementById('profileHeight').value = currentProfile.height || '';
       document.getElementById('profileWeight').value = currentProfile.weight || '';
       let s = localStorage.getItem('profilePhoto');
@@ -914,7 +970,7 @@
     function saveProfile() {
       let n = document.getElementById('profileName').value.trim();
       let a = parseInt(document.getElementById('profileAge').value);
-      let g = document.querySelector('input[name="profileGender"]:checked')?.value;
+      let g = document.getElementById('profileGender').value;
       let h = parseFloat(document.getElementById('profileHeight').value);
       let w = parseFloat(document.getElementById('profileWeight').value);
       if (!n || !a || a < 10 || a > 100 || !g || !h || h < 100 || h > 250 || !w || w < 30 || w > 500) {
@@ -989,23 +1045,20 @@
     function openSmartSearch() {
       document.getElementById('smartSearchModal').style.display = 'flex';
       document.getElementById('smartSearchToggle').checked = smartSearchEnabled;
+      document.getElementById('smartSearchToggleLabel').innerText = smartSearchEnabled ? 'Вкл' : 'Выкл';
+      document.getElementById('smartSearchSettings').style.display = smartSearchEnabled ? 'block' : 'none';
       document.getElementById('resultsSlider').value = smartSearchResults;
       document.getElementById('resultsDisplay').innerText = smartSearchResults;
-      document.getElementById('langRu').checked = smartSearchLang === 'ru';
-      document.getElementById('langEn').checked = smartSearchLang === 'en';
+      setSearchLang(smartSearchLang);
     }
 
-    function closeSmartSearch() { document.getElementById('smartSearchModal').style.display = 'none'; }
-
-    function applySmartSearch() {
+    function closeSmartSearch() { 
+      document.getElementById('smartSearchModal').style.display = 'none';
       smartSearchEnabled = document.getElementById('smartSearchToggle').checked;
       smartSearchResults = parseInt(document.getElementById('resultsSlider').value);
-      smartSearchLang = document.querySelector('input[name="searchLang"]:checked').value;
       localStorage.setItem('smartSearchEnabled', smartSearchEnabled);
       localStorage.setItem('smartSearchResults', smartSearchResults);
       localStorage.setItem('smartSearchLang', smartSearchLang);
-      closeSmartSearch();
-      vibrate();
     }
 
     function fillFromProduct(name) {
@@ -1037,9 +1090,22 @@
       let lang = () => localStorage.getItem('smartSearchLang') || 'ru';
       
       inp.addEventListener('input', function() {
-        if (!enabled()) { list.style.display = 'none'; return; }
         let val = this.value.trim();
         if (val.length < 2) { list.style.display = 'none'; return; }
+        
+        if (!enabled()) {
+          // Только локальная база
+          let localMatches = productsDB.filter(p => p.name.toLowerCase().includes(val.toLowerCase())).slice(0, 5);
+          if (!localMatches.length) {
+            list.style.display = 'none';
+          } else {
+            list.innerHTML = localMatches.map(p => `<div class="autocomplete-item" onclick="fillFromProduct('${p.name}')"><span class="off-name">📦 ${p.name}</span></div>`).join('');
+            list.style.display = 'block';
+          }
+          return;
+        }
+        
+        // Умный поиск включен
         inp.placeholder = '🔍 Поиск...';
         inp.style.borderColor = '#4FACFE';
         if (searchDebounce) clearTimeout(searchDebounce);
@@ -1148,7 +1214,8 @@
       let f = parseFloat(document.getElementById('foodFat100').value) || 0;
       let c = parseFloat(document.getElementById('foodCarb100').value) || 0;
       let k = parseFloat(document.getElementById('foodKcal100').value) || 0;
-      let w = parseFloat(document.getElementById('foodWeight').value) || 100;
+      let w = parseFloat(document.getElementById('foodWeight').value) || 0;
+      if (w <= 0) { alert('Введите вес'); return; }
       let m = w / 100;
       todayFoods.push({
         name: n, weight: w,
@@ -1430,8 +1497,8 @@
       let strek = document.getElementById('streakEmoji');
       let name = currentProfile?.name || '';
       if (strek) { strek.style.opacity = '0'; strek.classList.add('fade-in'); }
-      s1.innerHTML = `<h1>🐱 ${translations[currentLang][k]}, ${name}</h1>`;
-      s2.innerHTML = '<h1>🐱 FitCat</h1>';
+      s1.innerHTML = `<h1>${translations[currentLang][k]}, ${name}</h1>`;
+      s2.innerHTML = '<h1>FitCat</h1>';
       s1.classList.remove('hidden');
       s2.classList.remove('visible');
       greetingTimeout = setTimeout(() => {
@@ -1449,7 +1516,7 @@
       try {
         let n = document.getElementById('setupName').value.trim();
         let a = parseInt(document.getElementById('setupAge').value);
-        let g = document.querySelector('input[name="setupGender"]:checked')?.value;
+        let g = document.getElementById('setupGender').value;
         let h = parseFloat(document.getElementById('setupHeight').value);
         let w = parseFloat(document.getElementById('setupWeight').value);
         
@@ -1491,12 +1558,19 @@
         ? 447.6 + 9.2 * p.weight + 3.1 * p.height - 4.3 * p.age 
         : 88.36 + 13.4 * p.weight + 4.8 * p.height - 5.7 * p.age;
       let tdee = bmr * dailyActivity;
+      
+      let waterBase = Math.round(p.weight * 35);
+      let waterTotal = waterBase;
+      if (smartWaterEnabled) {
+        waterTotal = waterBase + getTempBonus(currentTemp) + getStepsBonus(currentSteps) + (trainingToday ? 300 : 0);
+      }
+      
       dailyTargets = {
         kcal: Math.round(tdee * 0.85),
         protein: Math.round(p.weight * 1.8),
         fat: Math.round(p.weight * 0.9),
         carbs: Math.round((tdee * 0.85 - p.weight * 1.8 * 4 - p.weight * 0.9 * 9) / 4),
-        water: Math.round(p.weight * 35)
+        water: waterTotal
       };
       if (waterAmount > dailyTargets.water) waterAmount = dailyTargets.water;
     }
@@ -1505,6 +1579,7 @@
       renderProgressBars();
       renderFoodList();
       updateWaterDisplay();
+      updateWaterHint();
     }
 
     function renderProgressBars() {
@@ -1689,8 +1764,11 @@
       i.click();
     }
 
-    // Привязка функций к window для вызова из HTML
+    // Привязка функций к window
     window.setLanguage = setLanguage;
+    window.selectSetupGender = selectSetupGender;
+    window.selectProfileGender = selectProfileGender;
+    window.setSearchLang = setSearchLang;
     window.completeSetup = completeSetup;
     window.switchTab = switchTab;
     window.showProfile = showProfile;
@@ -1702,7 +1780,6 @@
     window.openSmartWater = openSmartWater;
     window.closeSmartWater = closeSmartWater;
     window.toggleTraining = toggleTraining;
-    window.applySmartWater = applySmartWater;
     window.selectDailyActivity = selectDailyActivity;
     window.applyDailyActivity = applyDailyActivity;
     window.uploadPhoto = uploadPhoto;
@@ -1710,7 +1787,6 @@
     window.deletePhoto = deletePhoto;
     window.openSmartSearch = openSmartSearch;
     window.closeSmartSearch = closeSmartSearch;
-    window.applySmartSearch = applySmartSearch;
     window.fillFromProduct = fillFromProduct;
     window.fillFromOFF = fillFromOFF;
     window.saveTemplate = saveTemplate;
@@ -1742,6 +1818,7 @@
       smartSearchEnabled = localStorage.getItem('smartSearchEnabled') === 'true';
       smartSearchResults = parseInt(localStorage.getItem('smartSearchResults') || '10');
       smartSearchLang = localStorage.getItem('smartSearchLang') || 'ru';
+      smartWaterEnabled = localStorage.getItem('smartWaterEnabled') === 'true';
       
       loadData();
       loadProductsDB();
@@ -1777,11 +1854,41 @@
       let ts = document.getElementById('tempSlider');
       let ss = document.getElementById('stepsSlider');
       let rs = document.getElementById('resultsSlider');
+      let swt = document.getElementById('smartWaterToggle');
+      let sst = document.getElementById('smartSearchToggle');
+      
       if (ts) ts.addEventListener('input', updateTempDisplay);
       if (ss) ss.addEventListener('input', updateStepsDisplay);
       if (rs) {
         rs.addEventListener('input', function() {
           document.getElementById('resultsDisplay').innerText = this.value;
+          smartSearchResults = parseInt(this.value);
+        });
+      }
+      
+      if (swt) {
+        swt.addEventListener('change', function() {
+          smartWaterEnabled = this.checked;
+          document.getElementById('smartWaterToggleLabel').innerText = smartWaterEnabled ? 'Вкл' : 'Выкл';
+          document.getElementById('smartWaterSettings').style.display = smartWaterEnabled ? 'block' : 'none';
+          document.getElementById('waterBaseOnly').style.display = smartWaterEnabled ? 'none' : 'block';
+          localStorage.setItem('smartWaterEnabled', smartWaterEnabled);
+          if (!smartWaterEnabled) {
+            calculateTargets();
+            updateWaterDisplay();
+            renderProgressBars();
+          } else {
+            applySmartWaterSettings();
+          }
+        });
+      }
+      
+      if (sst) {
+        sst.addEventListener('change', function() {
+          smartSearchEnabled = this.checked;
+          document.getElementById('smartSearchToggleLabel').innerText = smartSearchEnabled ? 'Вкл' : 'Выкл';
+          document.getElementById('smartSearchSettings').style.display = smartSearchEnabled ? 'block' : 'none';
+          localStorage.setItem('smartSearchEnabled', smartSearchEnabled);
         });
       }
       
@@ -1792,7 +1899,6 @@
         document.getElementById('mealsContent')?.classList.add('collapsed');
       }
       
-      // Установка даты по умолчанию
       let dateInput = document.getElementById('weightDate');
       if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
     };
