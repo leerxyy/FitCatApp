@@ -245,7 +245,6 @@
     }
     .temp-gradient { background: linear-gradient(to right, #4FACFE, #6BCB77, #FFD93D, #FF8E53, #F85149); }
     .steps-gradient { background: linear-gradient(to right, #6BCB77, #4D96FF, #9B59B6); }
-    .search-gradient { background: linear-gradient(to right, #4FACFE, #A855F7); }
     input[type=range] {
       position: absolute; top: 50%; left: 0; right: 0; width: 100%; transform: translateY(-50%);
       background: transparent; z-index: 2; -webkit-appearance: none;
@@ -321,10 +320,10 @@
   </div>
 
   <div id="smartWaterModal" class="smart-water-modal">
-    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>💧 Умная вода</h2><button class="btn-small" onclick="closeSmartWater()">Закрыть</button></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>Умная вода</h2><button class="btn-small" onclick="closeSmartWater()">Закрыть</button></div>
     <div class="card">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-        <span>🔍 Включить</span>
+        <span>Включить</span>
         <div style="display:flex; align-items:center;">
           <label class="apple-switch"><input type="checkbox" id="smartWaterToggle"><span class="slider"></span></label>
           <span class="toggle-label" id="smartWaterToggleLabel">Выкл</span>
@@ -353,15 +352,14 @@
       <div style="padding:16px;background:rgba(1,4,9,0.4);border-radius:16px;margin-top:20px;" id="waterBaseOnly" style="display:none;">
         <div class="flex" style="justify-content:space-between;"><span>Норма воды:</span><span id="baseOnlyWater">1820 мл</span></div>
       </div>
-      <button class="btn-primary" onclick="closeSmartWater()" style="margin-top:20px;">Закрыть</button>
     </div>
   </div>
 
   <div id="smartSearchModal" class="smart-water-modal">
-    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>⚙️ Умный поиск</h2><button class="btn-small" onclick="closeSmartSearch()">Закрыть</button></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px;"><h2>Умный поиск</h2><button class="btn-small" onclick="closeSmartSearch()">Закрыть</button></div>
     <div class="card">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-        <span>🔍 Включить</span>
+        <span>Включить</span>
         <div style="display:flex; align-items:center;">
           <label class="apple-switch"><input type="checkbox" id="smartSearchToggle"><span class="slider"></span></label>
           <span class="toggle-label" id="smartSearchToggleLabel">Выкл</span>
@@ -373,14 +371,7 @@
           <div class="slider-wrapper"><div class="slider-gradient search-gradient"></div><input type="range" id="resultsSlider" min="5" max="50" value="10" step="1"></div>
           <div class="slider-value">Результатов: <span id="resultsDisplay">10</span></div>
         </div>
-        <div style="margin: 20px 0;"><span>🌍 Язык</span>
-          <div class="segmented-control" style="margin-top:12px;">
-            <div class="segmented-option active" data-lang="ru" onclick="setSearchLang('ru')">Русский</div>
-            <div class="segmented-option" data-lang="en" onclick="setSearchLang('en')">English</div>
-          </div>
-        </div>
       </div>
-      <button class="btn-primary" onclick="closeSmartSearch()" style="margin-top:20px;">Закрыть</button>
     </div>
   </div>
 
@@ -564,9 +555,9 @@
       </div>
       <div class="input-group"><label>Рост (см)</label><input type="number" id="profileHeight" min="100" max="250"></div>
       <div class="input-group"><label>Вес (кг)</label><input type="number" id="profileWeight" min="30" max="500" step="0.1"></div>
-      <button class="btn-primary" onclick="saveProfile()">💾 Сохранить</button>
-      <button class="btn-secondary" onclick="showPage('settingsPage')">⚙️ Настройки</button>
-      <button class="btn-secondary btn-danger" onclick="deleteAccount()">🗑️ Удалить аккаунт</button>
+      <button class="btn-primary" onclick="saveProfile()">Сохранить</button>
+      <button class="btn-secondary" onclick="showPage('settingsPage')">Настройки</button>
+      <button class="btn-secondary btn-danger" onclick="deleteAccount()">Удалить аккаунт</button>
     </div>
   </div>
   
@@ -574,9 +565,9 @@
   <div id="settingsPage" style="display:none;">
     <div class="card">
       <h2>Настройки</h2>
-      <button class="btn-secondary" onclick="exportData()">📤 Скачать данные</button>
-      <button class="btn-secondary" onclick="importData()">📥 Загрузить данные</button>
-      <button class="btn-secondary" onclick="showProductsManager()">📚 Мои продукты</button>
+      <button class="btn-secondary" onclick="exportData()">Скачать данные</button>
+      <button class="btn-secondary" onclick="importData()">Загрузить данные</button>
+      <button class="btn-secondary" onclick="showProductsManager()">Мои продукты</button>
       <h2 style="margin-top:24px;">Язык</h2>
       <div class="flex">
         <button class="btn-small" style="flex:1;" onclick="setLanguage('ru')">🇷🇺</button>
@@ -676,7 +667,6 @@
     let searchDebounce = null;
     let smartSearchEnabled = false;
     let smartSearchResults = 10;
-    let smartSearchLang = 'ru';
     let smartWaterEnabled = false;
 
     function vibrate(d = 10) { if (navigator.vibrate) navigator.vibrate(d); }
@@ -709,14 +699,6 @@
       document.querySelectorAll('#profileGenderControl .segmented-option').forEach(el => el.classList.remove('active'));
       document.querySelector(`#profileGenderControl .segmented-option[data-gender="${gender}"]`).classList.add('active');
       document.getElementById('profileGender').value = gender;
-    }
-
-    function setSearchLang(lang) {
-      smartSearchLang = lang;
-      document.querySelectorAll('#smartSearchSettings .segmented-option').forEach(el => {
-        el.classList.toggle('active', el.dataset.lang === lang);
-      });
-      localStorage.setItem('smartSearchLang', lang);
     }
 
     function updateStreak() {
@@ -1049,7 +1031,6 @@
       document.getElementById('smartSearchSettings').style.display = smartSearchEnabled ? 'block' : 'none';
       document.getElementById('resultsSlider').value = smartSearchResults;
       document.getElementById('resultsDisplay').innerText = smartSearchResults;
-      setSearchLang(smartSearchLang);
     }
 
     function closeSmartSearch() { 
@@ -1058,7 +1039,6 @@
       smartSearchResults = parseInt(document.getElementById('resultsSlider').value);
       localStorage.setItem('smartSearchEnabled', smartSearchEnabled);
       localStorage.setItem('smartSearchResults', smartSearchResults);
-      localStorage.setItem('smartSearchLang', smartSearchLang);
     }
 
     function fillFromProduct(name) {
@@ -1085,16 +1065,12 @@
     function setupAutocomplete() {
       let inp = document.getElementById('foodName');
       let list = document.getElementById('autocompleteList');
-      let enabled = () => localStorage.getItem('smartSearchEnabled') === 'true';
-      let resultsCount = () => parseInt(localStorage.getItem('smartSearchResults') || '10');
-      let lang = () => localStorage.getItem('smartSearchLang') || 'ru';
       
       inp.addEventListener('input', function() {
         let val = this.value.trim();
         if (val.length < 2) { list.style.display = 'none'; return; }
         
-        if (!enabled()) {
-          // Только локальная база
+        if (!smartSearchEnabled) {
           let localMatches = productsDB.filter(p => p.name.toLowerCase().includes(val.toLowerCase())).slice(0, 5);
           if (!localMatches.length) {
             list.style.display = 'none';
@@ -1105,13 +1081,12 @@
           return;
         }
         
-        // Умный поиск включен
         inp.placeholder = '🔍 Поиск...';
         inp.style.borderColor = '#4FACFE';
         if (searchDebounce) clearTimeout(searchDebounce);
         searchDebounce = setTimeout(() => {
           let localMatches = productsDB.filter(p => p.name.toLowerCase().includes(val.toLowerCase())).slice(0, 3);
-          let url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(val)}&json=1&page_size=${resultsCount()}&search_simple=1&search_fields=product_name&lc=${lang()}`;
+          let url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(val)}&json=1&page_size=${smartSearchResults}&search_simple=1&search_fields=product_name`;
           fetch(url).then(r => r.json()).then(d => {
             let items = [];
             if (d.products) items = d.products.filter(p => p.product_name).map(p => ({
@@ -1120,7 +1095,7 @@
               prot: p.nutriments?.proteins_100g || 0,
               fat: p.nutriments?.fat_100g || 0,
               carbs: p.nutriments?.carbohydrates_100g || 0
-            })).slice(0, resultsCount());
+            })).slice(0, smartSearchResults);
             let all = [...localMatches.map(p => ({ name: p.name, isLocal: true, ...p })), ...items];
             if (!all.length) {
               inp.placeholder = '❌ Ничего не найдено';
@@ -1768,7 +1743,6 @@
     window.setLanguage = setLanguage;
     window.selectSetupGender = selectSetupGender;
     window.selectProfileGender = selectProfileGender;
-    window.setSearchLang = setSearchLang;
     window.completeSetup = completeSetup;
     window.switchTab = switchTab;
     window.showProfile = showProfile;
@@ -1817,7 +1791,6 @@
       
       smartSearchEnabled = localStorage.getItem('smartSearchEnabled') === 'true';
       smartSearchResults = parseInt(localStorage.getItem('smartSearchResults') || '10');
-      smartSearchLang = localStorage.getItem('smartSearchLang') || 'ru';
       smartWaterEnabled = localStorage.getItem('smartWaterEnabled') === 'true';
       
       loadData();
