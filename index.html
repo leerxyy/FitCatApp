@@ -311,9 +311,7 @@
 </div>
 <script>
   // Исправленный Service Worker с экранированными кавычками
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register("data:application/javascript,self.addEventListener('install',e=>{e.waitUntil(caches.open('fitcat-v2').then(c=>c.addAll(['.'],{cache:'reload'})));self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!=='fitcat-v2').map(n=>caches.delete(n)))));clients.claim()});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>new Response('Offline'))))});".replace(/'/g, "\\'"));
+  
     });
   }
   
