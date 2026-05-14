@@ -616,5 +616,292 @@ window.onload = function() {
   window.addEventListener('online', () => { publishMyProgress(); });
 };
 </script>
+<!-- Подключаем MediaPipe Hands -->
+<script type="importmap">
+{
+  "imports": {
+    "@mediapipe/hands": "https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js",
+    "@mediapipe/camera_utils": "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js"
+  }
+}
+</script>
+
+<script type="module">
+import { Hands } from '@mediapipe/hands';
+
+// ==================== ЖЕСТОВОЕ УПРАВЛЕНИЕ ====================
+let gestureActive = false;
+let gestureVideo = null;
+let gestureStream = null;
+let hands = null;
+let cursorEl = null;
+let cursorX = 0, cursorY = 0;
+let lastPalmX = null, lastPalmY = null;
+let swipeCooldown = 0;
+let lastPinchDist = null;
+let fistDetected = false;
+let shakaDetected = false;
+
+const PALM_MOVE_THRESHOLD = 0.06;   // порог горизонтального свайпа
+const SCROLL_THRESHOLD = 0.04;      // вертикальный скролл
+const PINCH_THRESHOLD = 0.05;       // расстояние для клика
+const SWIPE_COOLDOWN_FRAMES = 25;   // задержка между свайпами
+
+// Создаём визуальный курсор (лазерная точка)
+function createCursor() {
+  const cursor = document.createElement('div');
+  cursor.id = 'gesture-cursor';
+  cursor.style.cssText = `
+    position: fixed; z-index: 9999; width: 32px; height: 32px;
+    border-radius: 50%; background: radial-gradient(circle, #4FACFE 0%, transparent 70%);
+    border: 2px solid rgba(255,255,255,0.8); pointer-events: none;
+    box-shadow: 0 0 20px rgba(79,172,254,0.8); display: none;
+    transform: translate(-50%, -50%); transition: opacity 0.15s;
+  `;
+  document.body.appendChild(cursor);
+  return cursor;
+}
+
+// Кнопка-переключатель (добавится автоматически в header)
+function addGestureButton() {
+  if (document.getElementById('gestureToggleBtn')) return;
+  const headerActions = document.querySelector('.header-actions');
+  if (!headerActions) return;
+  const btn = document.createElement('button');
+  btn.id = 'gestureToggleBtn';
+  btn.className = 'btn-small';
+  btn.style.cssText = 'padding:6px 8px; font-size:18px;';
+  btn.textContent = '🖐️';
+  btn.addEventListener('click', toggleGestureControl);
+  headerActions.insertBefore(btn, headerActions.firstChild);
+}
+
+async function startGestureControl() {
+  if (gestureActive) return;
+  gestureActive = true;
+
+  // Останавливаем сканер, если он работает
+  if (typeof scanningActive !== 'undefined' && scanningActive) {
+    if (typeof stopScanner === 'function') stopScanner();
+  }
+
+  // Видеоэлемент
+  gestureVideo = document.createElement('video');
+  gestureVideo.style.display = 'none';
+  gestureVideo.setAttribute('playsinline', '');
+  document.body.appendChild(gestureVideo);
+
+  // Инициализация Hands
+  hands = new Hands({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}`
+  });
+  hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.7,
+    minTrackingConfidence: 0.6
+  });
+  hands.onResults(processGestures);
+
+  try {
+    gestureStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    });
+    gestureVideo.srcObject = gestureStream;
+    await gestureVideo.play();
+  } catch (e) {
+    alert('Не удалось получить доступ к камере для жестов');
+    stopGestureControl();
+    return;
+  }
+
+  // Цикл отправки кадров
+  const sendLoop = async () => {
+    if (!gestureActive) return;
+    await hands.send({ image: gestureVideo });
+    requestAnimationFrame(sendLoop);
+  };
+  sendLoop();
+
+  // Курсор
+  cursorEl = createCursor();
+  // Обновим индикатор
+  const streakEmoji = document.getElementById('streakEmoji');
+  if (streakEmoji) {
+    streakEmoji.textContent = '🖐️';
+    streakEmoji.title = 'Жесты активны';
+  }
+  console.log('🖐️ Жестовое управление ВКЛ');
+}
+
+function stopGestureControl() {
+  gestureActive = false;
+  if (gestureStream) {
+    gestureStream.getTracks().forEach(t => t.stop());
+    gestureStream = null;
+  }
+  if (gestureVideo) {
+    gestureVideo.remove();
+    gestureVideo = null;
+  }
+  hands = null;
+  if (cursorEl) {
+    cursorEl.style.display = 'none';
+    // Не удаляем, чтобы можно было переиспользовать
+  }
+  lastPalmX = lastPalmY = null;
+
+  const streakEmoji = document.getElementById('streakEmoji');
+  if (streakEmoji) {
+    streakEmoji.textContent = '🕯️';
+    streakEmoji.title = '';
+  }
+  console.log('🖐️ Жестовое управление ВЫКЛ');
+}
+
+function toggleGestureControl() {
+  if (gestureActive) {
+    stopGestureControl();
+  } else {
+    startGestureControl();
+  }
+}
+
+// Обработка жестов
+function processGestures(results) {
+  if (!gestureActive) return;
+
+  if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+    if (cursorEl) cursorEl.style.display = 'none';
+    lastPalmX = lastPalmY = null;
+    lastPinchDist = null;
+    fistDetected = false;
+    shakaDetected = false;
+    return;
+  }
+
+  const lm = results.multiHandLandmarks[0];
+
+  // --- Курсор (указательный палец, точка 8) ---
+  const indexTip = lm[8];
+  cursorX = (1 - indexTip.x) * window.innerWidth;
+  cursorY = indexTip.y * window.innerHeight;
+  if (cursorEl) {
+    cursorEl.style.left = cursorX + 'px';
+    cursorEl.style.top = cursorY + 'px';
+    cursorEl.style.display = 'block';
+  }
+
+  // --- Движение центра ладони (точка 0) ---
+  const palmX = lm[0].x;
+  const palmY = lm[0].y;
+
+  if (swipeCooldown > 0) {
+    swipeCooldown--;
+    lastPalmX = palmX;
+    lastPalmY = palmY;
+  } else if (lastPalmX !== null) {
+    const dx = palmX - lastPalmX;
+    const dy = palmY - lastPalmY;
+
+    // Горизонтальный свайп (переключение вкладок)
+    if (Math.abs(dx) > PALM_MOVE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+      // Внимание: зеркалирование! При фронтальной камере движение вправо рукой даёт уменьшение X в кадре
+      // поэтому для перехода к следующей вкладке (currentPage+1) нужно физическое движение влево.
+      // Здесь используем текущую ориентацию: если рука пошла вправо (dx отрицательный в кадре), то это next
+      if (dx < 0) {
+        if (typeof switchTab === 'function') switchTab(Math.min(3, window.currentPage + 1));
+      } else {
+        if (typeof switchTab === 'function') switchTab(Math.max(0, window.currentPage - 1));
+      }
+      swipeCooldown = SWIPE_COOLDOWN_FRAMES;
+      if (navigator.vibrate) navigator.vibrate(20);
+      lastPalmX = palmX;
+      lastPalmY = palmY;
+      return;
+    }
+
+    // Вертикальный скролл
+    if (Math.abs(dy) > SCROLL_THRESHOLD && Math.abs(dy) > Math.abs(dx)) {
+      const swipePages = document.querySelectorAll('.swipe-page');
+      if (swipePages && swipePages.length > window.currentPage) {
+        const activePage = swipePages[window.currentPage];
+        activePage.scrollBy(0, dy * window.innerHeight * 2);
+      }
+    }
+
+    lastPalmX = palmX;
+    lastPalmY = palmY;
+  } else {
+    lastPalmX = palmX;
+    lastPalmY = palmY;
+  }
+
+  // --- Распознавание статических жестов ---
+  // Открытая ладонь: все 4 пальца вытянуты (кончик выше PIP сустава)
+  const fingerTips = [8, 12, 16, 20];
+  let allExtended = true;
+  for (let tip of fingerTips) {
+    const pip = lm[tip - 2];
+    if (lm[tip].y > pip.y) { allExtended = false; break; }
+  }
+  if (allExtended && window.currentPage !== 0) {
+    if (typeof switchTab === 'function') switchTab(0);
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
+
+  // Кулак: все 4 пальца согнуты (кончик ниже MCP сустава)
+  let allCurled = true;
+  for (let tip of fingerTips) {
+    if (lm[tip].y < lm[tip - 3].y) { allCurled = false; break; }
+  }
+  if (allCurled && !fistDetected) {
+    fistDetected = true;
+    if (typeof openScanner === 'function') openScanner();
+    if (navigator.vibrate) navigator.vibrate(30);
+  } else if (!allCurled) {
+    fistDetected = false;
+  }
+
+  // Shaka (мизинец + большой) -> добавить 200 мл воды
+  const thumbTip = lm[4];
+  const pinkyTip = lm[20];
+  const pinkyExtended = pinkyTip.y < lm[18].y;
+  const thumbExtended = thumbTip.x < lm[3].x;   // упрощённо: большой отведён
+  const othersCurled = lm[8].y > lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y;
+  if (pinkyExtended && thumbExtended && othersCurled && !shakaDetected) {
+    shakaDetected = true;
+    if (typeof addWater === 'function') addWater(200);
+    if (navigator.vibrate) navigator.vibrate(25);
+  } else if (!(pinkyExtended && thumbExtended)) {
+    shakaDetected = false;
+  }
+
+  // --- Щипок (клик) ---
+  const pinchDist = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y);
+  if (pinchDist < PINCH_THRESHOLD && lastPinchDist && lastPinchDist >= PINCH_THRESHOLD) {
+    const elem = document.elementFromPoint(cursorX, cursorY);
+    if (elem && elem.id !== 'gesture-cursor') {
+      elem.click();
+      if (navigator.vibrate) navigator.vibrate(10);
+      if (cursorEl) {
+        cursorEl.style.transform = 'translate(-50%, -50%) scale(0.5)';
+        setTimeout(() => { if (cursorEl) cursorEl.style.transform = 'translate(-50%, -50%) scale(1)'; }, 150);
+      }
+    }
+  }
+  lastPinchDist = pinchDist;
+}
+
+// Автоматически добавим кнопку после загрузки страницы
+if (document.readyState === 'complete') {
+  addGestureButton();
+} else {
+  window.addEventListener('load', addGestureButton);
+}
+
+// Экспортируем функцию для ручного вызова, если нужно
+window.toggleGestureControl = toggleGestureControl;
+</script>
 </body>
 </html>
